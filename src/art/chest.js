@@ -373,7 +373,10 @@ export function chestScene(ctx, w, h, t = 0, progress = 0) {
 
   const L = chestLayout(w, h);
   L.sockets.forEach((s, i) => {
-    medallion(ctx, s.x, s.y, s.r, medallionState(i + 1, p), i + 1);
+    // scene clock threaded through (additive opts) so the medallions' breath —
+    // and the next lock's rune-fire — follow this scene's time and its
+    // reduced-motion freeze instead of free-running on performance.now().
+    medallion(ctx, s.x, s.y, s.r, medallionState(i + 1, p), i + 1, { t: time });
   });
 
   // hearth-light: the room heats as the chest opens. A warm veil washes down

@@ -337,8 +337,12 @@ function duelMark(ctx, x, y, r, state) {
   ctx.restore();
 }
 
-export function medallion(ctx, x, y, r, state, ordinal) {
+// opts (additive, OW-RUNEFIRE): { t } — scene clock in ms. When the caller
+// drives time (chestScene does), breath/pulse phases follow its clock and its
+// reduced-motion freeze; absent, we fall back to performance.now() as before.
+export function medallion(ctx, x, y, r, state, ordinal, opts = {}) {
   const reduced = prefersReducedMotion();
+  const now = opts.t ?? (typeof performance !== 'undefined' ? performance.now() : Date.now());
   const ch = faceRune(ordinal);
   // seated shadow: the disc sits INSIDE a socket, so it casts down-right
   ctx.save();
@@ -367,8 +371,11 @@ export function medallion(ctx, x, y, r, state, ordinal) {
     drawRune(ctx, ch, x - r * 0.55 + r * 0.07, y - r * 0.55 + r * 0.09, r * 1.1, {
       color: rgba(palette.tar, 0.55), weight: r * 0.19,
     });
+    // A quiet ember of rune-fire lives on in an opened lock — the magic that
+    // unsealed it still inhabits the carving, far below the next lock's burn.
     drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
       color: mix(palette.bone, palette.goldBright, 0.3), weight: r * 0.15,
+      magic: 0.18, t: now,
     });
     discRim(ctx, x, y, r, palette.goldBright, mix(palette.gold, palette.tar, 0.62));
     if (DUEL_ORDINALS.has(ordinal)) duelMark(ctx, x, y, r, state);
@@ -379,7 +386,6 @@ export function medallion(ctx, x, y, r, state, ordinal) {
     // EMBER-BREATHING. A live coal: slow asymmetric breath (~4s), fissures in
     // the crust glowing with the pulse. Reduced motion holds mid-breath —
     // the light stays present, only the movement stops.
-    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
     const pulse = reduced ? 0.55 : Math.pow(Math.sin(now / 700) * 0.5 + 0.5, 1.35);
     glowFx(ctx, x, y, r * (1.7 + pulse * 0.55), palette.ember, 0.5 + pulse * 0.4);
     const g = ctx.createRadialGradient(x - r * 0.32, y - r * 0.36, r * 0.08, x, y, r);
@@ -409,10 +415,13 @@ export function medallion(ctx, x, y, r, state, ordinal) {
       ctx.stroke();
     }
     ctx.restore();
+    // The NEXT lock's rune breathes rune-fire with the coal: arcane blue down
+    // in the cut against the ember crust, wisps riding the top of the breath.
     drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
       color: mix(palette.goldBright, palette.bone, 0.35),
       weight: r * 0.15,
-      glow: reduced ? 0.3 : 0.3 + pulse * 0.3,
+      glow: reduced ? 0.24 : 0.24 + pulse * 0.24,
+      magic: 0.6 + pulse * 0.22, t: now,
     });
     discRim(ctx, x, y, r, mix(palette.ember, palette.goldBright, 0.5), mix(palette.ember, palette.tar, 0.7));
     if (DUEL_ORDINALS.has(ordinal)) duelMark(ctx, x, y, r, state);

@@ -65,3 +65,13 @@ export const clamp01 = (v) => Math.max(0, Math.min(1, v));
 // paired 1px shadows, tar above-left / goldBright ~18% below-right. A CSS
 // `text-shadow` value string — shell's style.js applies it to headings.
 export const reliefShadowCss = `-1px -1px 0 ${rgba(palette.tar, 0.85)}, 1px 1px 0 ${rgba(palette.goldBright, 0.18)}`;
+
+// Arcane family (OW-RUNEFIRE, additive): the rune-fire blue is never a new
+// token — only mixes of the frozen fjord/fjordLight/bone/tar paints, the way
+// every accent on the chest is a mix of what the carver already had on hand.
+export const arcane = {
+  deep: mix(palette.fjord, palette.tar, 0.3),          // bloom's cold outer edge
+  core: mix(palette.fjord, palette.fjordLight, 0.62),  // the groove's magic body
+  bright: mix(palette.fjordLight, palette.bone, 0.36), // heat inside the body
+  flame: mix(palette.fjordLight, palette.bone, 0.66),  // wisp heart / hot filament
+};

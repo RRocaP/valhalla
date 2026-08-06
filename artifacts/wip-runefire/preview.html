@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>OW-RUNEFIRE preview</title>
+<style>
+  body { margin:0; background:#0a0806; color:#e9dcc3; font: 12px/1.4 ui-monospace, 'SF Mono', Menlo, monospace; padding-bottom: 60px; }
+  h2 { font: 600 14px 'Iowan Old Style', Georgia, serif; color:#eecf6d; margin: 20px 12px 6px; border-bottom: 1px solid #3a2412; padding-bottom: 3px; }
+  .row { display:flex; flex-wrap:wrap; gap:6px; padding: 0 12px; align-items:flex-end; }
+  .cell { background:#000; padding:2px; }
+  .cell canvas { display:block; }
+  .label { font-size:10px; color:#b7a98c; margin-top:2px; text-align:center; }
+  .rowlabel { width:70px; color:#b7a98c; font-size:11px; align-self:center; }
+  pre { white-space:pre-wrap; padding:8px 12px; background:#150e07; border:1px solid #3a2412; margin:6px 12px; font-size:11px; }
+</style>
+</head>
+<body>
+
+<h2 id="mode">rune-fire — magic 0 / 0.4 / 0.8 / 1.0 · 16 runes @64 · OAK</h2>
+<div id="sec-oak"></div>
+
+<h2>same board on TAR</h2>
+<div id="sec-tar"></div>
+
+<h2>sizes 32 / 64 / 128 @ magic 0.8 — ᚠ ᛋ ᚼ ᛒ ᛁ, oak + tar</h2>
+<div class="row" id="sec-sizes"></div>
+
+<h2>reduced motion — magic 0.8 + 1.0, static glow, NO wisps (tar)</h2>
+<div class="row" id="sec-reduced"></div>
+
+<h2>wordmark whisper candidates (v2 judgment) — cold / diamond-glint / sól-magic</h2>
+<div class="row" id="sec-wordmark"></div>
+
+<h2>measure</h2>
+<pre id="measure">measuring…</pre>
+
+<script type="module">
+import { drawRune, wispAnchors, RUNE_MAGIC_VERSION } from '../../src/art/runes.js';
+import { ORDER } from '../../src/kernel/futhark.js';
+import { paintWood } from '../../src/art/wood.js';
+import { palette, arcane, mix, rgba, contrastRatio } from '../../src/art/palette.js';
+import { glow } from '../../src/art/util.js';
+import { wordmark } from '../../src/art/wordmark.js';
+
+const D = 2; // dSF2 — the judgment density
+const FROZEN_T = new URLSearchParams(location.search).get('t');
+const MAGICS = [0, 0.4, 0.8, 1.0];
+
+// one shared ground tile per kind, baked once
+function groundTile(kind, w, h) {
+  const c = document.createElement('canvas');
+  c.width = w * D; c.height = h * D;
+  const g = c.getContext('2d');
+  g.scale(D, D);
+  if (kind === 'oak') paintWood(g, w, h, 'runefire', { vignette: 0.25 });
+  else { g.fillStyle = palette.tar; g.fillRect(0, 0, w, h); }
+  return c;
+}
+
+const live = []; // {ctx, ground, w, h, paint(t)}
+
+function cell(parent, w, h, kind, label, paint) {
+  const box = document.createElement('div');
+  box.className = 'cell';
+  const cv = document.createElement('canvas');
+  cv.width = w * D; cv.height = h * D;
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(D, D);
+  box.appendChild(cv);
+  if (label) {
+    const lab = document.createElement('div');
+    lab.className = 'label';
+    lab.textContent = label;
+    box.appendChild(lab);
+  }
+  parent.appendChild(box);
+  const ground = groundTile(kind, w, h);
+  const entry = { ctx, ground, w, h, paint };
+  live.push(entry);
+  return entry;
+}
+
+function runeCell(parent, kind, ch, size, magic, opts = {}) {
+  const w = Math.round(size * 1.45);
+  const h = Math.round(size * 1.55);
+  const entry = cell(parent, w, h, kind, opts.label, null);
+  entry.paint = (ctx, t) => {
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(entry.ground, 0, 0, w, h);
+    drawRune(ctx, ch, size * 0.22, size * 0.28, size, {
+      magic, t, reduced: opts.reduced === true,
+      weight: opts.weight, color: opts.color,
+    });
+  };
+}
+
+// ---- boards -----------------------------------------------------------------
+
+for (const kind of ['oak', 'tar']) {
+  const sec = document.getElementById(`sec-${kind}`);
+  for (const m of MAGICS) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const rl = document.createElement('div');
+    rl.className = 'rowlabel';
+    rl.textContent = `magic ${m}`;
+    row.appendChild(rl);
+    sec.appendChild(row);
+    for (const ch of ORDER) runeCell(row, kind, ch, 64, m);
+  }
+}
+
+const sizesRow = document.getElementById('sec-sizes');
+for (const kind of ['oak', 'tar']) {
+  for (const size of [32, 64, 128]) {
+    for (const ch of ['ᚠ', 'ᛋ', 'ᚼ', 'ᛒ', 'ᛁ']) {
+      runeCell(sizesRow, kind, ch, size, 0.8, { label: `${size} ${kind}` });
+    }
+  }
+}
+
+const redRow = document.getElementById('sec-reduced');
+for (const m of [0.8, 1.0]) {
+  for (const ch of ORDER) runeCell(redRow, 'tar', ch, 64, m, { reduced: true, label: m === 0.8 ? '' : 'm1.0' });
+}
+
+// ---- wordmark whisper candidates (preview-only prototypes) -------------------
+
+function wmCell(label, extra) {
+  const w = 420; const h = 130;
+  const e = cell(document.getElementById('sec-wordmark'), w, h, 'oak', label, () => {});
+  e.paint = (ctx, t) => {
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(e.ground, 0, 0, w, h);
+    wordmark(ctx, w / 2, 62, 34, { maxWidth: w * 0.8 });
+    if (extra) extra(ctx, w, h, t);
+  };
+}
+wmCell('cold (shipping today)');
+wmCell('diamond arcane glint', (ctx, w, h, t) => {
+  const ruleY = 62 + 34 * 0.52;
+  const breath = FROZEN_T ? 0.6 : Math.sin(t * 0.0017) * 0.5 + 0.5;
+  glow(ctx, w / 2, ruleY, 34 * 0.6, arcane.bright, 0.14 + 0.08 * breath);
+});
+wmCell('sól runes magic 0.15', (ctx, w, h, t) => {
+  // re-draw the two sól runes with a whisper of magic over the cold ones
+  const size = 34; const ruleY = 62 + size * 0.52;
+  ctx.save();
+  ctx.font = `600 ${size}px 'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif`;
+  if ('letterSpacing' in ctx) ctx.letterSpacing = `${Math.round(size * 0.3)}px`;
+  const wordW = Math.min(ctx.measureText('VALHALLA').width, w * 0.8);
+  ctx.restore();
+  const ruleW = wordW * 0.86;
+  const rs = size * 0.4; const ro = rs * 0.62;
+  const ends = [w / 2 - ruleW / 2, w / 2 + ruleW / 2];
+  drawRune(ctx, 'ᛋ', ends[0] - ro - rs / 2, ruleY - rs * 0.52, rs, {
+    color: rgba(palette.gold, 0.85), weight: Math.max(1.4, rs * 0.13), mirror: true, magic: 0.15, t,
+  });
+  drawRune(ctx, 'ᛋ', ends[1] + ro - rs / 2, ruleY - rs * 0.52, rs, {
+    color: rgba(palette.gold, 0.85), weight: Math.max(1.4, rs * 0.13), magic: 0.15, t,
+  });
+});
+
+// ---- animation / freeze -------------------------------------------------------
+
+function renderAll(t) {
+  for (const e of live) e.paint(e.ctx, t);
+}
+
+if (FROZEN_T !== null) {
+  document.getElementById('mode').textContent += `  [FROZEN t=${FROZEN_T}]`;
+  renderAll(Number(FROZEN_T));
+} else {
+  const t0 = performance.now();
+  const loop = () => { renderAll(performance.now() - t0); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+
+// ---- measure ------------------------------------------------------------------
+
+function measure() {
+  const c = document.createElement('canvas');
+  c.width = 96 * D; c.height = 96 * D;
+  const g = c.getContext('2d');
+  g.scale(D, D);
+
+  const flush = () => g.getImageData(0, 0, 1, 1); // force rasterization into the timing window
+
+  // cold-cache first bake cost for the whole futhark @64
+  const tBake0 = performance.now();
+  for (const ch of ORDER) drawRune(g, ch, 12, 14, 64, { magic: 0.85, t: 0 });
+  flush();
+  const bakeMs = performance.now() - tBake0;
+
+  const N = 320;
+  const tBase0 = performance.now();
+  for (let i = 0; i < N; i++) drawRune(g, ORDER[i % 16], 12, 14, 64, {});
+  flush();
+  const baseMs = (performance.now() - tBase0) / N;
+
+  const tMag0 = performance.now();
+  for (let i = 0; i < N; i++) drawRune(g, ORDER[i % 16], 12, 14, 64, { magic: 0.85, t: i * 16.7 });
+  flush();
+  const magMs = (performance.now() - tMag0) / N;
+
+  // contrast: text near a magic'd rune. Worst plausible = bloom fringe veils
+  // the board under bone/goldBright text; absolute worst = full-alpha veil.
+  const fringeOak = mix(palette.oak, arcane.bright, 0.15);
+  const worstOak = mix(palette.oak, arcane.bright, 0.5);
+  const fringeTar = mix(palette.tar, arcane.core, 0.2);
+  const rows = [
+    ['bone on oak+15% bloom fringe', contrastRatio(palette.bone, fringeOak)],
+    ['bone on oak+50% bloom (worst case)', contrastRatio(palette.bone, worstOak)],
+    ['goldBright on tar+20% core fringe (hasp)', contrastRatio(palette.goldBright, fringeTar)],
+    ['boneDim on oak+15% bloom fringe', contrastRatio(palette.boneDim, fringeOak)],
+  ];
+
+  const anchors = ORDER.map((ch) => `${ch}:${wispAnchors(ch).length}`).join(' ');
+
+  document.getElementById('measure').textContent = [
+    `RUNE_MAGIC_VERSION ${RUNE_MAGIC_VERSION}   dSF ${D}`,
+    `first bake, 16 runes @64 (cold cache): ${bakeMs.toFixed(1)}ms total = ${(bakeMs / 16).toFixed(2)}ms/rune (once)`,
+    `steady state @64 dSF2: base ${baseMs.toFixed(3)}ms/rune · magic0.85 ${magMs.toFixed(3)}ms/rune · GLOW PASS ${(magMs - baseMs).toFixed(3)}ms/rune (gate ≤0.5)`,
+    ...rows.map(([k, v]) => `contrast ${k}: ${v.toFixed(2)}:1 ${v >= 4.5 ? 'PASS' : 'FAIL'}`),
+    `wisp anchors per rune (≤3): ${anchors}`,
+  ].join('\n');
+}
+
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  try { measure(); } catch (e) { document.getElementById('measure').textContent = 'MEASURE ERROR ' + e; }
+  document.body.dataset.ready = '1';
+}));
+</script>
+</body>
+</html>

@@ -3,8 +3,15 @@
 // variable-width ribbon polygons (not ctx.lineWidth) so strokes taper near
 // their true ends and stay full width through interior bends.
 import { BY_CH } from '../kernel/futhark.js';
-import { palette, rgba } from './palette.js';
-import { glow as glowFx } from './util.js';
+import { palette, rgba, mix, arcane, clamp01 } from './palette.js';
+import { glow as glowFx, prefersReducedMotion } from './util.js';
+
+// Rune-fire (OW-RUNEFIRE): `opts.magic` (0..1) fills the carved groove with a
+// cool arcane-blue core and a soft stroke-hugging bloom; at magic >= 0.6 tiny
+// flame wisps lick upward from the rune's top apexes. Sibling feature-detect:
+//   import { RUNE_MAGIC_VERSION } from '.../art/runes.js'
+//   drawRune(ctx, ch, x, y, size, { magic: 0..1, t: ms, reduced?: bool })
+export const RUNE_MAGIC_VERSION = 1;
 
 function ribbonSides(pts, widthFn) {
   const n = pts.length;
@@ -64,6 +71,194 @@ function fillRibbon(ctx, pts, maxWidth, taperFrac = 0.22) {
   ctx.fill();
 }
 
+// ---- rune-fire internals ---------------------------------------------------
+
+// Deterministic wisp anchors: the rune's top apexes (unique stroke vertices in
+// the upper part of the unit box), up to 3, spread apart in x so two wisps
+// never rise from the same spot. Pure — unit-box coords, cached per glyph.
+const ANCHOR_CACHE = new Map();
+export function wispAnchors(ch) {
+  let a = ANCHOR_CACHE.get(ch);
+  if (a) return a;
+  const rune = BY_CH[ch];
+  if (!rune) return [];
+  const seen = new Map();
+  for (const seg of rune.segments) {
+    for (const [px, py] of seg) {
+      const k = `${px.toFixed(2)},${py.toFixed(2)}`;
+      if (!seen.has(k)) seen.set(k, [px, py]);
+    }
+  }
+  const cand = [...seen.values()].filter(([, py]) => py <= 0.45).sort((p, q) => p[1] - q[1]);
+  a = [];
+  for (const p of cand) {
+    if (a.length >= 3) break;
+    if (a.every((q) => Math.abs(q[0] - p[0]) >= 0.18)) a.push(p);
+  }
+  ANCHOR_CACHE.set(ch, a);
+  return a;
+}
+
+// Sprite cache for the expensive, static part of the treatment (bloom + core).
+// Baked once per (glyph, size-bucket, weight-bucket) at 2x density, blitted
+// with magic/breath-driven alpha each frame. Mirroring rides the caller's ctx
+// transform, so mirrored runes share the same sprites.
+const SPRITE_CACHE = new Map();
+const SPRITE_MAX = 96;
+const SPRITE_DENSITY = 2;
+
+function bakeSprites(ch, size, weight) {
+  const rune = BY_CH[ch];
+  const pad = Math.ceil(size * 0.3 + weight);
+  const px = Math.ceil((size + pad * 2) * SPRITE_DENSITY);
+  const make = () => {
+    const c = document.createElement('canvas');
+    c.width = px;
+    c.height = px;
+    const g = c.getContext('2d');
+    g.scale(SPRITE_DENSITY, SPRITE_DENSITY);
+    g.translate(pad, pad);
+    return { c, g };
+  };
+
+  // BLOOM sprite: the strokes re-drawn far off-canvas with only their blurred
+  // shadow landing in view — a soft halo that hugs the inscription instead of
+  // a radial puddle floating around it. Two passes: cold wide, brighter tight.
+  // Kept quiet (v2): the halo is an atmosphere the carve sits in, and must
+  // never outshine the groove — v1 flooded the glyph and read as neon tube.
+  const bloom = make();
+  const OFF = px * 2;
+  for (const [blur, colr, alpha, wMul] of [
+    [size * 0.16, arcane.deep, 0.34, 1.7],
+    [size * 0.06, palette.fjordLight, 0.5, 1.0],
+  ]) {
+    bloom.g.save();
+    bloom.g.lineCap = 'round';
+    bloom.g.lineJoin = 'round';
+    bloom.g.strokeStyle = rgba(colr, 1);
+    bloom.g.lineWidth = weight * wMul;
+    bloom.g.shadowColor = rgba(colr, alpha);
+    bloom.g.shadowBlur = blur * SPRITE_DENSITY; // shadowBlur is device-space
+    bloom.g.shadowOffsetX = OFF;
+    bloom.g.translate(-OFF / SPRITE_DENSITY, 0);
+    for (const seg of rune.segments) {
+      bloom.g.beginPath();
+      seg.forEach(([sx, sy], i) => (i ? bloom.g.lineTo(sx * size, sy * size) : bloom.g.moveTo(sx * size, sy * size)));
+      bloom.g.stroke();
+    }
+    bloom.g.restore();
+  }
+
+  // CORE sprite: the fire down in the cut — a vein, not a coat of paint.
+  // First a scorch bed: the groove darkens toward fjord-tar where the magic
+  // lives, which is what lets the blue keep its chroma instead of chalking
+  // out against bone pigment (v2 read icy-grey without it). Then body, vein,
+  // filament — each narrower and hotter, all inside the pigment ribbon so the
+  // bone shoulders and the dark under-shadow keep reading as chisel work.
+  // Ladder (v4): the WIDEST bright pass is the saturated one — full-chroma
+  // fjordLight carries the magic; the bone-warm hot line is a true hairline.
+  // v3 had it inverted (pale vein widest) and the whole glyph chalked to ice.
+  const core = make();
+  for (const seg of rune.segments) {
+    const pts = seg.map(([sx, sy]) => [sx * size, sy * size]);
+    core.g.fillStyle = rgba(arcane.deep, 0.9);
+    fillRibbon(core.g, pts, weight * 0.9);
+    core.g.fillStyle = rgba(palette.fjordLight, 0.95);
+    fillRibbon(core.g, pts, weight * 0.52);
+    core.g.fillStyle = rgba(arcane.bright, 0.85);
+    fillRibbon(core.g, pts, weight * 0.18);
+    core.g.fillStyle = rgba(arcane.flame, 0.75);
+    fillRibbon(core.g, pts, Math.max(0.6, weight * 0.09));
+  }
+
+  return { bloom: bloom.c, core: core.c, pad };
+}
+
+function spritesFor(ch, size, weight) {
+  const szB = Math.max(8, Math.round(size / 4) * 4);
+  const wtB = Math.max(1, Math.round(weight * 2) / 2);
+  const key = `${ch}|${szB}|${wtB}`;
+  let s = SPRITE_CACHE.get(key);
+  if (!s) {
+    s = bakeSprites(ch, szB, wtB);
+    s.size = szB;
+    SPRITE_CACHE.set(key, s);
+    if (SPRITE_CACHE.size > SPRITE_MAX) {
+      SPRITE_CACHE.delete(SPRITE_CACHE.keys().next().value);
+    }
+  }
+  return s;
+}
+
+// One flame lick: a waisted S-curve tongue — pinched just above the base,
+// riding out to a bent tip. Straight-sided teardrops read as arrowheads.
+function wispPath(g, ax, ay, halfW, len, sway, bend) {
+  const tipX = ax + sway + bend;
+  const tipY = ay - len;
+  g.beginPath();
+  g.moveTo(ax - halfW, ay);
+  g.bezierCurveTo(ax - halfW * 0.2, ay - len * 0.3, ax + sway * 0.55 - halfW * 0.28, ay - len * 0.62, tipX, tipY);
+  g.bezierCurveTo(ax + sway * 0.6 + halfW * 0.26, ay - len * 0.6, ax + halfW * 0.2, ay - len * 0.28, ax + halfW, ay);
+  g.closePath();
+  g.fill();
+}
+
+function drawMagic(ctx, ch, size, weight, magic, t, reduced) {
+  const m = clamp01(magic);
+  if (m <= 0.01) return;
+  const phase = (ch.codePointAt(0) % 16) * 0.7854;
+  const breathRaw = reduced ? 0.55 : Math.sin(t * 0.0017 + phase) * 0.5 + 0.5;
+  const breath = Math.pow(breathRaw, 1.35);
+
+  const s = spritesFor(ch, size, weight);
+  const scale = size / s.size;
+  const padU = s.pad * scale;
+  const dw = (s.size + s.pad * 2) * scale;
+
+  // coreA is CAPPED below 1 so the pigment pass always ghosts through — even
+  // at magic 1.0 the glyph stays a carved rune that burns, never a light tube.
+  const bloomA = m * m * (0.32 + 0.42 * breath);
+  const coreA = Math.min(0.92, m * 1.45) * (0.8 + 0.2 * breath);
+  ctx.save();
+  if (bloomA > 0.01) {
+    ctx.globalAlpha = bloomA;
+    ctx.drawImage(s.bloom, -padU, -padU, dw, dw);
+  }
+  ctx.globalAlpha = coreA;
+  ctx.drawImage(s.core, -padU, -padU, dw, dw);
+  ctx.restore();
+
+  // Flame wisps — only once the magic truly burns, never under reduced
+  // motion, and geometry updated on a ~30fps gate so idle frames stay cheap.
+  const wispEase = clamp01((m - 0.6) / 0.3);
+  if (reduced || wispEase <= 0.01 || size < 18) return;
+  const ease = Math.sqrt(wispEase); // presence arrives early, saturates late
+  const tg = Math.floor(t / 33) * 33;
+  const anchors = wispAnchors(ch);
+  ctx.save();
+  for (let i = 0; i < anchors.length; i++) {
+    const [ux, uy] = anchors[i];
+    const ax = ux * size;
+    // sunk into the stroke so the flame emerges FROM the groove — based at
+    // the very apex it fused with the stroke's taper and read as a thorn.
+    const ay = uy * size + weight * 0.55;
+    // a standing lean per wisp keeps the lick flame-shaped even on a frozen
+    // frame; sway breathes around that lean rather than around dead vertical
+    const lean = (((i % 2) * 2 - 1) + Math.sin(phase + i)) * size * 0.018;
+    const sway = lean + Math.sin(tg * 0.0031 + phase + i * 2.1) * size * 0.04;
+    const flick = 0.7 + 0.3 * Math.sin(tg * 0.0093 + phase * 1.3 + i * 1.7);
+    const len = size * (0.14 + 0.08 * flick) * ease;
+    const bend = lean * 1.5 + Math.sin(tg * 0.0052 + i * 2.6) * size * 0.02;
+    ctx.fillStyle = rgba(palette.fjordLight, 0.5 * ease * flick);
+    wispPath(ctx, ax, ay, Math.max(1, weight * 0.4), len, sway, bend);
+    ctx.fillStyle = rgba(arcane.flame, 0.66 * ease * flick);
+    wispPath(ctx, ax, ay, Math.max(0.6, weight * 0.22), len * 0.72, sway * 0.85, bend * 0.75);
+  }
+  ctx.restore();
+}
+
+// ---- public draw -------------------------------------------------------------
+
 export function drawRune(ctx, ch, x, y, size, opts = {}) {
   const rune = BY_CH[ch];
   if (!rune) return;
@@ -91,6 +286,11 @@ export function drawRune(ctx, ch, x, y, size, opts = {}) {
     ctx.restore();
     ctx.fillStyle = color;
     fillRibbon(ctx, pts, weight);
+  }
+
+  if (opts.magic) {
+    const reduced = opts.reduced ?? prefersReducedMotion();
+    drawMagic(ctx, ch, size, weight, opts.magic, opts.t || 0, reduced);
   }
   ctx.restore();
 }
