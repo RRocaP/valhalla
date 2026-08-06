@@ -185,6 +185,10 @@ function runeChip(art, ch, size) {
 function mount(ctx) {
   const { root, instance, art, audio } = ctx;
   const P = art.palette;
+  // every listener is tracked so unmount can take them all back down
+  const bound = [];
+  const on = (el, type, fn) => { el.addEventListener(type, fn); bound.push([el, type, fn]); };
+  const unbind = () => { for (const [el, type, fn] of bound) el.removeEventListener(type, fn); bound.length = 0; };
   const wrap = document.createElement('div');
   wrap.className = 'ow-lock ow-hacksilver';
   const style = document.createElement('style');
@@ -276,7 +280,7 @@ function mount(ctx) {
     b.setAttribute('aria-checked', 'false');
     b.setAttribute('aria-label', `${instance.cuts[i]}`);
     b.appendChild(runeChip(art, ch, 22));
-    b.addEventListener('click', () => {
+    on(b, 'click', () => {
       piece = i;
       audio.ui('knock');
       ctx.note(`Accusation laid on the ${instance.cuts[i]}.`);
@@ -291,7 +295,7 @@ function mount(ctx) {
     b.type = 'button';
     b.textContent = label;
     b.setAttribute('aria-pressed', 'false');
-    b.addEventListener('click', () => {
+    on(b, 'click', () => {
       heavier = val;
       audio.ui('flip');
       ctx.note(`The fault is called ${val ? 'heavy' : 'light'}.`);
@@ -311,7 +315,7 @@ function mount(ctx) {
       : 'Name a piece and the direction of its fault.';
   }
 
-  send.addEventListener('click', () => {
+  on(send, 'click', () => {
     if (piece === null || heavier === null) return;
     ctx.submit({ piece, heavier });
   });
@@ -323,7 +327,7 @@ function mount(ctx) {
     if (e.key === 'h') { heavier = true; refresh(); e.preventDefault(); }
     if (e.key === 'l') { heavier = false; refresh(); e.preventDefault(); }
   };
-  wrap.addEventListener('keydown', onKey);
+  on(wrap, 'keydown', onKey);
 
   root.appendChild(wrap);
   ctx.note('Twelve cut pieces; one is false, heavy or light, and nobody swore which.');
@@ -340,7 +344,7 @@ function mount(ctx) {
 
   return {
     unmount() {
-      wrap.removeEventListener('keydown', onKey);
+      unbind();
       wrap.remove();
     },
   };

@@ -1,0 +1,7 @@
+06-jotunvillur: 112 nodes, 11 journal lines, submit verified, unmount clean
+07-tafl: 9 nodes, 11 journal lines, submit verified, unmount clean
+08-hacksilver: 80 nodes, 6 journal lines, submit verified, unmount clean
+09-sunstone: 23 nodes, 7 journal lines, submit verified, unmount clean
+10-drottkvaett: 53 nodes, 19 journal lines, submit verified, unmount clean
+
+listeners still live after all unmounts: 0

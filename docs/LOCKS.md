@@ -96,8 +96,10 @@ lexicon filtering (that's the difficulty). Floors: minSteps 16, estMinutes 8.
 ## 07 — `07-tafl` · The King's Road · tier 3 · LOCKS-B
 Brandubh (7×7 hnefatafl) endgame. Player moves the king's side; the attacker
 plays a FROZEN deterministic policy (spec it exactly in the module doc:
-1. play a capture if available, else 2. minimise king's BFS distance to any
-edge exit, ties broken row-major by from-then-to). Find the escape in ≤ N
+1. play a capture if available, else 2. play the reply that most worsens the
+king's escape — maximise the king's BFS distance to an exit (adversarial
+reading, ruled 2026-08-06; implemented behind POLICY_SIGN), ties broken
+row-major by from-then-to). Find the escape in ≤ N
 moves (N=3 or 4; generator search guarantees a forced win exists and that at least
 two natural first moves fail). **Answer:** `{ line: [[from,to],…] }` — verify
 simulates. Multiple winning lines allowed only if generator proves uniqueness;
@@ -117,10 +119,13 @@ minSteps 20, estMinutes 12.
 Overcast sea. The sólarsteinn gives the sun's ring, not its point: each of
 three readings constrains the sun to TWO azimuths on a 64-point ring (reading
 r → r+16 or r−16 mod 64). One reading was taken through a wet stone and is
-corrupted (arbitrary). Exactly one azimuth is consistent with two uncorrupted
-readings; generator sweeps all 64 to guarantee uniqueness of (azimuth, corrupt
-index). **Answer:** `{ azimuth: 0..63, wet: i }`. Floors: minSteps 22,
-estMinutes 13.
+corrupted (arbitrary). Amendment (ruled 2026-08-06): the two candidates of a
+clean reading are antipodal, so readings alone can never single out one
+azimuth — the instance also carries a **day-mark** naming the 32-point half
+of the ring the sun stands in (in-fiction: morning or evening watch). With
+it, exactly one (azimuth, wet index) pair is consistent; generator sweeps all
+64×3 to guarantee uniqueness. **Answer:** `{ azimuth: 0..63, wet: i }`.
+Floors: minSteps 22, estMinutes 13.
 
 ## 10 — `10-drottkvaett` · The Dróttkvætt Lines · tier 3 · LOCKS-B
 Eight carved half-lines must be paired and ordered into four long lines of

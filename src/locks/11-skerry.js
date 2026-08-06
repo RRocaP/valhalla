@@ -9,14 +9,22 @@
 //
 // Answer: { route: [node indices] } — the fleet's berth to the hoard in the
 // minimum number of legs. Per docs/LOCKS.md §11 the answer is a PROPERTY, not
-// an object: verify accepts any legal route whose leg-count equals the
-// optimum. The generator guarantees the tide-ignoring shortest road is
-// strictly cheaper than the true optimum, so every greedy road fails on count.
+// an object: verify accepts any legal route whose leg-count equals the optimum.
+// The generator guarantees two things about every chart it hands out:
+//   · the tide-ignoring shortest road is STRICTLY cheaper than the true
+//     optimum, so every greedy road fails on leg-count; and
+//   · the optimal route is unique as a PATH, not merely as a leg-count. §11
+//     permits the path to vary; pinning it is stronger, and it is what keeps
+//     the frozen mutation gate (CONTRACT §7.2) meaningful — with alternate
+//     optimal roads on the chart, a swapped pair of skerries can land on a
+//     second legal optimum and read as a lock accepting a wrong answer.
+//     Verify's semantics are untouched: legality plus leg-count, nothing else.
 //
 // Difficulty accounting (docs/CONTRACT.md §4): measured over 400 seeds the
-// optimum is 11–18 legs (typical 12–14), and reading a channel's tide-cut
-// before committing to it is a distinct action on every branch the line
-// actually touches. 26 is the floor of that sum, not a padded number.
+// optimum is 10–14 legs (mode 12), and each committed leg is preceded by
+// reading the tide-cut of the channels branching off the skerry the fleet is
+// standing on — a distinct action per branch. 26 is the floor of that sum, not
+// a padded number.
 //
 // PURE HALF: no DOM, no Date, no Math.random, no module-level mutable state.
 
@@ -110,6 +118,29 @@ function naiveRoute(n, adj, start, goal) {
     cur = step;
   }
   return cur === goal ? route : null;
+}
+
+// How many distinct optimal routes exist. Steps that keep the leg-count optimal
+// strictly decrease the distance still to run, so the tight sub-graph is
+// acyclic and the count is a plain DP.
+function countOptimalRoutes(n, adj, start, goal, dist) {
+  const memo = new Map();
+  const go = (node, parity) => {
+    if (node === goal) return 1;
+    const state = node * 2 + parity;
+    if (memo.has(state)) return memo.get(state);
+    memo.set(state, 0); // guard; the sub-graph is acyclic, this is never read back
+    let total = 0;
+    for (const { to, kind } of adj[node]) {
+      if (!passable(kind, parity)) continue;
+      const t = to * 2 + nextParity(kind, parity);
+      if (dist[t] + legCost(kind) === dist[state]) total += go(to, nextParity(kind, parity));
+      if (total > 1) break;
+    }
+    memo.set(state, total);
+    return total;
+  };
+  return go(start, 0);
 }
 
 // Lexicographically smallest optimal route (canonical answer).
@@ -236,6 +267,7 @@ function chartFor(r) {
     const naive = naiveDistances(nodes.length, adj, goal)[start];
     if (!Number.isFinite(naive) || naive >= optimum) continue;
     if (optimum > 26) continue;
+    if (countOptimalRoutes(nodes.length, adj, start, goal, dist) !== 1) continue;
     const route = optimalRoute(nodes.length, adj, start, goal, dist);
     if (!route) continue;
     const built = { nodes, edges, start, goal, optimum, naiveLegs: naive };
@@ -439,6 +471,276 @@ export default {
   ],
 
   mount(ctx) {
-    return { unmount() {} };
+    const art = ctx.art;
+    const p = art.palette;
+    const inst = ctx.instance;
+    const self = this;
+
+    const cleanup = [];
+    const on = (el, ev, fn, opts) => {
+      el.addEventListener(ev, fn, opts);
+      cleanup.push(() => el.removeEventListener(ev, fn, opts));
+    };
+    const sfx = (k) => { try { ctx.audio && ctx.audio.ui && ctx.audio.ui(k); } catch (e) { /* silent hall */ } };
+    const say = (t) => { try { ctx.note && ctx.note(t); } catch (e) { /* no journal */ } };
+    const node = (tag, css, text) => {
+      const n = document.createElement(tag);
+      if (css) n.style.cssText = css;
+      if (text != null) n.textContent = text;
+      return n;
+    };
+
+    const KIND_WORD = { ebb: 'cut for the ebb', flood: 'cut for the flood', always: 'takes any tide', portage: 'a portage: two legs, and the tide does not turn' };
+    const KIND_SHORT = { ebb: 'ebb', flood: 'flood', always: 'any tide', portage: 'portage' };
+    const KIND_COLOUR = { ebb: p.fjordLight, flood: p.pineLight, always: p.boneDim, portage: p.gold };
+    const nameOf = (i) => inst.nodes[i].name;
+
+    // ---- state -----------------------------------------------------------
+    let route = ctx.solved ? self.solve(inst).route.slice() : [inst.start];
+    const legsOf = (r) => {
+      let legs = 0;
+      for (let i = 0; i + 1 < r.length; i++) {
+        const e = findEdge(inst, r[i], r[i + 1]);
+        if (!e) return legs;
+        legs += legCost(e.kind);
+      }
+      return legs;
+    };
+    const head = () => route[route.length - 1];
+    const parity = () => legsOf(route) % 2;
+    const nextMoves = () => {
+      const out = [];
+      for (const e of inst.edges) {
+        const from = head();
+        const to = e.a === from ? e.b : e.b === from ? e.a : -1;
+        if (to < 0 || !passable(e.kind, parity())) continue;
+        out.push({ to, kind: e.kind });
+      }
+      return out.sort((x, y) => x.to - y.to);
+    };
+
+    // ---- frame -----------------------------------------------------------
+    const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
+    const wrap = node('div', `display:grid;gap:12px;font-family:${SERIF};color:${p.bone}`);
+    const style = node('style');
+    style.textContent = `
+      .ow11-act{font-family:${SERIF};font-size:15px;color:${p.bone};background:${p.oakDeep};
+        border:1px solid ${p.gold};border-radius:3px;padding:11px 16px;min-height:44px;cursor:pointer}
+      .ow11-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
+      .ow11-act[disabled]{opacity:.45;cursor:default}
+      .ow11-leg{font-family:${SERIF};font-size:15px;text-align:left;color:${p.bone};
+        background:${p.oakDeep};border:1px solid ${p.oakLight};border-left:4px solid ${p.gold};
+        border-radius:3px;padding:10px 14px;min-height:44px;cursor:pointer;width:100%}
+      .ow11-leg:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
+      .ow11-leg:hover{border-color:${p.gold}}
+      .ow11-tide{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:${p.boneDim};
+        border:1px solid ${p.oakLight};border-radius:999px;padding:6px 14px;min-height:34px}
+      .ow11-dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+    `;
+    wrap.append(style);
+
+    const chart = art.makeCanvas(720, 430);
+    chart.canvas.style.cssText = 'width:100%;height:auto;display:block;border-radius:4px;touch-action:manipulation;cursor:pointer';
+    chart.canvas.setAttribute('role', 'img');
+
+    const tideBar = node('div', 'display:flex;gap:10px;flex-wrap:wrap;align-items:center');
+    const tidePill = node('div');
+    tidePill.className = 'ow11-tide';
+    const tideDot = node('span');
+    tideDot.className = 'ow11-dot';
+    const tideText = node('span', null, '');
+    tidePill.append(tideDot, tideText);
+    const legendText = node('p', `margin:0;font-size:12.5px;color:${p.boneDim};max-width:60ch`,
+      'Blue sounds run on the ebb, green on the flood, pale sounds take any tide. '
+      + 'Gold dashes are portages: two legs of hauling, and the tide stands where it stood.');
+    tideBar.append(tidePill);
+
+    const movesLabel = node('p', `margin:0;font-size:13px;color:${p.boneDim};letter-spacing:.06em`, 'Water open from here');
+    const moves = node('div', 'display:grid;gap:7px');
+
+    const actions = node('div', 'display:flex;gap:9px;flex-wrap:wrap;align-items:center');
+    const backBtn = node('button', null, 'Back one leg');
+    const resetBtn = node('button', null, 'Cast off anew');
+    const sealBtn = node('button', null, 'Seal the route');
+    for (const b of [backBtn, resetBtn, sealBtn]) { b.className = 'ow11-act'; b.type = 'button'; }
+    actions.append(backBtn, resetBtn, sealBtn);
+
+    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim}`);
+    status.setAttribute('aria-live', 'polite');
+
+    wrap.append(chart.canvas, tideBar, legendText, movesLabel, moves, actions, status);
+    ctx.root.append(wrap);
+
+    // ---- painting --------------------------------------------------------
+    const PAD = 44;
+    const px = (n) => PAD + inst.nodes[n].x * (chart.w - PAD * 2);
+    const py = (n) => PAD + inst.nodes[n].y * (chart.h - PAD * 2);
+
+    function paint() {
+      const c = chart.ctx;
+      c.clearRect(0, 0, chart.w, chart.h);
+      art.paintWood(c, chart.w, chart.h, 1101);
+      art.paintPanel(c, 6, 6, chart.w - 12, chart.h - 12);
+
+      for (const e of inst.edges) {
+        c.save();
+        c.strokeStyle = KIND_COLOUR[e.kind];
+        c.lineWidth = e.kind === 'portage' ? 2.5 : 3.5;
+        c.lineCap = 'round';
+        if (e.kind === 'portage') c.setLineDash([7, 6]);
+        c.globalAlpha = 0.85;
+        c.beginPath();
+        c.moveTo(px(e.a), py(e.a));
+        c.lineTo(px(e.b), py(e.b));
+        c.stroke();
+        c.restore();
+      }
+
+      // the committed road, leg by leg
+      if (route.length > 1) {
+        c.save();
+        c.strokeStyle = p.goldBright;
+        c.lineWidth = 6;
+        c.lineJoin = 'round';
+        c.lineCap = 'round';
+        c.globalAlpha = 0.9;
+        c.beginPath();
+        c.moveTo(px(route[0]), py(route[0]));
+        for (let i = 1; i < route.length; i++) c.lineTo(px(route[i]), py(route[i]));
+        c.stroke();
+        c.restore();
+      }
+
+      for (let i = 0; i < inst.nodes.length; i++) {
+        const n = inst.nodes[i];
+        const x = px(i);
+        const y = py(i);
+        const isHead = i === head();
+        const r = n.role === 'skerry' ? 9 : 13;
+        if (n.role === 'hoard') art.glow(c, x, y, 26, p.gold, 0.5);
+        if (n.role === 'fleet') art.glow(c, x, y, 24, p.ember, 0.45);
+        if (isHead) art.glow(c, x, y, 22, p.goldBright, 0.6);
+        c.save();
+        c.beginPath();
+        c.arc(x, y, r, 0, Math.PI * 2);
+        c.fillStyle = p.oakDeep;
+        c.fill();
+        c.lineWidth = 2.5;
+        c.strokeStyle = isHead ? p.goldBright : n.role === 'hoard' ? p.gold : n.role === 'fleet' ? p.ember : p.oakLight;
+        c.stroke();
+        c.fillStyle = isHead ? p.goldBright : p.boneDim;
+        c.font = `${n.role === 'skerry' ? 12 : 13}px ${SERIF}`;
+        c.textAlign = 'center';
+        c.fillText(n.name, x, y + r + 15);
+        c.restore();
+      }
+    }
+
+    // ---- text mirror + redraw -------------------------------------------
+    function routeWords() {
+      if (route.length < 2) return `The fleet lies at ${nameOf(inst.start)}. No leg is rowed.`;
+      const parts = [];
+      let legs = 0;
+      for (let i = 0; i + 1 < route.length; i++) {
+        const e = findEdge(inst, route[i], route[i + 1]);
+        const tide = tideOfParity(legs % 2);
+        parts.push(e.kind === 'portage'
+          ? `hauled over to ${nameOf(route[i + 1])}`
+          : `rowed to ${nameOf(route[i + 1])} on the ${tide}`);
+        legs += legCost(e.kind);
+      }
+      return `From ${nameOf(inst.start)}: ${parts.join(', ')}. ${legs} legs rowed.`;
+    }
+
+    function render(announce) {
+      paint();
+      const legs = legsOf(route);
+      const tide = tideOfParity(legs % 2);
+      tideDot.style.background = tide === 'ebb' ? p.fjordLight : p.pineLight;
+      tideText.textContent = `Leg ${legs + 1} runs on the ${tide}`;
+      chart.canvas.setAttribute('aria-label', routeWords());
+
+      moves.textContent = '';
+      if (ctx.solved) {
+        movesLabel.textContent = 'The road, as it was sailed';
+      } else {
+        const list = nextMoves();
+        movesLabel.textContent = list.length ? 'Water open from here' : 'No water opens on this tide';
+        for (const m of list) {
+          const b = node('button', null, `${m.kind === 'portage' ? 'Haul over to' : 'Row to'} ${nameOf(m.to)} — ${KIND_WORD[m.kind]}`);
+          b.className = 'ow11-leg';
+          b.type = 'button';
+          on(b, 'click', () => step(m.to));
+          moves.append(b);
+        }
+      }
+      if (announce) status.textContent = announce;
+    }
+
+    function step(to) {
+      const e = findEdge(inst, head(), to);
+      if (!e || !passable(e.kind, parity())) { sfx('deny'); return; }
+      const legNo = legsOf(route) + 1;
+      route.push(to);
+      sfx(e.kind === 'portage' ? 'slide' : 'tick');
+      say(`Leg ${legNo}: ${e.kind === 'portage' ? `hauled over to ${nameOf(to)}` : `${nameOf(to)} on the ${tideOfParity((legNo - 1) % 2)}`}.`);
+      render(to === inst.goal ? `The fleet lies at ${nameOf(to)}. Seal the route, or find a shorter one.` : '');
+    }
+
+    // ---- input -----------------------------------------------------------
+    on(chart.canvas, 'click', (ev) => {
+      if (ctx.solved) return;
+      const box = chart.canvas.getBoundingClientRect();
+      const scale = chart.w / box.width;
+      const x = (ev.clientX - box.left) * scale;
+      const y = (ev.clientY - box.top) * scale;
+      let best = -1;
+      let bestD = 26;
+      for (let i = 0; i < inst.nodes.length; i++) {
+        const d = Math.hypot(px(i) - x, py(i) - y);
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      if (best >= 0) step(best);
+    });
+
+    on(backBtn, 'click', () => {
+      if (ctx.solved || route.length < 2) { sfx('deny'); return; }
+      const gone = route.pop();
+      sfx('knock');
+      say(`Backed water from ${nameOf(gone)}.`);
+      render('');
+    });
+    on(resetBtn, 'click', () => {
+      if (ctx.solved) return;
+      route = [inst.start];
+      sfx('knock');
+      say('Back to the moorings; the road is drawn again from the first ebb.');
+      render('The fleet lies at the moorings.');
+    });
+    on(sealBtn, 'click', () => {
+      if (ctx.solved) return;
+      const answer = { route: route.slice() };
+      say(routeWords());
+      const res = ctx.submit(answer) || {};
+      if (!res.ok) status.textContent = res.near || 'The sea does not take that road.';
+    });
+
+    if (ctx.solved) {
+      backBtn.disabled = true;
+      resetBtn.disabled = true;
+      sealBtn.disabled = true;
+    }
+
+    say(`A chart of ${inst.nodes.length} skerries. The fleet lies at ${nameOf(inst.start)}; the hoard is on ${nameOf(inst.goal)}. `
+      + 'The tide turns with every leg — the first leg runs on the ebb.');
+    render(ctx.solved ? 'The road stands sailed.' : '');
+
+    return {
+      unmount() {
+        for (const f of cleanup) f();
+        cleanup.length = 0;
+        wrap.remove();
+      },
+    };
   },
 };

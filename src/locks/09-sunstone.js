@@ -217,6 +217,10 @@ function drawRose(art, size, instance, needle) {
 function mount(ctx) {
   const { root, instance, art, audio } = ctx;
   const P = art.palette;
+  // every listener is tracked so unmount can take them all back down
+  const bound = [];
+  const on = (el, type, fn) => { el.addEventListener(type, fn); bound.push([el, type, fn]); };
+  const unbind = () => { for (const [el, type, fn] of bound) el.removeEventListener(type, fn); bound.length = 0; };
   const wrap = document.createElement('div');
   wrap.className = 'ow-lock ow-sunstone';
   const style = document.createElement('style');
@@ -272,7 +276,7 @@ function mount(ctx) {
       b.textContent = `${c}`;
       b.setAttribute('aria-label', `take bearing ${c}, ${airt(c)}`);
       b.setAttribute('aria-pressed', 'false');
-      b.addEventListener('click', () => {
+      on(b, 'click', () => {
         needle = c;
         audio.ui('slide');
         ctx.note(`Bearing set to point ${c} — ${airt(c)}.`);
@@ -287,7 +291,7 @@ function mount(ctx) {
     w.textContent = 'wet';
     w.setAttribute('aria-label', `call ${instance.stones[i]} the wet stone`);
     w.setAttribute('aria-pressed', 'false');
-    w.addEventListener('click', () => {
+    on(w, 'click', () => {
       wet = wet === i ? null : i;
       audio.ui('flip');
       ctx.note(wet === i ? `${instance.stones[i]} is called corrupt.` : 'No stone is called corrupt.');
@@ -320,7 +324,7 @@ function mount(ctx) {
     send.disabled = wet === null;
   }
 
-  send.addEventListener('click', () => {
+  on(send, 'click', () => {
     if (wet === null) return;
     ctx.submit({ azimuth: needle, wet });
   });
@@ -331,7 +335,7 @@ function mount(ctx) {
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { needle = mod(needle - 1); refresh(); e.preventDefault(); }
     else if (e.key >= '1' && e.key <= '3') { wet = Number(e.key) - 1; refresh(); e.preventDefault(); }
   };
-  wrap.addEventListener('keydown', onKey);
+  on(wrap, 'keydown', onKey);
 
   root.appendChild(wrap);
   ctx.note('The sunstone shows the polarised band, a quarter-ring from the sun: each reading admits two bearings, opposite one another.');
@@ -350,7 +354,7 @@ function mount(ctx) {
 
   return {
     unmount() {
-      wrap.removeEventListener('keydown', onKey);
+      unbind();
       wrap.remove();
     },
   };

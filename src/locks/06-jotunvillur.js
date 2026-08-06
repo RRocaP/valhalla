@@ -194,6 +194,10 @@ function runeStrip(art, chars, size, opts = {}) {
 function mount(ctx) {
   const { root, instance, art, audio } = ctx;
   const P = art.palette;
+  // every listener is tracked so unmount can take them all back down
+  const bound = [];
+  const on = (el, type, fn) => { el.addEventListener(type, fn); bound.push([el, type, fn]); };
+  const unbind = () => { for (const [el, type, fn] of bound) el.removeEventListener(type, fn); bound.length = 0; };
   const wrap = document.createElement('div');
   wrap.className = 'ow-lock ow-jotun';
   const styleEl = document.createElement('style');
@@ -242,8 +246,8 @@ function mount(ctx) {
     slot.className = 'slot';
     slot.textContent = '·····';
     row.appendChild(slot);
-    row.addEventListener('click', () => select(i));
-    row.addEventListener('keydown', (e) => {
+    on(row, 'click', () => select(i));
+    on(row, 'keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(i); }
     });
     rows.appendChild(row);
@@ -282,14 +286,14 @@ function mount(ctx) {
     cap.style.cssText = `font-size:.7rem;color:${P.boneDim}`;
     cap.textContent = letter;
     b.appendChild(cap);
-    b.addEventListener('click', () => { draft += letter; audio.ui('tick'); refresh(); });
+    on(b, 'click', () => { draft += letter; audio.ui('tick'); refresh(); });
     keys.appendChild(b);
   }
   const back = document.createElement('button');
   back.type = 'button';
   back.textContent = '⌫';
   back.setAttribute('aria-label', 'erase last letter');
-  back.addEventListener('click', () => { draft = draft.slice(0, -1); audio.ui('tick'); refresh(); });
+  on(back, 'click', () => { draft = draft.slice(0, -1); audio.ui('tick'); refresh(); });
   keys.appendChild(back);
 
   const slateEls = instance.lexicon.map(([w, gloss]) => {
@@ -298,7 +302,7 @@ function mount(ctx) {
     b.textContent = w;
     b.title = gloss;
     b.setAttribute('aria-label', `${w} — ${gloss}`);
-    b.addEventListener('click', () => {
+    on(b, 'click', () => {
       picks[sel] = w;
       draft = '';
       audio.ui('knock');
@@ -338,7 +342,7 @@ function mount(ctx) {
     send.disabled = picks.some((p) => p === null);
   }
 
-  send.addEventListener('click', () => {
+  on(send, 'click', () => {
     if (picks.some((p) => p === null)) return;
     ctx.note(`Manifest read: ${picks.join(' · ')}.`);
     ctx.submit({ words: picks.slice() });
@@ -350,7 +354,7 @@ function mount(ctx) {
     if (e.key === 'Backspace') { draft = draft.slice(0, -1); refresh(); e.preventDefault(); return; }
     if (CIPHER[e.key.toLowerCase()]) { draft += e.key.toLowerCase(); refresh(); e.preventDefault(); }
   };
-  wrap.addEventListener('keydown', onKey);
+  on(wrap, 'keydown', onKey);
 
   root.appendChild(wrap);
   ctx.note('Four cargo words, carved in giant-madness. Each rune stands for every letter whose rune-name ends in it.');
@@ -363,7 +367,7 @@ function mount(ctx) {
 
   return {
     unmount() {
-      wrap.removeEventListener('keydown', onKey);
+      unbind();
       wrap.remove();
     },
   };

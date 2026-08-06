@@ -172,29 +172,63 @@ function makeConstraint(r, names, pos, wantTrue) {
   return null;
 }
 
-function buildOaths(r, names, pos) {
-  const chosen = [];
-  const seen = new Set();
-  const key = (c) => (c.kind === 'left-of' ? `${c.kind}:${c.x}:${c.y}` : `${c.kind}:${Math.min(c.x, c.y)}:${Math.max(c.x, c.y)}`);
-  for (let i = 0; i < 8; i++) {
-    let c = null;
-    for (let tries = 0; tries < 40 && !c; tries++) {
-      const cand = makeConstraint(r, names, pos, true);
-      if (cand && !seen.has(key(cand))) c = cand;
-    }
-    if (!c) return null;
-    seen.add(key(c));
-    chosen.push(c);
-  }
-  let boast = null;
-  for (let tries = 0; tries < 60 && !boast; tries++) {
-    const cand = makeConstraint(r, names, pos, false);
-    if (cand && !seen.has(key(cand))) boast = cand;
-  }
+const oathKey = (c) => (c.kind === 'left-of'
+  ? `${c.kind}:${c.x}:${c.y}`
+  : `${c.kind}:${Math.min(c.x, c.y)}:${Math.max(c.x, c.y)}`);
+
+// Nine oaths around a true seating: one boast, then eight sworn truths, each
+// picked from a sample of candidates for how many RIVAL halls it kills. Random
+// oaths almost never pin a hall down to one seating; chosen ones do.
+function buildOaths(r, names, pos, flat) {
+  const boast = makeConstraint(r, names, pos, false);
   if (!boast) return null;
+  const seen = new Set([oathKey(boast)]);
+  const truths = [];
+
+  const live = new Int32Array(CANONICAL_COUNT);
+  for (let i = 0; i < CANONICAL_COUNT; i++) live[i] = i;
+  let n = CANONICAL_COUNT;
+  const cnt = new Uint8Array(CANONICAL_COUNT);
+  const brokenBy = (c, base) => (holdsRaw(c.kind, flat[base + c.x], flat[base + c.y]) ? 0 : 1);
+
+  const apply = (c) => {
+    let w = 0;
+    for (let k = 0; k < n; k++) {
+      const idx = live[k];
+      const v = cnt[idx] + brokenBy(c, idx * 8);
+      if (v > 2) continue;
+      cnt[idx] = v;
+      live[w++] = idx;
+    }
+    n = w;
+  };
+  const rivals = (c) => {
+    const stride = Math.max(1, Math.floor(n / 4000));
+    let count = 0;
+    for (let k = 0; k < n; k += stride) {
+      const idx = live[k];
+      if (cnt[idx] + brokenBy(c, idx * 8) <= 1) count++;
+    }
+    return count;
+  };
+
+  apply(boast);
+  for (let step = 0; step < 8; step++) {
+    let best = null;
+    let bestScore = Infinity;
+    for (let t = 0; t < 12; t++) {
+      const cand = makeConstraint(r, names, pos, true);
+      if (!cand || seen.has(oathKey(cand))) continue;
+      const s = rivals(cand);
+      if (s < bestScore) { bestScore = s; best = cand; }
+    }
+    if (!best) return null;
+    seen.add(oathKey(best));
+    truths.push(best);
+    apply(best);
+  }
   const at = r.int(9);
-  const oaths = chosen.slice(0, at).concat([boast], chosen.slice(at));
-  return { oaths, boastIndex: at };
+  return { oaths: truths.slice(0, at).concat([boast], truths.slice(at)), boastIndex: at };
 }
 
 function seatingToBenches(pos, names) {
@@ -224,22 +258,25 @@ export default {
 
   makePuzzle(rng) {
     const names = rng.shuffle(ROSTER).slice(0, 8).sort();
-    for (let attempt = 0; attempt < 400; attempt++) {
-      const order = rng.shuffle([0, 1, 2, 3, 4, 5, 6, 7]);
-      const pos = new Array(8);
-      for (let person = 0; person < 8; person++) pos[person] = order[person];
+    const flat = canonicalSeatings();
+    const strip = (built) => ({
+      names,
+      oaths: built.oaths.map((o) => ({ kind: o.kind, x: o.x, y: o.y, text: o.text })),
+    });
+    let unique = null; // a hall that is unique but short of decoys — the soft fallback
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const pos = rng.shuffle([0, 1, 2, 3, 4, 5, 6, 7]);
       if (pos[0] >= 4) for (let p = 0; p < 8; p++) pos[p] = (pos[p] + 4) % 8; // canonicalise
-      for (let re = 0; re < 12; re++) {
-        const built = buildOaths(rng, names, pos);
+      for (let re = 0; re < 4; re++) {
+        const built = buildOaths(rng, names, pos, flat);
         if (!built) continue;
-        const { solutions, nearMisses } = sweepHall(built.oaths);
-        if (solutions.length !== 1) continue;
-        if (solutions[0].boast !== built.boastIndex) continue;
-        if (decoysFor(nearMisses, built.boastIndex).length < 3) continue;
-        return { names, oaths: built.oaths.map((o) => ({ kind: o.kind, x: o.x, y: o.y, text: o.text })) };
+        const { solutions, nearMisses } = sweepHall(built.oaths, flat);
+        if (solutions.length !== 1 || solutions[0].boast !== built.boastIndex) continue;
+        if (decoysFor(nearMisses, built.boastIndex).length >= 3) return strip(built);
+        if (!unique) unique = built;
       }
     }
-    return { names, oaths: [] };
+    return strip(unique || { oaths: [] });
   },
 
   solve(instance) {
@@ -319,6 +356,302 @@ export default {
   ],
 
   mount(ctx) {
-    return { unmount() {} };
+    const art = ctx.art;
+    const p = art.palette;
+    const inst = ctx.instance;
+    const self = this;
+
+    const cleanup = [];
+    const on = (el, ev, fn, opts) => {
+      el.addEventListener(ev, fn, opts);
+      cleanup.push(() => el.removeEventListener(ev, fn, opts));
+    };
+    const sfx = (k) => { try { ctx.audio && ctx.audio.ui && ctx.audio.ui(k); } catch (e) { /* silent hall */ } };
+    const say = (t) => { try { ctx.note && ctx.note(t); } catch (e) { /* no journal */ } };
+    const node = (tag, css, text) => {
+      const n = document.createElement(tag);
+      if (css) n.style.cssText = css;
+      if (text != null) n.textContent = text;
+      return n;
+    };
+
+    const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
+    const names = inst.names;
+
+    // ---- state: seats[0..7] hold a chieftain index or -1 ------------------
+    const seats = new Array(8).fill(-1);
+    let boast = -1;
+    let held = -1;
+    if (ctx.solved) {
+      const truth = self.solve(inst);
+      truth.benches[0].concat(truth.benches[1]).forEach((nm, s) => { seats[s] = names.indexOf(nm); });
+      boast = truth.boast;
+    }
+    const seatedOf = (person) => seats.indexOf(person);
+
+    // ---- frame -----------------------------------------------------------
+    const wrap = node('div', `display:grid;gap:12px;font-family:${SERIF};color:${p.bone}`);
+    const style = node('style');
+    style.textContent = `
+      .ow12-act{font-family:${SERIF};font-size:15px;color:${p.bone};background:${p.oakDeep};
+        border:1px solid ${p.gold};border-radius:3px;padding:11px 16px;min-height:44px;cursor:pointer}
+      .ow12-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
+      .ow12-act[disabled]{opacity:.45;cursor:default}
+      .ow12-bench{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+      .ow12-seat{font-family:${SERIF};font-size:15px;color:${p.bone};background:${p.oakDeep};
+        border:1px solid ${p.oakLight};border-radius:3px;min-height:56px;padding:8px 6px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;text-align:center}
+      .ow12-seat:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
+      .ow12-seat[data-empty="1"]{color:${p.boneDim};border-style:dashed}
+      .ow12-seat[data-target="1"]{border-color:${p.goldBright};box-shadow:inset 0 0 0 1px ${p.gold}}
+      .ow12-chip{font-family:${SERIF};font-size:15px;color:${p.bone};background:${p.oak};
+        border:1px solid ${p.oakLight};border-radius:3px;min-height:44px;padding:10px 14px;cursor:grab;touch-action:none}
+      .ow12-chip:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
+      .ow12-chip[data-held="1"]{border-color:${p.goldBright};color:${p.goldBright};cursor:grabbing}
+      .ow12-oath{display:flex;gap:10px;align-items:center;justify-content:space-between;
+        border-bottom:1px solid ${p.oakDeep};padding:7px 0}
+      .ow12-oathtext{font-size:14.5px;color:${p.bone};max-width:52ch}
+      .ow12-boast{font-family:${SERIF};font-size:13px;color:${p.boneDim};background:none;
+        border:1px solid ${p.oakLight};border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer;white-space:nowrap}
+      .ow12-boast:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
+      .ow12-boast[aria-pressed="true"]{border-color:${p.blood};color:${p.bone};background:${p.blood}}
+    `;
+    wrap.append(style);
+
+    const hall = art.makeCanvas(720, 250);
+    hall.canvas.style.cssText = 'width:100%;height:auto;display:block;border-radius:4px';
+    hall.canvas.setAttribute('role', 'img');
+
+    const benchALabel = node('p', `margin:0;font-size:13px;color:${p.boneDim};letter-spacing:.06em`, 'The near bench — high seat at the left');
+    const benchA = node('div');
+    benchA.className = 'ow12-bench';
+    const boards = node('p', `margin:2px 0;text-align:center;font-size:12.5px;color:${p.boneDim};letter-spacing:.14em`, '— the boards —');
+    const benchB = node('div');
+    benchB.className = 'ow12-bench';
+    const benchBLabel = node('p', `margin:0;font-size:13px;color:${p.boneDim};letter-spacing:.06em`, 'The far bench — high seat at the left, each man facing the one above him');
+
+    const seatBtns = [];
+    for (let s = 0; s < 8; s++) {
+      const b = node('button');
+      b.className = 'ow12-seat';
+      b.type = 'button';
+      seatBtns.push(b);
+      (s < 4 ? benchA : benchB).append(b);
+      on(b, 'click', () => touchSeat(s));
+    }
+
+    const rosterLabel = node('p', `margin:0;font-size:13px;color:${p.boneDim};letter-spacing:.06em`, 'Still standing');
+    const roster = node('div', 'display:flex;gap:8px;flex-wrap:wrap;min-height:48px');
+    const chipBtns = names.map((nm, person) => {
+      const b = node('button', null, nm);
+      b.className = 'ow12-chip';
+      b.type = 'button';
+      on(b, 'click', () => liftPerson(person));
+      on(b, 'pointerdown', (ev) => { dragFrom = { person, x: ev.clientX, y: ev.clientY }; });
+      return b;
+    });
+
+    const oathsLabel = node('p', `margin:0;font-size:13px;color:${p.boneDim};letter-spacing:.06em`,
+      'Nine oaths were sworn. Mark the one you take for a drunken boast.');
+    const oathList = node('div', 'display:grid');
+    const boastBtns = inst.oaths.map((o, k) => {
+      const row = node('div');
+      row.className = 'ow12-oath';
+      const t = node('span', null, o.text);
+      t.className = 'ow12-oathtext';
+      const b = node('button', null, 'the boast');
+      b.className = 'ow12-boast';
+      b.type = 'button';
+      b.setAttribute('aria-pressed', 'false');
+      b.setAttribute('aria-label', `Call this oath the boast: ${o.text}`);
+      on(b, 'click', () => {
+        if (ctx.solved) return;
+        boast = boast === k ? -1 : k;
+        sfx(boast === k ? 'flip' : 'knock');
+        say(boast === k ? `Named a boast: ${o.text}` : 'The accusation is withdrawn.');
+        render('');
+      });
+      row.append(t, b);
+      oathList.append(row);
+      return b;
+    });
+
+    const help = node('p', `margin:0;font-size:12.5px;color:${p.boneDim};max-width:62ch`,
+      'Tap a man, then tap a seat — or drag him there. Tap a seated man to lift him again. '
+      + `The hall is written down from whichever bench holds ${names[0]}, so either side may be the near one.`);
+
+    const actions = node('div', 'display:flex;gap:9px;flex-wrap:wrap;align-items:center');
+    const clearBtn = node('button', null, 'Clear the hall');
+    const swearBtn = node('button', null, 'Swear the seating');
+    for (const b of [clearBtn, swearBtn]) { b.className = 'ow12-act'; b.type = 'button'; }
+    actions.append(clearBtn, swearBtn);
+
+    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim}`);
+    status.setAttribute('aria-live', 'polite');
+
+    wrap.append(hall.canvas, benchALabel, benchA, boards, benchB, benchBLabel,
+      rosterLabel, roster, oathsLabel, oathList, help, actions, status);
+    ctx.root.append(wrap);
+
+    // ---- drag ------------------------------------------------------------
+    let dragFrom = null;
+    on(document, 'pointerup', (ev) => {
+      if (!dragFrom || ctx.solved) { dragFrom = null; return; }
+      const moved = Math.hypot(ev.clientX - dragFrom.x, ev.clientY - dragFrom.y) > 8;
+      const person = dragFrom.person;
+      dragFrom = null;
+      if (!moved) return;
+      const target = document.elementFromPoint(ev.clientX, ev.clientY);
+      const seat = seatBtns.indexOf(target);
+      if (seat >= 0) { held = person; placeAt(seat); }
+    });
+
+    // ---- interaction -----------------------------------------------------
+    function liftPerson(person) {
+      if (ctx.solved) return;
+      held = held === person ? -1 : person;
+      sfx('tick');
+      render(held < 0 ? '' : `${names[held]} is on his feet.`);
+    }
+    function touchSeat(s) {
+      if (ctx.solved) return;
+      if (held < 0) {
+        if (seats[s] < 0) { sfx('deny'); return; }
+        held = seats[s];
+        seats[s] = -1;
+        sfx('tick');
+        render(`${names[held]} is on his feet.`);
+        return;
+      }
+      placeAt(s);
+    }
+    function placeAt(s) {
+      const person = held;
+      const previous = seats[s];
+      const from = seatedOf(person);
+      if (from >= 0) seats[from] = previous;      // straight swap between seats
+      else if (previous >= 0) seats[s] = -1;      // the sitting man stands up
+      seats[s] = person;
+      held = previous >= 0 && from < 0 ? previous : -1;
+      sfx('slide');
+      say(`${names[person]} takes ${seatWord(s)}.`);
+      render(held >= 0 ? `${names[held]} is on his feet.` : '');
+    }
+    const seatWord = (s) => `${s < 4 ? 'the near bench' : 'the far bench'}, seat ${(s % 4) + 1}`;
+
+    // ---- painting --------------------------------------------------------
+    function paint() {
+      const c = hall.ctx;
+      const W = hall.w;
+      const H = hall.h;
+      c.clearRect(0, 0, W, H);
+      art.paintWood(c, W, H, 1202);
+      art.paintPanel(c, 6, 6, W - 12, H - 12);
+      const cellW = (W - 80) / 4;
+      for (let s = 0; s < 8; s++) {
+        const col = s % 4;
+        const x = 40 + col * cellW + cellW / 2;
+        const y = s < 4 ? 74 : H - 74;
+        c.save();
+        c.strokeStyle = p.oakLight;
+        c.lineWidth = 2;
+        c.beginPath();
+        c.roundRect ? c.roundRect(x - cellW / 2 + 8, y - 26, cellW - 16, 52, 4)
+          : c.rect(x - cellW / 2 + 8, y - 26, cellW - 16, 52);
+        c.stroke();
+        c.fillStyle = seats[s] >= 0 ? p.bone : p.boneDim;
+        c.font = `${seats[s] >= 0 ? 15 : 13}px ${SERIF}`;
+        c.textAlign = 'center';
+        c.fillText(seats[s] >= 0 ? names[seats[s]] : 'empty', x, y + 5);
+        c.restore();
+        if (s < 4) {
+          c.save();
+          c.strokeStyle = p.oakDeep;
+          c.lineWidth = 1;
+          c.setLineDash([3, 5]);
+          c.beginPath();
+          c.moveTo(x, y + 30);
+          c.lineTo(x, H - 108);
+          c.stroke();
+          c.restore();
+        }
+      }
+      c.save();
+      c.fillStyle = p.boneDim;
+      c.font = `13px ${SERIF}`;
+      c.textAlign = 'center';
+      c.fillText('the boards', W / 2, H / 2 + 4);
+      c.restore();
+    }
+
+    function hallWords() {
+      const line = (b) => [0, 1, 2, 3].map((i) => (seats[b * 4 + i] >= 0 ? names[seats[b * 4 + i]] : '—')).join(', ');
+      return `Near bench: ${line(0)}. Far bench: ${line(1)}.`
+        + (boast >= 0 ? ` Named a boast: ${inst.oaths[boast].text}` : ' No oath is called a boast.');
+    }
+
+    function render(announce) {
+      paint();
+      hall.canvas.setAttribute('aria-label', hallWords());
+      for (let s = 0; s < 8; s++) {
+        const b = seatBtns[s];
+        b.textContent = seats[s] >= 0 ? names[seats[s]] : `${seatWord(s)}`;
+        b.dataset.empty = seats[s] >= 0 ? '0' : '1';
+        b.dataset.target = held >= 0 && seats[s] < 0 ? '1' : '0';
+        b.setAttribute('aria-label', seats[s] >= 0
+          ? `${names[seats[s]]} sits on ${seatWord(s)}. Lift him.`
+          : `Empty: ${seatWord(s)}.`);
+      }
+      roster.textContent = '';
+      for (let person = 0; person < names.length; person++) {
+        const b = chipBtns[person];
+        b.dataset.held = held === person ? '1' : '0';
+        if (seatedOf(person) < 0) roster.append(b);
+      }
+      if (held >= 0 && seatedOf(held) < 0) roster.append(chipBtns[held]);
+      for (let k = 0; k < boastBtns.length; k++) boastBtns[k].setAttribute('aria-pressed', boast === k ? 'true' : 'false');
+      swearBtn.disabled = !!ctx.solved || seats.some((s) => s < 0) || boast < 0;
+      if (announce !== undefined) status.textContent = announce;
+    }
+
+    on(clearBtn, 'click', () => {
+      if (ctx.solved) return;
+      seats.fill(-1);
+      held = -1;
+      boast = -1;
+      sfx('knock');
+      say('The hall is cleared; every man back on his feet.');
+      render('');
+    });
+    on(swearBtn, 'click', () => {
+      if (ctx.solved || seats.some((s) => s < 0) || boast < 0) { sfx('deny'); return; }
+      // The two benches are the same hall read from either side; write it down
+      // from the bench holding the alphabetically-first chieftain (module header).
+      const first = seats.indexOf(0);
+      const order = first < 4 ? [0, 1] : [1, 0];
+      const benches = order.map((b) => [0, 1, 2, 3].map((i) => names[seats[b * 4 + i]]));
+      say(hallWords());
+      const res = ctx.submit({ benches, boast }) || {};
+      if (!res.ok) status.textContent = res.near || 'The hall does not stand under those oaths.';
+    });
+
+    if (ctx.solved) {
+      clearBtn.disabled = true;
+      swearBtn.disabled = true;
+      for (const b of chipBtns) b.disabled = true;
+      for (const b of seatBtns) b.disabled = true;
+      for (const b of boastBtns) b.disabled = true;
+    }
+
+    say(`Eight chieftains: ${names.join(', ')}. Nine oaths are sworn, and one of them is a boast.`);
+    render(ctx.solved ? 'The hall stands as it stood that night.' : '');
+
+    return {
+      unmount() {
+        for (const f of cleanup) f();
+        cleanup.length = 0;
+        wrap.remove();
+      },
+    };
   },
 };

@@ -157,9 +157,6 @@ function mount(ctx) {
   const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
   const sfx = (k) => { try { ctx.audio && ctx.audio.ui && ctx.audio.ui(k); } catch (e) { /* silent hall */ } };
   const say = (text) => { try { ctx.note && ctx.note(text); } catch (e) { /* no journal */ } };
-  const reduced = () => {
-    try { return !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
-  };
 
   const node = (tag, css, text) => {
     const n = document.createElement(tag);
@@ -168,11 +165,20 @@ function mount(ctx) {
     return n;
   };
 
+  // Deterministic per-tile micro-noise (view-only; the pure half never sees it).
+  const h32 = (n) => {
+    let x = (n | 0) + 0x9e3779b9;
+    x = Math.imul(x ^ (x >>> 16), 0x21f0aaad);
+    x = Math.imul(x ^ (x >>> 15), 0x735a2d97);
+    return ((x ^ (x >>> 15)) >>> 0) / 4294967296;
+  };
+
   // ---- state -------------------------------------------------------------
   const solved = ctx.solved ? solve(instance) : null;
   const row = solved ? solved.order.slice() : instance.tiles.map((t, i) => i);
   const flip = instance.tiles.map((t, i) => (solved ? !!t.wend : false));
   let held = -1;
+  let keysSaid = false;
 
   // ---- frame -------------------------------------------------------------
   const wrap = node('div', `display:grid;gap:14px;font-family:${SERIF};color:${p.bone}`);
@@ -180,13 +186,20 @@ function mount(ctx) {
   const style = node('style');
   style.textContent = `
     .ow1-tile{background:none;border:0;padding:0;cursor:grab;touch-action:none;border-radius:4px;
-      display:block;line-height:0;outline-offset:3px}
+      display:block;line-height:0;outline-offset:3px;
+      filter:drop-shadow(0 2px 2px rgba(12,9,6,.55));
+      transition:transform .12s ease,filter .12s ease}
     .ow1-tile:focus-visible{outline:2px solid ${p.goldBright}}
-    .ow1-tile[data-held="1"]{cursor:grabbing;transform:translateY(-4px)}
+    .ow1-tile[data-held="1"]{cursor:grabbing;transform:translateY(-4px);
+      filter:drop-shadow(0 7px 7px rgba(12,9,6,.7))}
     .ow1-act{font-family:${SERIF};font-size:16px;color:${p.bone};background:${p.oakDeep};
       border:1px solid ${p.gold};border-radius:3px;padding:12px 20px;min-height:44px;cursor:pointer}
     .ow1-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
     .ow1-act[disabled]{opacity:.5;cursor:default}
+    @media (prefers-reduced-motion: reduce){
+      .ow1-tile{transition:none}
+      .ow1-tile[data-held="1"]{transform:none}
+    }
   `;
   wrap.append(style);
 
@@ -196,7 +209,8 @@ function mount(ctx) {
   rail.canvas.style.width = '100%';
   rail.canvas.style.height = 'auto';
   rail.canvas.setAttribute('role', 'img');
-  rail.canvas.setAttribute('aria-label', 'The carved rail: ' + ORDER.map(nameOf).join(', '));
+  rail.canvas.setAttribute('aria-label', 'The carved rail: ' + ORDER.map(nameOf).join(', ')
+    + '. Three ættir: staves one to six, seven to eleven, twelve to sixteen.');
 
   const rowWrap = node('div', 'display:flex;flex-wrap:wrap;gap:6px;justify-content:center');
   rowWrap.setAttribute('role', 'list');
@@ -219,16 +233,74 @@ function mount(ctx) {
   ctx.root.append(wrap);
 
   // ---- painting ----------------------------------------------------------
+  // Faint surviving pigment, one colour per ætt — the Oseberg way: paint
+  // lives on in the grooves. Doubles as the map for the near-spoken ættir.
+  const AETT_TINT = [p.blood, p.fjord, p.pine];
+  let nearMarks = null; // [true|false ×3] after a near-miss; any touch clears it
+
+  const gapX = (rail.w - 16) / 16;
+  const regionSpan = (k) => {
+    const [a, b] = AETTIR[k];
+    return [8 + gapX * a + 2, 8 + gapX * b - 2];
+  };
+
   function paintRail() {
     const c = rail.ctx;
     c.clearRect(0, 0, rail.w, rail.h);
     art.paintPanel(c, 0, 0, rail.w, rail.h, { title: null });
+
+    // worn pigment bands, one per ætt
+    for (let k = 0; k < 3; k++) {
+      const [x0, x1] = regionSpan(k);
+      c.save();
+      c.globalAlpha = 0.13;
+      c.fillStyle = AETT_TINT[k];
+      c.fillRect(x0, 11, x1 - x0, rail.h - 22);
+      c.restore();
+    }
+
+    // carved divider notches between the ættir
+    for (const b of [AETTIR[1][0], AETTIR[2][0]]) {
+      const x = 8 + gapX * b;
+      c.save();
+      c.strokeStyle = p.tar;
+      c.lineWidth = 2;
+      c.beginPath(); c.moveTo(x - 0.8, 14); c.lineTo(x - 0.8, rail.h - 14); c.stroke();
+      c.strokeStyle = p.oakLight;
+      c.lineWidth = 1;
+      c.globalAlpha = 0.55;
+      c.beginPath(); c.moveTo(x + 0.8, 14); c.lineTo(x + 0.8, rail.h - 14); c.stroke();
+      c.restore();
+    }
+
     const size = 44;
-    const gap = (rail.w - 16) / 16;
     for (let i = 0; i < 16; i++) {
-      art.drawRune(c, ORDER[i], 8 + gap * i + (gap - size) / 2, (rail.h - size) / 2, size,
+      art.drawRune(c, ORDER[i], 8 + gapX * i + (gapX - size) / 2, (rail.h - size) / 2, size,
         { color: p.boneDim });
     }
+
+    // after a near-miss: gold under the ættir that stand, ember under the rest
+    if (nearMarks) {
+      for (let k = 0; k < 3; k++) {
+        const [x0, x1] = regionSpan(k);
+        c.save();
+        c.globalAlpha = 0.9;
+        c.fillStyle = nearMarks[k] ? p.gold : p.ember;
+        c.fillRect(x0, rail.h - 10, x1 - x0, 2.5);
+        c.restore();
+      }
+    }
+
+    // nailheads holding the rail to the lid
+    for (const [nx, ny] of [[13, 13], [rail.w - 13, 13], [13, rail.h - 13], [rail.w - 13, rail.h - 13]]) {
+      art.ornament(c, 'nailhead', nx, ny, 8);
+    }
+  }
+
+  function clearMarks() {
+    if (!nearMarks) return;
+    nearMarks = null;
+    paintRail();
   }
 
   const tiles = instance.tiles.map((t, id) => {
@@ -238,21 +310,50 @@ function mount(ctx) {
     btn.setAttribute('role', 'listitem');
     const gfx = art.makeCanvas(46, 60);
     btn.append(gfx.canvas);
-    return { id, btn, gfx };
+    return { id, btn, gfx, key: '' };
   });
 
   function paintTile(tile) {
+    const t = instance.tiles[tile.id];
+    const facing = t.wend !== flip[tile.id];
+    const lifted = held === tile.id;
+    const key = `${facing}|${lifted}`;
+    if (tile.key === key) return; // repaint only on a real state change
+    tile.key = key;
+
     const c = tile.gfx.ctx;
     const { w, h } = tile.gfx;
-    const t = instance.tiles[tile.id];
     c.clearRect(0, 0, w, h);
     art.paintPanel(c, 0, 0, w, h, { title: null });
+
+    // vertical grain showing through the tablet's face
+    c.save();
+    c.lineWidth = 1;
+    for (let k = 0; k < 3; k++) {
+      const gx = 10 + h32(tile.id * 7 + k) * (w - 20);
+      const sway = (h32(tile.id * 13 + k) - 0.5) * 5;
+      c.strokeStyle = p.oakLight;
+      c.globalAlpha = 0.10 + h32(tile.id * 3 + k) * 0.08;
+      c.beginPath();
+      c.moveTo(gx, 8);
+      c.quadraticCurveTo(gx + sway, h / 2, gx, h - 8);
+      c.stroke();
+    }
+    c.restore();
+
+    // worn red paint in the groove, then the bone cut over it
     const size = h - 18;
-    const facing = t.wend !== flip[tile.id];
-    art.drawRune(c, t.ch, (w - size) / 2, 9, size, {
-      color: held === tile.id ? p.goldBright : p.bone,
-      mirror: facing,
-    });
+    const x = (w - size) / 2;
+    c.save();
+    c.globalAlpha = 0.42;
+    art.drawRune(c, t.ch, x - 0.5, 9.5, size, { color: p.blood, mirror: facing, weight: size / 6.2 });
+    c.restore();
+    art.drawRune(c, t.ch, x, 9, size, { color: lifted ? p.goldBright : p.bone, mirror: facing });
+
+    // nailheads pinning the tile's corners
+    for (const [nx, ny] of [[8, 8], [w - 8, 8], [8, h - 8], [w - 8, h - 8]]) {
+      art.ornament(c, 'nailhead', nx, ny, 6);
+    }
   }
 
   function render() {
@@ -288,6 +389,7 @@ function mount(ctx) {
 
   function doFlip(id) {
     flip[id] = !flip[id];
+    clearMarks();
     const t = instance.tiles[id];
     const facing = t.wend !== flip[id] ? 'faces backwards' : 'stands upright';
     const line = `The ${PLACE[row.indexOf(id)]} tile turns: ${nameOf(t.ch)} ${facing}.`;
@@ -328,7 +430,7 @@ function mount(ctx) {
         sfx('slide');
       }
       const place = nearestPlace(ev.clientX, ev.clientY);
-      if (moveTo(tile.id, place)) { sfx('tick'); render(); }
+      if (moveTo(tile.id, place)) { clearMarks(); sfx('tick'); render(); }
       ev.preventDefault();
     });
 
@@ -350,7 +452,7 @@ function mount(ctx) {
       const step = (d) => {
         if (held === tile.id) {
           const from = place;
-          if (moveTo(tile.id, place + d)) { sfx('slide'); render(); reportMove(tile.id, from); }
+          if (moveTo(tile.id, place + d)) { clearMarks(); sfx('slide'); render(); reportMove(tile.id, from); }
           tile.btn.focus();
         } else {
           const next = tiles[row[Math.max(0, Math.min(row.length - 1, place + d))]];
@@ -360,6 +462,8 @@ function mount(ctx) {
       };
       if (ev.key === 'ArrowLeft') { ev.preventDefault(); step(-1); }
       else if (ev.key === 'ArrowRight') { ev.preventDefault(); step(1); }
+      else if (ev.key === 'Home') { ev.preventDefault(); step(-row.length); }
+      else if (ev.key === 'End') { ev.preventDefault(); step(row.length); }
       else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown' || ev.key === 'f' || ev.key === 'F') {
         ev.preventDefault(); doFlip(tile.id);
       } else if (ev.key === ' ' || ev.key === 'Spacebar') {
@@ -376,6 +480,13 @@ function mount(ctx) {
         doFlip(tile.id);
       }
     });
+
+    on(tile.btn, 'focus', () => {
+      if (keysSaid) return;
+      keysSaid = true;
+      say('By key: arrows walk the row; space lifts a tile and sets it down; '
+        + 'F or Enter turns it over; Home and End run to the row’s ends.');
+    });
   });
 
   // ---- submit ------------------------------------------------------------
@@ -383,29 +494,33 @@ function mount(ctx) {
     return { order: row.slice(), flips: row.map((id) => !!flip[id]) };
   }
 
-  function handle(res) {
+  // The shell owns the shudder and the deny voice. The board's part is to show
+  // WHERE the row disagrees — at the near-line's own grain, the ætt.
+  function handle(res, sent) {
     if (!res || res.ok) return;
     if (res.near) { status.textContent = res.near; say(res.near); }
-    if (reduced()) return;
-    wrap.animate
-      ? wrap.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' },
-        { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: 160 })
-      : null;
+    if (sent) {
+      const wrong = wrongPositions(instance, sent.order, sent.flips);
+      nearMarks = AETTIR.map(([a, b]) => !wrong.some((q) => q >= a && q < b));
+      paintRail();
+    }
   }
 
   on(submitBtn, 'click', () => {
     if (ctx.solved) return;
     sfx('confirm');
+    const sent = answer();
     let res;
-    try { res = ctx.submit(answer()); } catch (e) { return; }
-    if (res && typeof res.then === 'function') res.then(handle, () => {});
-    else handle(res);
+    try { res = ctx.submit(sent); } catch (e) { return; }
+    if (res && typeof res.then === 'function') res.then((r) => handle(r, sent), () => {});
+    else handle(res, sent);
   });
 
   // ---- open the lock -----------------------------------------------------
   paintRail();
   render();
   say('The rail carries the row: ' + ORDER.map(nameOf).join(', ') + '.');
+  say('Three ættir divide the rail — six staves, then five, then five. The paint marks them.');
   say('Sixteen tiles lie below, and some were struck from the wrong face.');
   if (ctx.solved) {
     submitBtn.disabled = true;
