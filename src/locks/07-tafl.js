@@ -548,8 +548,29 @@ function mount(ctx) {
   .ow-tafl button:focus-visible{outline:2px solid ${P.goldBright};outline-offset:2px}
   .ow-tafl button[disabled]{opacity:.45;cursor:default}
   .ow-tafl .send{background:${P.gold};color:${P.tar};font-weight:600;border:none}
-  .ow-tafl .say{font-size:.85rem;color:${P.boneDim};min-height:2.4em}`;
+  .ow-tafl .say{font-size:.85rem;color:${P.boneDim};min-height:2.4em}
+  .ow-tafl .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch;align-self:center}
+  .ow-tafl .law b{color:${P.bone};font-weight:600}
+  .ow-tafl .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
+  #app .ow-tafl button{min-width:44px}`;
   wrap.appendChild(style);
+
+  // Brandubh is not common knowledge. The board's own laws (R1-R7 above) belong
+  // on the board, not only in the journal drawer.
+  const law = document.createElement('p');
+  law.className = 'law';
+  for (const [text, strong] of [
+    ['Brandubh. ', 1],
+    ['Yours are the ', 0],
+    ['gold king', 1],
+    [' and the ', 0],
+    ['pale defenders', 1],
+    ['; the ', 0],
+    ['dark attackers', 1],
+    [' answer each of your moves by a fixed published policy — they take if they can, otherwise they play whatever lengthens the king’s road. Every piece slides like a rook: any distance along a rank or file, through empty squares only. Only the king may stand on or pass through the four marked corners or the centre throne. A piece is taken when enemies close on it from both sides; walking between two enemies of your own accord is safe. ', 0],
+    [`Stand the king on any corner within ${instance.limit} moves.`, 1],
+    [' Tap or Enter on a piece of yours to lift it — the squares it may take are marked.', 0],
+  ]) law.appendChild(Object.assign(document.createElement(strong ? 'b' : 'span'), { textContent: text }));
 
   const SQ = 40;
   const PAD = 8;
@@ -578,6 +599,12 @@ function mount(ctx) {
   bar.appendChild(undo);
   bar.appendChild(send);
   wrap.appendChild(bar);
+
+  const tell = document.createElement('p');
+  tell.className = 'tell';
+  tell.setAttribute('aria-live', 'polite');
+  wrap.appendChild(tell);
+  wrap.appendChild(law);
 
   let state = stateOf(instance);
   let line = [];
@@ -760,7 +787,8 @@ function mount(ctx) {
 
   on(send, 'click', () => {
     if (!line.length) return;
-    ctx.submit({ line: line.map(([from, to]) => [rc(from), rc(to)]) });
+    const res = ctx.submit({ line: line.map(([from, to]) => [rc(from), rc(to)]) }) || {};
+    if (!res.ok) { tell.textContent = res.near || 'That road does not open the corner.'; if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
   });
 
   root.appendChild(wrap);

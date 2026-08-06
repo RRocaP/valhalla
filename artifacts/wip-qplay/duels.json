@@ -1,0 +1,242 @@
+[
+ {
+  "ord": 3,
+  "key": "bourj",
+  "banner": {
+   "text": "JARL BOURJ",
+   "shown": true
+  },
+  "lidJournal": [
+   "19:55 — JARL BOURJ bars the third lock."
+  ],
+  "dare": {
+   "name": "JARL BOURJ",
+   "taunt": "\"I have watched a thousand nights of beacons. You will miscount before I blink.\"",
+   "portraitInk": 2201,
+   "portraitColours": 57,
+   "buttonLabel": "Answer the dare",
+   "buttonFocused": true,
+   "btnBox": [
+    234,
+    51
+   ]
+  },
+  "dareJournal": 1,
+  "escBacksOut": true,
+  "enterAnswersDare": true,
+  "yield": {
+   "line": "So the fires do answer you. Take the road, counter of nights.",
+   "hasCanvas": true,
+   "focused": true,
+   "appearedMs": 106
+  },
+  "bowFrames": [
+   33869,
+   33237,
+   32584,
+   31462,
+   31071,
+   2805,
+   2805
+  ],
+  "bowMoved": true,
+  "after": {
+   "screen": "screen screen-lid",
+   "ceremony": null
+  },
+  "yieldJournal": 1,
+  "errors": []
+ },
+ {
+  "ord": 6,
+  "key": "rois",
+  "banner": {
+   "text": "GUDJA RØIS",
+   "shown": true
+  },
+  "lidJournal": [
+   "19:56 — GUDJA RØIS bars the sixth lock."
+  ],
+  "dare": {
+   "name": "GUDJA RØIS",
+   "taunt": "\"The giants twisted these words. Untwist them, or wear the fool's hood at my fire.\"",
+   "portraitInk": 2201,
+   "portraitColours": 60,
+   "buttonLabel": "Answer the dare",
+   "buttonFocused": true,
+   "btnBox": [
+    234,
+    51
+   ]
+  },
+  "dareJournal": 1,
+  "escBacksOut": true,
+  "enterAnswersDare": true,
+  "yield": {
+   "line": "You read what the giants hid. Røis names you rune-wise.",
+   "hasCanvas": true,
+   "focused": true,
+   "appearedMs": 149
+  },
+  "bowFrames": [
+   31357,
+   30641,
+   30876,
+   29960,
+   29662,
+   3363,
+   3363
+  ],
+  "bowMoved": true,
+  "after": {
+   "screen": "screen screen-lid",
+   "ceremony": null
+  },
+  "yieldJournal": 1,
+  "errors": []
+ },
+ {
+  "ord": 9,
+  "key": "andreas",
+  "banner": {
+   "text": "JARL ÅNDREAS",
+   "shown": true
+  },
+  "lidJournal": [
+   "19:56 — JARL ÅNDREAS bars the ninth lock."
+  ],
+  "dare": {
+   "name": "JARL ÅNDREAS",
+   "taunt": "\"The hound-jarl speaks no dare. He looses it. Find the sun he already smells.\"",
+   "portraitInk": 2201,
+   "portraitColours": 65,
+   "buttonLabel": "Answer the dare",
+   "buttonFocused": true,
+   "btnBox": [
+    234,
+    51
+   ]
+  },
+  "dareJournal": 1,
+  "escBacksOut": true,
+  "enterAnswersDare": true,
+  "yield": {
+   "line": "Åndreas lowers his bow — and bows.",
+   "hasCanvas": true,
+   "focused": true,
+   "appearedMs": 54
+  },
+  "bowFrames": [
+   44116,
+   41715,
+   39226,
+   36839,
+   36351,
+   2262,
+   2262
+  ],
+  "bowMoved": true,
+  "after": {
+   "screen": "screen screen-lid",
+   "ceremony": null
+  },
+  "yieldJournal": 1,
+  "errors": []
+ },
+ {
+  "ord": 12,
+  "key": "folklore",
+  "banner": {
+   "text": "JARL FOLKLORE",
+   "shown": true
+  },
+  "lidJournal": [
+   "19:56 — JARL FOLKLORE bars the twelfth lock."
+  ],
+  "dare": {
+   "name": "JARL FOLKLORE",
+   "taunt": "\"Seat my quarrelsome kin without blood on the boards. Even I gave up and drank.\"",
+   "portraitInk": 2201,
+   "portraitColours": 76,
+   "buttonLabel": "Answer the dare",
+   "buttonFocused": true,
+   "btnBox": [
+    234,
+    51
+   ]
+  },
+  "dareJournal": 1,
+  "escBacksOut": true,
+  "enterAnswersDare": true,
+  "yield": {
+   "line": "Folklore raises his cup. 'The benches hold. Drink.'",
+   "hasCanvas": true,
+   "focused": true,
+   "appearedMs": 363
+  },
+  "bowFrames": [
+   48836,
+   46114,
+   43925,
+   41013,
+   38996,
+   3630,
+   3630
+  ],
+  "bowMoved": true,
+  "after": {
+   "screen": "screen screen-lid",
+   "ceremony": null
+  },
+  "yieldJournal": 1,
+  "errors": []
+ },
+ {
+  "ord": 15,
+  "key": "arya",
+  "banner": {
+   "text": "QUEEN ÄRYÄ STÖRK — the last",
+   "shown": true
+  },
+  "lidJournal": [
+   "19:56 — QUEEN ÄRYÄ STÖRK — the last bars the fifteenth lock."
+  ],
+  "dare": {
+   "name": "QUEEN ÄRYÄ STÖRK — the last",
+   "taunt": "\"Fourteen shards, one law, and me. None has closed the ring while I held the horn.\"",
+   "portraitInk": 2201,
+   "portraitColours": 61,
+   "buttonLabel": "Answer the dare",
+   "buttonFocused": true,
+   "btnBox": [
+    234,
+    51
+   ]
+  },
+  "dareJournal": 1,
+  "escBacksOut": true,
+  "enterAnswersDare": true,
+  "yield": {
+   "line": "The Queen lowers her horn. Skål, ring-closer. The chest is yours.",
+   "hasCanvas": true,
+   "focused": true,
+   "appearedMs": 483
+  },
+  "bowFrames": [
+   31063,
+   31107,
+   30692,
+   30129,
+   30033,
+   30033,
+   30033
+  ],
+  "bowMoved": true,
+  "after": {
+   "screen": "screen screen-finale",
+   "ceremony": null
+  },
+  "yieldJournal": 1,
+  "errors": []
+ }
+]

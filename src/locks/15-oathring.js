@@ -165,6 +165,11 @@ export default {
       .ow15-chip:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
       .ow15-chip[data-held="1"]{border-color:${p.goldBright};cursor:grabbing}
       .ow15-val{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:${p.goldBright};line-height:1.4}
+      /* the shell sets \`#app *{min-width:0}\`, which outranks a bare class rule
+         and flattened these to ~12 px wide; re-assert the floor at equal weight */
+      #app .ow15-slot{min-width:46px}
+      #app .ow15-chip{min-width:46px}
+      #app .ow15-act{min-width:44px}
     `;
     wrap.append(style);
 
@@ -218,7 +223,7 @@ export default {
     for (const b of [clearBtn, closeBtn]) { b.className = 'ow15-act'; b.type = 'button'; }
     actions.append(clearBtn, closeBtn);
 
-    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};text-align:center`);
+    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px;text-align:center`);
     status.setAttribute('aria-live', 'polite');
 
     wrap.append(ringBox, haspLabel, hasp, help, actions, status);
@@ -371,7 +376,7 @@ export default {
       if (ctx.solved || ring.some((x) => !x)) { sfx('deny'); return; }
       say(ringWords());
       const res = ctx.submit({ ring: ring.slice() }) || {};
-      if (!res.ok) status.textContent = res.near || 'The ring will not close on that order.';
+      if (!res.ok) { status.textContent = res.near || 'The ring will not close on that order.'; if (status.scrollIntoView) status.scrollIntoView({ block: 'nearest' }); }
     });
 
     if (ctx.solved) {

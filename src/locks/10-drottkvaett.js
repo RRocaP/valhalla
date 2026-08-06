@@ -311,7 +311,8 @@ function mount(ctx) {
   .ow-drott .verse{display:flex;flex-direction:column;gap:.35rem}
   .ow-drott .long{display:flex;align-items:stretch;gap:.35rem;background:${P.oakDeep};
     border:1px solid ${P.tar};border-radius:4px;padding:.3rem .35rem}
-  .ow-drott .stave{display:flex;align-items:center;justify-content:center;min-width:34px}
+  .ow-drott .stave{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:34px}
+  .ow-drott .staveletter{font-family:ui-monospace,Menlo,monospace;font-size:.7rem;color:${P.goldBright};line-height:1}
   .ow-drott .slot{flex:1;min-height:44px;display:flex;align-items:center;padding:.2rem .45rem;
     border:1px dashed ${P.oakLight};border-radius:3px;font-size:.92rem;cursor:pointer;background:transparent}
   .ow-drott .slot.filled{border-style:solid;background:${P.oak}}
@@ -327,7 +328,10 @@ function mount(ctx) {
     min-height:44px;font:inherit;cursor:pointer}
   .ow-drott .send[disabled]{opacity:.45;cursor:default}
   .ow-drott h4{margin:.15rem 0 0;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}
-  .ow-drott .glint{font-size:.72rem;color:${P.boneDim};min-height:1.1em}`;
+  .ow-drott .glint{font-size:.72rem;color:${P.boneDim};min-height:1.1em}
+  .ow-drott .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
+  #app .ow-drott .slot{min-width:44px}
+  #app .ow-drott button{min-width:44px}`;
   wrap.appendChild(style);
 
   const N = instance.fragments.length;
@@ -349,9 +353,17 @@ function mount(ctx) {
     const st = document.createElement('div');
     st.className = 'stave';
     const { canvas, ctx: c2 } = art.makeCanvas(26, 32);
-    art.drawRune(c2, instance.staveRunes[line], 2, 2, 26, { color: P.goldBright, weight: 'heavy' });
+    // drawRune's `weight` is a ribbon width in pixels; the string 'heavy' fed
+    // NaN into the ribbon fill and all four hasp staves drew nothing at all.
+    art.drawRune(c2, instance.staveRunes[line], 2, 2, 26, { color: P.goldBright, weight: 26 / 7 });
     canvas.setAttribute('aria-hidden', 'true');
     st.appendChild(canvas);
+    // the stave is a fact the player must read; a title tooltip is not a
+    // reading (no hover on touch), so stamp the sound under the rune
+    const stLetter = document.createElement('span');
+    stLetter.className = 'staveletter';
+    stLetter.textContent = instance.staves[line];
+    st.appendChild(stLetter);
     st.title = `stave ${instance.staves[line]}`;
     row.appendChild(st);
     for (const half of [0, 1]) {
@@ -419,6 +431,13 @@ function mount(ctx) {
   send.disabled = true;
   wrap.appendChild(send);
 
+  // The shell's near-line sits below the fold on this lock; the verse answers
+  // where the player's eye already is.
+  const tell = document.createElement('p');
+  tell.className = 'tell';
+  tell.setAttribute('aria-live', 'polite');
+  wrap.appendChild(tell);
+
   function place(slot) {
     if (held === null) {
       const sitting = slotOf.findIndex((s) => s === slot);
@@ -481,7 +500,8 @@ function mount(ctx) {
     const lines = currentLines();
     if (lines.some((p) => p[0] < 0 || p[1] < 0)) return;
     ctx.note(`Verse spoken:\n${lines.map((p) => `${instance.fragments[p[0]].text}, ${instance.fragments[p[1]].text};`).join('\n')}`);
-    ctx.submit({ lines });
+    const res = ctx.submit({ lines }) || {};
+    if (!res.ok) { tell.textContent = res.near || 'The verse will not stand.'; if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
   });
 
   root.appendChild(wrap);

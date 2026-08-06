@@ -1,0 +1,182 @@
+[
+ {
+  "vp": "1280x800",
+  "ord": 6,
+  "nCanvas": 19,
+  "blank": [],
+  "nCtrl": 62,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 7,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 2,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 8,
+  "nCanvas": 36,
+  "blank": [],
+  "nCtrl": 15,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 9,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 11,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 10,
+  "nCanvas": 4,
+  "blank": [],
+  "nCtrl": 17,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 11,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 4,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 12,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 27,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 13,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 20,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 14,
+  "nCanvas": 17,
+  "blank": [],
+  "nCtrl": 18,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "1280x800",
+  "ord": 15,
+  "nCanvas": 15,
+  "blank": [],
+  "nCtrl": 30,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 6,
+  "nCanvas": 19,
+  "blank": [],
+  "nCtrl": 62,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 7,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 2,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 8,
+  "nCanvas": 36,
+  "blank": [],
+  "nCtrl": 15,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 9,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 11,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 10,
+  "nCanvas": 4,
+  "blank": [],
+  "nCtrl": 17,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 11,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 4,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 12,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 27,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 13,
+  "nCanvas": 1,
+  "blank": [],
+  "nCtrl": 20,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 14,
+  "nCanvas": 17,
+  "blank": [],
+  "nCtrl": 18,
+  "under44": 0,
+  "sample": []
+ },
+ {
+  "vp": "390x844",
+  "ord": 15,
+  "nCanvas": 15,
+  "blank": [],
+  "nCtrl": 30,
+  "under44": 0,
+  "sample": []
+ }
+]

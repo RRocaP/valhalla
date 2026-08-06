@@ -1,0 +1,246 @@
+[
+ {
+  "ord": 7,
+  "dare": false,
+  "dareText": null,
+  "lidJournal": [
+   "19:54 — The chest is laid before you."
+  ],
+  "room": {
+   "numeral": "VII",
+   "title": "The King’s Road",
+   "epigraph": "The board is small and the corners are far. Every road but one is a trap.",
+   "board": "Move 0 of 3. King on f6; 2 moves of open road.\nTake back\nSwear the road\n\nBrandubh. Yours are the gold king and the pale defenders; the dark attackers answer each of your moves by a fixed published policy — they take if they can, otherwise they play whatever lengthens the king’s road. Every piece slides like a rook: any distance along a rank or file, through empty squares only. Only the king may stand on or pass through the four marked corners or the centre throne. A piece is taken when enemies close on it from both sides; walking between two enemies of your own accord is safe. Stand the king on any corner within 3 moves. Tap or Enter on a piece of yours to lift it — the squares it may take are marked.",
+   "nearLine": "",
+   "hintStates": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "ariaLabels": [
+    "brandubh board, 7 by 7"
+   ],
+   "focusableCount": 3,
+   "canvasNotes": [
+    "[hidden]"
+   ]
+  },
+  "journal": [
+   "19:54 — The chest is laid before you.",
+   "19:54 — Brandubh endgame. The king's side moves first; the attackers answer by their published policy. The king must stand on a corner within 3 moves.",
+   "19:54 — King on f6; defenders on c6, f5; attackers on e6, c4, g3, e2."
+  ],
+  "sizes": {
+   "n": 2,
+   "smallest": [
+    {
+     "tag": "BUTTON",
+     "txt": "Take back",
+     "w": 89.9,
+     "h": 44
+    },
+    {
+     "tag": "BUTTON",
+     "txt": "Swear the road",
+     "w": 134.4,
+     "h": 44
+    }
+   ],
+   "under44": 0
+  },
+  "phoneSizes": {
+   "n": 2,
+   "smallest": [
+    {
+     "tag": "BUTTON",
+     "txt": "Take back",
+     "w": 89.9,
+     "h": 44
+    },
+    {
+     "tag": "BUTTON",
+     "txt": "Swear the road",
+     "w": 134.4,
+     "h": 44
+    }
+   ],
+   "under44": 0
+  },
+  "overflow": {
+   "docW": 390,
+   "winW": 390,
+   "rootScrollH": 715,
+   "rootClientH": 715
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+ },
+ {
+  "ord": 10,
+  "dare": false,
+  "dareText": null,
+  "lidJournal": [
+   "19:54 — The chest is laid before you."
+  ],
+  "room": {
+   "numeral": "X",
+   "title": "The Dróttkvætt Lines",
+   "epigraph": "Court metre is a lock with three wards: count, stave, and rhyme.",
+   "board": "THE HASP IS STAMPED WITH FOUR STAVES — ONE LEADS EACH LONG LINE\nr\nh\ns\nm\nSet every half-line to hear the staves join.\nLOOSE HALF-LINES — SIX SYLLABLES EACH\nrust-red over bone-stone\n6\nthe helm-wight wakes wave-grave\n6\nRune-hands rive the stave-oak\n6\nMere-mast rimes in salt-frost\n6\nSea-salt scours the bolt-head\n6\nHail-hand rimes the wind-thole\n6\nmoot-hand holds the land-band\n6\nsand-fast, the hold’s gold-hoard\n6\nSpeak the verse",
+   "nearLine": "",
+   "hintStates": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "ariaLabels": [
+    "long line 1, odd half-line, stave r",
+    "long line 1, even half-line, stave r",
+    "long line 2, odd half-line, stave h",
+    "long line 2, even half-line, stave h",
+    "long line 3, odd half-line, stave s",
+    "long line 3, even half-line, stave s",
+    "long line 4, odd half-line, stave m",
+    "long line 4, even half-line, stave m"
+   ],
+   "focusableCount": 17,
+   "canvasNotes": [
+    "[hidden]",
+    "[hidden]",
+    "[hidden]",
+    "[hidden]"
+   ]
+  },
+  "journal": [
+   "19:54 — The chest is laid before you.",
+   "19:54 — Court metre: six syllables to a half-line; two props alliterate in the odd half and the even half’s first stress joins them; the odd half rhymes on its coda alone, the even on vowel and coda both.",
+   "19:54 — Staves stamped on the hasp, in order: r · h · s · m.",
+   "19:54 — Half-line 1: “rust-red over bone-stone” (6 syllables).",
+   "19:54 — Half-line 2: “the helm-wight wakes wave-grave” (6 syllables).",
+   "19:54 — Half-line 3: “Rune-hands rive the stave-oak” (6 syllables).",
+   "19:54 — Half-line 4: “Mere-mast rimes in salt-frost” (6 syllables).",
+   "19:54 — Half-line 5: “Sea-salt scours the bolt-head” (6 syllables).",
+   "19:54 — Half-line 6: “Hail-hand rimes the wind-thole” (6 syllables).",
+   "19:54 — Half-line 7: “moot-hand holds the land-band” (6 syllables).",
+   "19:54 — Half-line 8: “sand-fast, the hold’s gold-hoard” (6 syllables)."
+  ],
+  "sizes": {
+   "n": 17,
+   "smallest": [
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 372.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 372.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 372.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 372.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 372.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 372.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 372.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 372.8,
+     "h": 44
+    }
+   ],
+   "under44": 0
+  },
+  "phoneSizes": {
+   "n": 17,
+   "smallest": [
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 145.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 145.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 145.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 145.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 145.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 145.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 145.8,
+     "h": 44
+    },
+    {
+     "tag": "DIV",
+     "txt": "",
+     "w": 145.8,
+     "h": 44
+    }
+   ],
+   "under44": 0
+  },
+  "overflow": {
+   "docW": 390,
+   "winW": 390,
+   "rootScrollH": 830,
+   "rootClientH": 830
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+ }
+]

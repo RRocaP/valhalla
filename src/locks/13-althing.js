@@ -333,7 +333,7 @@ export default {
     for (const b of [clearBtn, verdictBtn]) { b.className = 'ow13-act'; b.type = 'button'; }
     actions.append(clearBtn, verdictBtn);
 
-    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim}`);
+    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px`);
     status.setAttribute('aria-live', 'polite');
 
     wrap.append(rock.canvas, law, grid, actions, status);
@@ -445,7 +445,7 @@ export default {
       if (ctx.solved || culprit < 0 || branded.some((b) => !b)) { sfx('deny'); return; }
       say(verdictWords());
       const res = ctx.submit({ culprit, liars: liars.slice() }) || {};
-      if (!res.ok) status.textContent = res.near || 'The rock will not have that verdict.';
+      if (!res.ok) { status.textContent = res.near || 'The rock will not have that verdict.'; if (status.scrollIntoView) status.scrollIntoView({ block: 'nearest' }); }
     });
 
     if (ctx.solved) {

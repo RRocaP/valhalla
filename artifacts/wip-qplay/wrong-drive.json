@@ -1,0 +1,452 @@
+[
+ {
+  "ord": 6,
+  "id": "06-jotunvillur",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 17,
+   "near": "1 of the four ring true. The rest are strangers.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "Spell a reading with the rune keys, or take a word from the lid.",
+   "localEcho": [
+    "Spell a reading with the rune keys, or take a word from the lid.",
+    "1 of the four ring true. The rest are strangers."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 17,
+   "near": "1 of the four ring true. The rest are strangers.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "Spell a reading with the rune keys, or take a word from the lid.",
+   "localEcho": [
+    "Spell a reading with the rune keys, or take a word from the lid.",
+    "1 of the four ring true. The rest are strangers."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "A rune here is not a letter. It is every letter whose rune-name ends in that sound.\n\nSix letters end in the sound of reið; that rune is the crowded one. Only the lid’s word-list can thin it.\n\nTake the shortest carving first — its tree of readings is thin, and it teaches the hand that cut the rest."
+ },
+ {
+  "ord": 7,
+  "id": "07-tafl",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 11,
+   "near": "The attackers took the king after move 1.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "Attacker g3–g5, taking g6. Move 1 of 3. The king has fallen — take the move back.",
+   "localEcho": [
+    "Attacker g3–g5, taking g6. Move 1 of 3. The king has fallen — take the move back.",
+    "The attackers took the king after move 1."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 11,
+   "near": "The attackers took the king after move 1.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "Attacker g3–g5, taking g6. Move 1 of 3. The king has fallen — take the move back.",
+   "localEcho": [
+    "Attacker g3–g5, taking g6. Move 1 of 3. The king has fallen — take the move back.",
+    "The attackers took the king after move 1."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "The attackers do not think. They capture when they can, and otherwise they lengthen your road — always the same way, every time.\n\nThe move that shortens the king’s road most is the move that hands them a capture. Count what stands beyond the square you land on.\n\nPlay the move their policy cannot answer, not the move that gains the most ground. Their reply is fixed — read it out before you commit to anything."
+ },
+ {
+  "ord": 8,
+  "id": "08-hacksilver",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 16,
+   "near": "Your naming disagrees with 3 of the three sworn weighings.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "You name the arm-ring cut — salted heavy.",
+   "localEcho": [
+    "You name the arm-ring cut — salted heavy.",
+    "Your naming disagrees with 3 of the three sworn weighings."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 17,
+   "near": "Your naming disagrees with 3 of the three sworn weighings.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "You name the arm-ring cut — salted heavy.",
+   "localEcho": [
+    "You name the arm-ring cut — salted heavy.",
+    "Your naming disagrees with 3 of the three sworn weighings."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "Twenty-four namings are possible — twelve pieces, each false in two directions. Three weighings can part twenty-seven.\n\nA piece withheld from a weighing cannot tilt it. Read each level beam as hard evidence, not as silence.\n\nTake one weighing at a time and strike out every naming it contradicts. What survives all three is the only oath you can swear."
+ },
+ {
+  "ord": 9,
+  "id": "09-sunstone",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 17,
+   "near": "Only 2 of the three stones admit that bearing.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "Bearing 35 — south by west, half a point east",
+   "localEcho": [
+    "Bearing 35 — south by west, half a point east",
+    "Only 2 of the three stones admit that bearing."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 16,
+   "near": "Only 2 of the three stones admit that bearing.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "Bearing 35 — south by west, half a point east",
+   "localEcho": [
+    "Bearing 35 — south by west, half a point east",
+    "Only 2 of the three stones admit that bearing."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "A reading is not a bearing. Every stone offers two, and they stand opposite each other on the ring.\n\nThe day-mark cuts each pair in half: only one of the two can be where the sun stands at this watch.\n\nReduce all three stones to their day-mark bearing. Two will agree; the odd one out drank the sea."
+ },
+ {
+  "ord": 10,
+  "id": "10-drottkvaett",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 17,
+   "near": "0 of the four long lines stand. The rest break metre.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "0 of four long lines ring true.",
+   "localEcho": [
+    "0 of four long lines ring true.",
+    "0 of the four long lines stand. The rest break metre."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 17,
+   "near": "0 of the four long lines stand. The rest break metre.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "0 of four long lines ring true.",
+   "localEcho": [
+    "0 of four long lines ring true.",
+    "0 of the four long lines stand. The rest break metre."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "Sort the eight before you pair them: half of these rhyme on the coda alone, half on vowel and coda both. Only one kind may open a long line.\n\nThe chief stave is the FIRST stress of the second half-line — not its first word. An unstressed word may stand in front of it.\n\nRead the props of each opening half-line against the staves stamped on the hasp. That stamp fixes which long line comes first."
+ },
+ {
+  "ord": 11,
+  "id": "11-skerry",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 15,
+   "near": "The road stops short of the hoard.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "The road stops short of the hoard."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 15,
+   "near": "The road stops short of the hoard.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "The road stops short of the hoard."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "The tide turns with every leg you commit. The first leg runs on the ebb.\n\nTwo ebb-cut sounds cannot be taken one after the other — unless what lies between them takes no tide at all.\n\nA portage costs two legs and leaves the tide exactly where it stood. A loop of three legs turns the tide and leaves you where you stood. Count in pairs, not in distance."
+ },
+ {
+  "ord": 12,
+  "id": "12-veitsla",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 20,
+   "near": "More than one oath falls, and only one man was drunk.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "More than one oath falls, and only one man was drunk."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 12,
+   "near": "More than one oath falls, and only one man was drunk.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "More than one oath falls, and only one man was drunk."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "Nine men swore. One was in his cups. The other eight agree with each other — and with one seating only.\n\nTake an oath and assume it is the boast: strike it out, then see whether the remaining eight can seat the hall at all. Most of them cannot.\n\nWork from the strongest oaths first. A man set across the boards is set on both benches at once, and a feud tells you where a man is not."
+ },
+ {
+  "ord": 13,
+  "id": "13-althing",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 17,
+   "near": "The whole rock roars against that verdict.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "The whole rock roars against that verdict."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 16,
+   "near": "The whole rock roars against that verdict.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "The whole rock roars against that verdict."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "A man is all of a piece here. If one word of his is false, every word of his is false.\n\nStart where a man speaks of another man rather than of the peace-breaker: those words bind the brands together, two at a time, and cost nothing to test.\n\nOnce the brands are fixed, the peace-breaker follows without argument — a truth-teller narrows him down, and a liar narrows him down just as hard, by the opposite of what he says."
+ },
+ {
+  "ord": 14,
+  "id": "14-bindrune",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 17,
+   "near": "Your runes cut strokes the seal does not carry.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "Your runes cut strokes the seal does not carry."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 18,
+   "near": "Your runes cut strokes the seal does not carry.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "Your runes cut strokes the seal does not carry."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "Every stroke in the seal belongs to some rune. Find the rune that owns each stroke, and you have found the seal.\n\nThe long stave down the middle belongs to every rune that hangs on it — so it names none of them. Judge a rune by its branches only.\n\nA rune that could be lifted out without the carving losing a single stroke was never bound in. That is the whole test, and it disqualifies the ice-rune every time."
+ },
+ {
+  "ord": 15,
+  "id": "15-oathring",
+  "p0": {
+   "sendWasDisabled": false,
+   "latency": 13,
+   "near": "The strides do not close the row.",
+   "shudder": true,
+   "dots": 1,
+   "hints": [
+    "locked",
+    "locked",
+    "locked"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "The strides do not close the row."
+   ],
+   "echoVisible": true
+  },
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "p9": {
+   "sendWasDisabled": false,
+   "latency": 14,
+   "near": "The strides do not close the row.",
+   "shudder": true,
+   "dots": 10,
+   "hints": [
+    "armed",
+    "armed",
+    "armed"
+   ],
+   "solved": false,
+   "localStatus": "",
+   "localEcho": [
+    "The strides do not close the row."
+   ],
+   "echoVisible": true
+  },
+  "hintText": "The numbers on the shards are not weights and not counts. They are strides.\n\nStride sunwise from a shard by its own number and you land on its neighbour — not its neighbour on the ring, but the one that follows it in the elder row.\n\nThe row closes: water strides back to wealth, ᛚ to ᚠ. Hang wealth on the north nail, and every other shard follows by counting."
+ }
+]

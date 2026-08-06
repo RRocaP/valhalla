@@ -298,7 +298,7 @@ export default {
     for (const b of [clearBtn, sealBtn]) { b.className = 'ow14-act'; b.type = 'button'; }
     actions.append(clearBtn, sealBtn);
 
-    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};text-align:center`);
+    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px;text-align:center`);
     status.setAttribute('aria-live', 'polite');
 
     wrap.append(seal.canvas, legend, candLabel, cands, actions, status);
@@ -397,7 +397,7 @@ export default {
       const runes = sortRunes([...chosen]);
       say(`Named the bind-rune: ${runes.map(nameOf).join(', ')}.`);
       const res = ctx.submit({ runes }) || {};
-      if (!res.ok) status.textContent = res.near || 'The seal does not answer to those names.';
+      if (!res.ok) { status.textContent = res.near || 'The seal does not answer to those names.'; if (status.scrollIntoView) status.scrollIntoView({ block: 'nearest' }); }
     });
 
     if (ctx.solved) {

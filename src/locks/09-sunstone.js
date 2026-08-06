@@ -238,7 +238,13 @@ function mount(ctx) {
   .ow-sunstone .wet[aria-pressed="true"]{border-color:${P.blood};color:${P.blood}}
   .ow-sunstone .bearing{font-family:ui-monospace,Menlo,monospace;color:${P.goldBright}}
   .ow-sunstone .send{background:${P.gold};color:${P.tar};font-weight:600}
-  .ow-sunstone h4{margin:.1rem 0 0;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}`;
+  .ow-sunstone h4{margin:.1rem 0 0;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}
+  .ow-sunstone .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch}
+  .ow-sunstone .law b{color:${P.bone};font-weight:600}
+  .ow-sunstone .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
+  /* the shell sets \`#app *{min-width:0}\`, which outranks a bare class rule and
+     flattens every touch target; this re-asserts the 44 px floor at equal weight */
+  #app .ow-sunstone button{min-width:44px}`;
   wrap.appendChild(style);
 
   let needle = mod(instance.arcStart);
@@ -259,6 +265,23 @@ function mount(ctx) {
   bearing.setAttribute('aria-live', 'polite');
   wrap.appendChild(bearing);
 
+  // The day-mark is what makes this bearing nameable at all; it may not live
+  // only in the journal and in an unlabelled shading on the rose.
+  const law = document.createElement('p');
+  law.className = 'law';
+  for (const [text, strong] of [
+    ['The stone shows the ring of light ', 0],
+    ['a quarter of the ring — 16 points — from the sun', 1],
+    [', and never says which side, so each reading admits two bearings opposite each other. ', 0],
+    ['The day-mark', 1],
+    [' — the shaded half of the rose — is the half of the ring the sun stands in this watch: ', 0],
+    [`point ${instance.arcStart} to point ${mod(instance.arcStart + ARC - 1)}`, 1],
+    ['. It keeps one bearing out of each pair. ', 0],
+    ['One of the three stones was read wet', 1],
+    [' and says nothing true. Name the sun’s bearing, and name the ruined stone.', 0],
+  ]) law.appendChild(Object.assign(document.createElement(strong ? 'b' : 'span'), { textContent: text }));
+  wrap.appendChild(law);
+
   const h1 = document.createElement('h4');
   h1.textContent = 'Three readings — take a bearing, mark the wet stone';
   wrap.appendChild(h1);
@@ -268,7 +291,9 @@ function mount(ctx) {
     row.className = 'stone';
     const name = document.createElement('span');
     name.className = 'name';
-    name.textContent = instance.stones[i];
+    // show the raw reading beside the pair it opens: the ±16 law has to be
+    // legible on the board, not only in the journal
+    name.textContent = `${instance.stones[i]} read ${r} →`;
     row.appendChild(name);
     const cands = candidates(r).map((c) => {
       const b = document.createElement('button');
@@ -308,6 +333,13 @@ function mount(ctx) {
   send.textContent = 'Swear the bearing';
   wrap.appendChild(send);
 
+  // The shell's near-line sits below the fold on the taller locks; the sea
+  // answers a wrong bearing where the player's eye already is.
+  const tell = document.createElement('p');
+  tell.className = 'tell';
+  tell.setAttribute('aria-live', 'polite');
+  wrap.appendChild(tell);
+
   function refresh() {
     if (roseEl) roseEl.remove();
     roseEl = drawRose(art, 240, instance, needle);
@@ -326,7 +358,8 @@ function mount(ctx) {
 
   on(send, 'click', () => {
     if (wet === null) return;
-    ctx.submit({ azimuth: needle, wet });
+    const res = ctx.submit({ azimuth: needle, wet }) || {};
+    if (!res.ok) { tell.textContent = res.near || 'The sea does not answer to that bearing.'; if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
   });
 
   const onKey = (e) => {

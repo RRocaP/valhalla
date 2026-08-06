@@ -184,7 +184,9 @@ function runeStrip(art, chars, size, opts = {}) {
   const { canvas, ctx } = art.makeCanvas(chars.length * (size + gap) + gap, size * 1.25);
   chars.forEach((ch, i) => {
     art.drawRune(ctx, ch, gap + i * (size + gap), size * 0.12, size, {
-      color: opts.color || art.palette.bone, weight: 'heavy',
+      // drawRune's `weight` is a ribbon width in pixels; the string 'heavy' fed
+      // NaN into the ribbon fill and every rune on this lock drew nothing.
+      color: opts.color || art.palette.bone, weight: size / 7,
     });
   });
   canvas.setAttribute('aria-hidden', 'true');
@@ -219,7 +221,22 @@ function mount(ctx) {
   .ow-jotun .draft{font-family:ui-monospace,Menlo,monospace;color:${P.boneDim};min-height:1.4em}
   .ow-jotun .send{background:${P.gold};color:${P.tar};font-weight:600}
   .ow-jotun h4{margin:.2rem 0 0;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}
-  </style>`;
+  .ow-jotun .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch}
+  .ow-jotun .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
+  /* the shell sets \`#app *{min-width:0}\`, which outranks a bare class rule and
+     flattens every touch target; these re-assert the 44 px floor at equal weight */
+  #app .ow-jotun button{min-width:44px}
+  #app .ow-jotun .slate button{min-width:44px}
+  #app .ow-jotun .row{min-height:44px}`;
+  wrap.appendChild(styleEl);
+
+  const law = document.createElement('p');
+  law.className = 'law';
+  law.textContent = 'Giant-madness: a letter is cut as the rune whose NAME ends in that '
+    + 'letter’s sound — so ár, úr, týr, nauðr, maðr and lǫgr all come out as ᚱ. Reading '
+    + 'backwards, one carved rune can stand for six letters. Four cargo words are carved '
+    + 'below; give each one the ship-word from the lid that enciphers to it.';
+  wrap.appendChild(law);
 
   const rows = document.createElement('div');
   rows.className = 'rows';
@@ -277,6 +294,13 @@ function mount(ctx) {
   send.disabled = true;
   wrap.appendChild(send);
 
+  // The shell's near-line sits below the fold on the taller locks; every lock
+  // also answers a wrong reading where the player's eye already is.
+  const tell = document.createElement('p');
+  tell.className = 'tell';
+  tell.setAttribute('aria-live', 'polite');
+  wrap.appendChild(tell);
+
   for (const [letter] of instance.table.map((r) => [r[0]])) {
     const b = document.createElement('button');
     b.type = 'button';
@@ -307,6 +331,10 @@ function mount(ctx) {
       draft = '';
       audio.ui('knock');
       ctx.note(`Word ${sel + 1} of the manifest read as “${w}” (${gloss}).`);
+      tell.textContent = '';
+      // move the hand on to the next carving still waiting for a reading
+      const nextOpen = picks.findIndex((pk, i) => pk === null && i !== sel);
+      if (nextOpen >= 0) sel = nextOpen;
       refresh();
     });
     slate.appendChild(b);
@@ -345,7 +373,8 @@ function mount(ctx) {
   on(send, 'click', () => {
     if (picks.some((p) => p === null)) return;
     ctx.note(`Manifest read: ${picks.join(' · ')}.`);
-    ctx.submit({ words: picks.slice() });
+    const res = ctx.submit({ words: picks.slice() }) || {};
+    if (!res.ok) { tell.textContent = res.near || 'That manifest does not read.'; if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
   });
 
   const onKey = (e) => {

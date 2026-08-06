@@ -1,0 +1,387 @@
+{
+ "keyboardJourney": [
+  [
+   "threshold button reached by Tab",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "btn-carved",
+    "label": "Continue",
+    "outline": true,
+    "ring": "solid 3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "Enter crosses the threshold",
+   true,
+   null
+  ],
+  [
+   "lid: medallion 1 reachable by Tab",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "medallion-hit",
+    "label": "Lock 1: The Rune Row — next",
+    "outline": true,
+    "ring": "solid 3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "lid: medallion 2 reachable by Tab",
+   false,
+   null
+  ],
+  [
+   "lid: medallion 3 reachable by Tab",
+   false,
+   null
+  ]
+ ],
+ "focusRings": [
+  {
+   "ord": 6,
+   "n": 62,
+   "notFocusable": 1,
+   "noRing": 61
+  },
+  {
+   "ord": 7,
+   "n": 3,
+   "notFocusable": 2,
+   "noRing": 1
+  },
+  {
+   "ord": 8,
+   "n": 15,
+   "notFocusable": 1,
+   "noRing": 14
+  },
+  {
+   "ord": 9,
+   "n": 11,
+   "notFocusable": 1,
+   "noRing": 10
+  },
+  {
+   "ord": 10,
+   "n": 17,
+   "notFocusable": 1,
+   "noRing": 16
+  },
+  {
+   "ord": 11,
+   "n": 4,
+   "notFocusable": 0,
+   "noRing": 4
+  },
+  {
+   "ord": 12,
+   "n": 27,
+   "notFocusable": 1,
+   "noRing": 26
+  },
+  {
+   "ord": 13,
+   "n": 20,
+   "notFocusable": 1,
+   "noRing": 19
+  },
+  {
+   "ord": 14,
+   "n": 18,
+   "notFocusable": 1,
+   "noRing": 17
+  },
+  {
+   "ord": 15,
+   "n": 30,
+   "notFocusable": 1,
+   "noRing": 29
+  }
+ ],
+ "contrast": [
+  {
+   "ord": 6,
+   "sel": ".lock-title",
+   "fg": [
+    233,
+    220,
+    195
+   ],
+   "bg": [
+    22,
+    14,
+    9
+   ],
+   "size": 32,
+   "weight": "700",
+   "ownBg": false,
+   "ratio": 14.07
+  },
+  {
+   "ord": 6,
+   "sel": ".lock-epigraph",
+   "fg": [
+    183,
+    169,
+    140
+   ],
+   "bg": [
+    27,
+    16,
+    9
+   ],
+   "size": 16.8,
+   "weight": "400",
+   "ownBg": false,
+   "ratio": 8.06
+  },
+  {
+   "ord": 6,
+   "sel": ".ow-jotun .law",
+   "fg": [
+    183,
+    169,
+    140
+   ],
+   "bg": [
+    28,
+    18,
+    9
+   ],
+   "size": 13.76,
+   "weight": "400",
+   "ownBg": false,
+   "ratio": 7.95
+  },
+  {
+   "ord": 6,
+   "sel": ".ow-jotun .send",
+   "fg": [
+    12,
+    9,
+    6
+   ],
+   "bg": [
+    201,
+    162,
+    39
+   ],
+   "size": 16,
+   "weight": "600",
+   "ownBg": true,
+   "ratio": 8.21
+  },
+  {
+   "ord": 6,
+   "sel": ".ow-jotun .slate button",
+   "fg": [
+    233,
+    220,
+    195
+   ],
+   "bg": [
+    58,
+    36,
+    18
+   ],
+   "size": 13.6,
+   "weight": "400",
+   "ownBg": true,
+   "ratio": 10.75
+  },
+  {
+   "ord": 6,
+   "sel": ".near-line",
+   "skipped": true
+  },
+  {
+   "ord": 6,
+   "sel": ".hint-slot",
+   "fg": [
+    238,
+    207,
+    109
+   ],
+   "bg": [
+    0,
+    0,
+    0
+   ],
+   "size": 13.6,
+   "weight": "400",
+   "ownBg": false,
+   "ratio": 13.78
+  },
+  {
+   "ord": 9,
+   "sel": ".ow-sunstone .law",
+   "fg": [
+    183,
+    169,
+    140
+   ],
+   "bg": [
+    38,
+    23,
+    11
+   ],
+   "size": 13.76,
+   "weight": "400",
+   "ownBg": false,
+   "ratio": 7.49
+  },
+  {
+   "ord": 9,
+   "sel": ".ow-sunstone .bearing",
+   "fg": [
+    238,
+    207,
+    109
+   ],
+   "bg": [
+    40,
+    24,
+    13
+   ],
+   "size": 16,
+   "weight": "400",
+   "ownBg": false,
+   "ratio": 11.23
+  },
+  {
+   "ord": 9,
+   "sel": ".ow-sunstone .stone .name",
+   "fg": [
+    233,
+    220,
+    195
+   ],
+   "bg": [
+    41,
+    23,
+    10
+   ],
+   "size": 13.6,
+   "weight": "400",
+   "ownBg": false,
+   "ratio": 12.68
+  },
+  {
+   "ord": 9,
+   "sel": ".ow-sunstone .send",
+   "fg": [
+    12,
+    9,
+    6
+   ],
+   "bg": [
+    201,
+    162,
+    39
+   ],
+   "size": 16,
+   "weight": "600",
+   "ownBg": true,
+   "ratio": 8.21
+  },
+  {
+   "ord": 15,
+   "sel": ".ow15-act",
+   "fg": [
+    233,
+    220,
+    195
+   ],
+   "bg": [
+    34,
+    21,
+    7
+   ],
+   "size": 15,
+   "weight": "400",
+   "ownBg": true,
+   "ratio": 13.15
+  },
+  {
+   "ord": 15,
+   "sel": ".ow15-slot",
+   "fg": [
+    183,
+    169,
+    140
+   ],
+   "bg": [
+    34,
+    21,
+    7
+   ],
+   "size": 14,
+   "weight": "400",
+   "ownBg": true,
+   "ratio": 7.69
+  },
+  {
+   "ord": 15,
+   "sel": ".ow15-val",
+   "fg": [
+    238,
+    207,
+    109
+   ],
+   "bg": [
+    44,
+    25,
+    9
+   ],
+   "size": 12,
+   "weight": "400",
+   "ownBg": false,
+   "ratio": 11.02
+  },
+  {
+   "ord": 15,
+   "sel": ".ow15-hasp + p, .ow15-ring + p",
+   "fg": [
+    183,
+    169,
+    140
+   ],
+   "bg": [
+    48,
+    27,
+    12
+   ],
+   "size": 13,
+   "weight": "400",
+   "ownBg": false,
+   "ratio": 7.04
+  }
+ ],
+ "reducedMotion": {
+  "appClass": "reduced-motion",
+  "dare": {
+   "name": "QUEEN ÄRYÄ STÖRK — the last",
+   "taunt": 83,
+   "anim": "none"
+  },
+  "yield": {
+   "ms": 18,
+   "line": "The Queen lowers her horn. Skål, ring-closer. The chest is yours."
+  },
+  "finale": "TEBI THE OSTEOPATH · Snake-in-the-Eye\n\nThe hoard of the fifteen locks.\n\ntap or press Enter to continue",
+  "finaleSteps": [
+   "JARL ÅLANØ |  | from under the false bottom — the Troll-Burster · Friend of the ",
+   "TEBI THE OSTEOPATH · Snake-in-the-Eye | JARL ÅLANØ | Raise the horns | Seal the ",
+   "(gone)"
+  ],
+  "credits": {
+   "textLen": 299,
+   "head": "VALHALLA | THE CHALLENGERS | JARL BOURJ | GUDJA RØIS | JARL ÅNDREAS | JARL FOLKLORE | QUEEN ÄRYÄ STÖRK",
+   "stickers": 6,
+   "anim": "none"
+  }
+ },
+ "rmErrors": []
+}

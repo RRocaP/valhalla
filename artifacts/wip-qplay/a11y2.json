@@ -1,0 +1,188 @@
+{
+ "journey": [
+  [
+   "threshold reached + ring",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "btn-carved",
+    "label": "Continue",
+    "fv": true,
+    "ring": "3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "lid: medallion 1 tabbable + ring",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "medallion-hit",
+    "label": "Lock 1: The Rune Row — open",
+    "fv": true,
+    "ring": "3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "lid: medallion 2 tabbable + ring",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "medallion-hit",
+    "label": "Lock 2: The Bismer Scales — open",
+    "fv": true,
+    "ring": "3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "lid: medallion 3 tabbable + ring",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "medallion-hit",
+    "label": "Lock 3: The Beacon Nights — next",
+    "fv": true,
+    "ring": "3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "dare auto-focus on Answer the dare",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "btn-carved",
+    "label": "Answer the dare",
+    "fv": true,
+    "ring": "3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "Enter answers the dare",
+   true,
+   null
+  ],
+  [
+   "dial tabbable + ring",
+   true,
+   {
+    "tag": "CANVAS",
+    "cls": "ow3-dial",
+    "label": "The night dial",
+    "fv": true,
+    "ring": "3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "dial driven to the answer by arrows only",
+   true,
+   {
+    "night": 471
+   }
+  ],
+  [
+   "submit tabbable + ring",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "ow3-act",
+    "label": "Set the dial",
+    "fv": true,
+    "ring": "3px rgb(238, 207, 109)"
+   }
+  ],
+  [
+   "pointer-free solve reaches the yield",
+   true,
+   {
+    "line": "So the fires do answer you. Take the road, counter of nights."
+   }
+  ],
+  [
+   "ceremony returns to the lid",
+   true,
+   null
+  ],
+  [
+   "next lock armed and tabbable",
+   true,
+   {
+    "tag": "BUTTON",
+    "cls": "medallion-hit",
+    "label": "Lock 4: The Clinker Strakes — next",
+    "fv": true,
+    "ring": "3px rgb(238, 207, 109)"
+   }
+  ]
+ ],
+ "focusRings": [
+  {
+   "ord": 6,
+   "controls": 62,
+   "tabReached": 60,
+   "tabStops": 66,
+   "noRing": 0
+  },
+  {
+   "ord": 7,
+   "controls": 3,
+   "tabReached": 1,
+   "tabStops": 3,
+   "noRing": 0
+  },
+  {
+   "ord": 8,
+   "controls": 15,
+   "tabReached": 14,
+   "tabStops": 19,
+   "noRing": 0
+  },
+  {
+   "ord": 9,
+   "controls": 11,
+   "tabReached": 8,
+   "tabStops": 15,
+   "noRing": 0
+  },
+  {
+   "ord": 10,
+   "controls": 17,
+   "tabReached": 16,
+   "tabStops": 21,
+   "noRing": 0
+  },
+  {
+   "ord": 11,
+   "controls": 4,
+   "tabReached": 4,
+   "tabStops": 8,
+   "noRing": 0
+  },
+  {
+   "ord": 12,
+   "controls": 27,
+   "tabReached": 12,
+   "tabStops": 31,
+   "noRing": 0
+  },
+  {
+   "ord": 13,
+   "controls": 20,
+   "tabReached": 19,
+   "tabStops": 24,
+   "noRing": 0
+  },
+  {
+   "ord": 14,
+   "controls": 18,
+   "tabReached": 17,
+   "tabStops": 22,
+   "noRing": 0
+  },
+  {
+   "ord": 15,
+   "controls": 30,
+   "tabReached": 29,
+   "tabStops": 34,
+   "noRing": 0
+  }
+ ]
+}

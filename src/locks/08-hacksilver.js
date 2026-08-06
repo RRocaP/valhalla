@@ -208,7 +208,11 @@ function mount(ctx) {
   .ow-hacksilver button:focus-visible{outline:2px solid ${P.goldBright};outline-offset:2px}
   .ow-hacksilver .send{background:${P.gold};color:${P.tar};font-weight:600}
   .ow-hacksilver h4{margin:.2rem 0 0;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}
-  .ow-hacksilver .accused{font-size:.85rem;color:${P.goldBright};min-height:1.3em}`;
+  .ow-hacksilver .accused{font-size:.85rem;color:${P.goldBright};min-height:1.3em}
+  .ow-hacksilver .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
+  /* the shell sets \`#app *{min-width:0}\`, which outranks a bare class rule and
+     flattens every touch target; this re-asserts the 44 px floor at equal weight */
+  #app .ow-hacksilver button{min-width:44px}`;
   wrap.appendChild(style);
 
   const tiltWord = { left: 'the left pan sank', right: 'the right pan sank', level: 'the beam stood level' };
@@ -270,6 +274,13 @@ function mount(ctx) {
   send.disabled = true;
   wrap.appendChild(send);
 
+  // The shell's near-line sits below the fold on the taller locks; the beam
+  // answers a wrong accusation where the player's eye already is.
+  const tell = document.createElement('p');
+  tell.className = 'tell';
+  tell.setAttribute('aria-live', 'polite');
+  wrap.appendChild(tell);
+
   let piece = null;
   let heavier = null;
 
@@ -284,6 +295,7 @@ function mount(ctx) {
       piece = i;
       audio.ui('knock');
       ctx.note(`Accusation laid on the ${instance.cuts[i]}.`);
+      tell.textContent = '';
       refresh();
     });
     dial.appendChild(b);
@@ -317,7 +329,8 @@ function mount(ctx) {
 
   on(send, 'click', () => {
     if (piece === null || heavier === null) return;
-    ctx.submit({ piece, heavier });
+    const res = ctx.submit({ piece, heavier }) || {};
+    if (!res.ok) { tell.textContent = res.near || 'The beam does not bear that oath.'; if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
   });
 
   const onKey = (e) => {

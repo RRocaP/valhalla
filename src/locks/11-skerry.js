@@ -565,7 +565,7 @@ export default {
     for (const b of [backBtn, resetBtn, sealBtn]) { b.className = 'ow11-act'; b.type = 'button'; }
     actions.append(backBtn, resetBtn, sealBtn);
 
-    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim}`);
+    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px`);
     status.setAttribute('aria-live', 'polite');
 
     wrap.append(chart.canvas, tideBar, legendText, movesLabel, moves, actions, status);
@@ -722,7 +722,7 @@ export default {
       const answer = { route: route.slice() };
       say(routeWords());
       const res = ctx.submit(answer) || {};
-      if (!res.ok) status.textContent = res.near || 'The sea does not take that road.';
+      if (!res.ok) { status.textContent = res.near || 'The sea does not take that road.'; if (status.scrollIntoView) status.scrollIntoView({ block: 'nearest' }); }
     });
 
     if (ctx.solved) {

@@ -486,7 +486,7 @@ export default {
     for (const b of [clearBtn, swearBtn]) { b.className = 'ow12-act'; b.type = 'button'; }
     actions.append(clearBtn, swearBtn);
 
-    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim}`);
+    const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px`);
     status.setAttribute('aria-live', 'polite');
 
     wrap.append(hall.canvas, benchALabel, benchA, boards, benchB, benchBLabel,
@@ -632,7 +632,7 @@ export default {
       const benches = order.map((b) => [0, 1, 2, 3].map((i) => names[seats[b * 4 + i]]));
       say(hallWords());
       const res = ctx.submit({ benches, boast }) || {};
-      if (!res.ok) status.textContent = res.near || 'The hall does not stand under those oaths.';
+      if (!res.ok) { status.textContent = res.near || 'The hall does not stand under those oaths.'; if (status.scrollIntoView) status.scrollIntoView({ block: 'nearest' }); }
     });
 
     if (ctx.solved) {

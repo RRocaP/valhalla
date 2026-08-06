@@ -1,0 +1,1389 @@
+[
+ {
+  "id": "01-runerow",
+  "ordinal": 1,
+  "title": "The Rune Row",
+  "epigraph": "Sixteen staves stand in one order. The carver's hand slipped, or lied.",
+  "hints": [
+   "The carver scattered the row. He did not change it — the futhark keeps one order, and it is cut along the rail.",
+   "Some staves were struck from the wrong face. A stave that faces the wrong hand matches nothing on the rail.",
+   "Judge a tile's face before its place. Then set the ættir in turn: six, five, five."
+  ],
+  "difficulty": {
+   "searchSpace": 1400000000000000000,
+   "minSteps": 8,
+   "estMinutes": 2
+  },
+  "truth": "{\"flips\":[false,true,true,false,false,true,false,false,false,false,false,false,false,false,false,false],\"order\":[0,12,9,3,4,5,6,7,2,11,10,1,13,15,14,8]}",
+  "nWrongs": 8,
+  "distinctNear": [
+   "The row stands in order, but a stave still faces the wrong hand.",
+   "No ætt stands whole.",
+   "The second and third ættir stand true. The rest does not."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "The row stands in order, but a stave still faces the wrong hand."
+   },
+   {
+    "ok": false,
+    "near": "The row stands in order, but a stave still faces the wrong hand."
+   },
+   {
+    "ok": false,
+    "near": "The row stands in order, but a stave still faces the wrong hand."
+   },
+   {
+    "ok": false,
+    "near": "No ætt stands whole."
+   },
+   {
+    "ok": false,
+    "near": "No ætt stands whole."
+   },
+   {
+    "ok": false,
+    "near": "No ætt stands whole."
+   },
+   {
+    "ok": false,
+    "near": "The row stands in order, but a stave still faces the wrong hand."
+   },
+   {
+    "ok": false,
+    "near": "The second and third ættir stand true. The rest does not."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "02-bismer",
+  "ordinal": 2,
+  "title": "The Bismer Scales",
+  "epigraph": "Nine pouches, one sworn weight — and one runs light. The beam has already spoken twice.",
+  "hints": [
+   "Every pouch is sworn to the same weight. Read the labels in ertog before you trust your eye: eight øre to the mark, three ertog to the øre.",
+   "The pan that sinks holds the heavier silver. A level beam says the clipped pouch stood aside from that weighing.",
+   "Each weighing cuts the nine into three — left pan, right pan, set aside. Two cuts leave one pouch standing alone."
+  ],
+  "difficulty": {
+   "searchSpace": 9,
+   "minSteps": 8,
+   "estMinutes": 3
+  },
+  "truth": "{\"pouch\":3}",
+  "nWrongs": 8,
+  "distinctNear": [
+   "The first weighing already clears that pouch.",
+   "The second weighing already clears that pouch."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "The first weighing already clears that pouch."
+   },
+   {
+    "ok": false,
+    "near": "The first weighing already clears that pouch."
+   },
+   {
+    "ok": false,
+    "near": "The first weighing already clears that pouch."
+   },
+   {
+    "ok": false,
+    "near": "The first weighing already clears that pouch."
+   },
+   {
+    "ok": false,
+    "near": "The first weighing already clears that pouch."
+   },
+   {
+    "ok": false,
+    "near": "The first weighing already clears that pouch."
+   },
+   {
+    "ok": false,
+    "near": "The second weighing already clears that pouch."
+   },
+   {
+    "ok": false,
+    "near": "The second weighing already clears that pouch."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "03-beacons",
+  "ordinal": 3,
+  "title": "The Beacon Nights",
+  "epigraph": "Three fires keep three reckonings. Once they burned as one.",
+  "hints": [
+   "A fire that burned three nights past on a reckoning of five burns again in two.",
+   "Take the longest reckoning first. Count only its nights, then try each against the second, and what survives against the third.",
+   "Past the three reckonings multiplied the whole pattern comes round again. The night you want lies within one turn of that wheel."
+  ],
+  "difficulty": {
+   "searchSpace": 1287,
+   "minSteps": 10,
+   "estMinutes": 4
+  },
+  "truth": "{\"night\":471}",
+  "nWrongs": 11,
+  "distinctNear": [
+   "No fire answers that night.",
+   "Two fires answer that night. One stands dark.",
+   "One fire answers that night. Two stand dark."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "No fire answers that night."
+   },
+   {
+    "ok": false,
+    "near": "No fire answers that night."
+   },
+   {
+    "ok": false,
+    "near": "Two fires answer that night. One stands dark."
+   },
+   {
+    "ok": false,
+    "near": "One fire answers that night. Two stand dark."
+   },
+   {
+    "ok": false,
+    "near": "Two fires answer that night. One stands dark."
+   },
+   {
+    "ok": false,
+    "near": "Two fires answer that night. One stands dark."
+   },
+   {
+    "ok": false,
+    "near": "No fire answers that night."
+   },
+   {
+    "ok": false,
+    "near": "No fire answers that night."
+   },
+   {
+    "ok": false,
+    "near": "One fire answers that night. Two stand dark."
+   },
+   {
+    "ok": false,
+    "near": "One fire answers that night. Two stand dark."
+   },
+   {
+    "ok": false,
+    "near": "One fire answers that night. Two stand dark."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "04-strakes",
+  "ordinal": 4,
+  "title": "The Clinker Strakes",
+  "epigraph": "Nine planks, and nine men who swear. One swears falsely.",
+  "hints": [
+   "A strake laps the one below it and no other. Nine planks make one stack, keel to sheer — and these nine testimonies make a ring, which no stack can.",
+   "Count the rivets. Where two strakes lap, one count is odd and the other even. Weigh every testimony against that.",
+   "Strike the lawless testimony from the ledger and swear by the other eight. What they leave is one stack and no other."
+  ],
+  "difficulty": {
+   "searchSpace": 3265920,
+   "minSteps": 12,
+   "estMinutes": 5
+  },
+  "truth": "{\"liar\":4,\"order\":[7,1,0,6,4,5,8,2,3]}",
+  "nWrongs": 11,
+  "distinctNear": [
+   "That testimony keeps the rivet law. It is no lie.",
+   "Two strakes of one parity lap in that stack. The rivets forbid it.",
+   "The garboard is wrong. Nothing above it can stand."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "That testimony keeps the rivet law. It is no lie."
+   },
+   {
+    "ok": false,
+    "near": "Two strakes of one parity lap in that stack. The rivets forbid it."
+   },
+   {
+    "ok": false,
+    "near": "The garboard is wrong. Nothing above it can stand."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "05-knotwork",
+  "ordinal": 5,
+  "title": "The Oseberg Knot",
+  "epigraph": "One band, and no end to it. It goes over where it went under.",
+  "hints": [
+   "One band runs the whole panel and comes back to itself. Follow it from a carved crossing and do not lift your eye.",
+   "Where the band meets itself it goes over, then under, then over again. Never twice the same.",
+   "The carved crossings cannot be moved, and they set the count for every crossing that follows along the run. Begin at one and lay each crossing as the band demands."
+  ],
+  "difficulty": {
+   "searchSpace": 4096,
+   "minSteps": 14,
+   "estMinutes": 6
+  },
+  "truth": "{\"states\":[true,false,true,false,true,false,true,true,false,false,true,false]}",
+  "nWrongs": 8,
+  "distinctNear": [
+   "The band doubles over in 4 places.",
+   "The band doubles over in 20 places.",
+   "The band doubles over in 22 places.",
+   "The band doubles over in 12 places.",
+   "The band doubles over in 8 places.",
+   "The band doubles over in 2 places."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "The band doubles over in 4 places."
+   },
+   {
+    "ok": false,
+    "near": "The band doubles over in 20 places."
+   },
+   {
+    "ok": false,
+    "near": "The band doubles over in 22 places."
+   },
+   {
+    "ok": false,
+    "near": "The band doubles over in 12 places."
+   },
+   {
+    "ok": false,
+    "near": "The band doubles over in 8 places."
+   },
+   {
+    "ok": false,
+    "near": "The band doubles over in 2 places."
+   },
+   {
+    "ok": false,
+    "near": "The band doubles over in 4 places."
+   },
+   {
+    "ok": false,
+    "near": "The band doubles over in 4 places."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "06-jotunvillur",
+  "ordinal": 6,
+  "title": "The Jötunvillur Cipher",
+  "epigraph": "Every letter wears another’s name. The carver called it giant-madness.",
+  "hints": [
+   "A rune here is not a letter. It is every letter whose rune-name ends in that sound.",
+   "Six letters end in the sound of reið; that rune is the crowded one. Only the lid’s word-list can thin it.",
+   "Take the shortest carving first — its tree of readings is thin, and it teaches the hand that cut the rest."
+  ],
+  "difficulty": {
+   "searchSpace": 12000000,
+   "minSteps": 17,
+   "estMinutes": 9
+  },
+  "truth": "{\"words\":[\"laukr\",\"horn\",\"hlutr\",\"ull\"]}",
+  "nWrongs": 10,
+  "distinctNear": [
+   "0 of the four ring true. The rest are strangers.",
+   "2 of the four ring true. The rest are strangers.",
+   "1 of your words are carved on no board of this lid.",
+   "3 of the four ring true. The rest are strangers."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "0 of the four ring true. The rest are strangers."
+   },
+   {
+    "ok": false,
+    "near": "0 of the four ring true. The rest are strangers."
+   },
+   {
+    "ok": false,
+    "near": "2 of the four ring true. The rest are strangers."
+   },
+   {
+    "ok": false,
+    "near": "1 of your words are carved on no board of this lid."
+   },
+   {
+    "ok": false,
+    "near": "1 of your words are carved on no board of this lid."
+   },
+   {
+    "ok": false,
+    "near": "1 of your words are carved on no board of this lid."
+   },
+   {
+    "ok": false,
+    "near": "1 of your words are carved on no board of this lid."
+   },
+   {
+    "ok": false,
+    "near": "3 of the four ring true. The rest are strangers."
+   },
+   {
+    "ok": false,
+    "near": "3 of the four ring true. The rest are strangers."
+   },
+   {
+    "ok": false,
+    "near": "3 of the four ring true. The rest are strangers."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "07-tafl",
+  "ordinal": 7,
+  "title": "The King’s Road",
+  "epigraph": "The board is small and the corners are far. Every road but one is a trap.",
+  "hints": [
+   "The attackers do not think. They capture when they can, and otherwise they lengthen your road — always the same way, every time.",
+   "The move that shortens the king’s road most is the move that hands them a capture. Count what stands beyond the square you land on.",
+   "Play the move their policy cannot answer, not the move that gains the most ground. Their reply is fixed — read it out before you commit to anything."
+  ],
+  "difficulty": {
+   "searchSpace": 150000,
+   "minSteps": 19,
+   "estMinutes": 11
+  },
+  "truth": "{\"line\":[[[2,5],[2,6]],[[1,5],[0,5]],[[0,5],[0,6]]]}",
+  "nWrongs": 10,
+  "distinctNear": [
+   "The attackers took the king after move 1.",
+   "The attackers took the king after move 2."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 2."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   },
+   {
+    "ok": false,
+    "near": "The attackers took the king after move 1."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "08-hacksilver",
+  "ordinal": 8,
+  "title": "The Twelve Pieces",
+  "epigraph": "One of these was cut by a liar. The beam remembers; it does not speak.",
+  "hints": [
+   "Twenty-four namings are possible — twelve pieces, each false in two directions. Three weighings can part twenty-seven.",
+   "A piece withheld from a weighing cannot tilt it. Read each level beam as hard evidence, not as silence.",
+   "Take one weighing at a time and strike out every naming it contradicts. What survives all three is the only oath you can swear."
+  ],
+  "difficulty": {
+   "searchSpace": 24,
+   "minSteps": 21,
+   "estMinutes": 13
+  },
+  "truth": "{\"piece\":10,\"heavier\":false}",
+  "nWrongs": 10,
+  "distinctNear": [
+   "Your naming disagrees with 2 of the three sworn weighings.",
+   "Your naming disagrees with 3 of the three sworn weighings.",
+   "Your naming disagrees with 1 of the three sworn weighings."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 2 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 3 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 2 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 2 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 1 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 3 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 2 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 1 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 1 of the three sworn weighings."
+   },
+   {
+    "ok": false,
+    "near": "Your naming disagrees with 3 of the three sworn weighings."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "09-sunstone",
+  "ordinal": 9,
+  "title": "The Sunstone Bearing",
+  "epigraph": "The stone never points at the sun. It points a quarter-ring away, and says nothing about which side.",
+  "hints": [
+   "A reading is not a bearing. Every stone offers two, and they stand opposite each other on the ring.",
+   "The day-mark cuts each pair in half: only one of the two can be where the sun stands at this watch.",
+   "Reduce all three stones to their day-mark bearing. Two will agree; the odd one out drank the sea."
+  ],
+  "difficulty": {
+   "searchSpace": 192,
+   "minSteps": 23,
+   "estMinutes": 14
+  },
+  "truth": "{\"azimuth\":35,\"wet\":2}",
+  "nWrongs": 9,
+  "distinctNear": [
+   "Only 2 of the three stones admit that bearing.",
+   "That bearing lies outside the day-mark. The sun is not behind you.",
+   "Only 0 of the three stones admit that bearing.",
+   "Only 1 of the three stones admit that bearing."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "Only 2 of the three stones admit that bearing."
+   },
+   {
+    "ok": false,
+    "near": "Only 2 of the three stones admit that bearing."
+   },
+   {
+    "ok": false,
+    "near": "That bearing lies outside the day-mark. The sun is not behind you."
+   },
+   {
+    "ok": false,
+    "near": "Only 0 of the three stones admit that bearing."
+   },
+   {
+    "ok": false,
+    "near": "Only 0 of the three stones admit that bearing."
+   },
+   {
+    "ok": false,
+    "near": "That bearing lies outside the day-mark. The sun is not behind you."
+   },
+   {
+    "ok": false,
+    "near": "Only 2 of the three stones admit that bearing."
+   },
+   {
+    "ok": false,
+    "near": "Only 2 of the three stones admit that bearing."
+   },
+   {
+    "ok": false,
+    "near": "Only 1 of the three stones admit that bearing."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "10-drottkvaett",
+  "ordinal": 10,
+  "title": "The Dróttkvætt Lines",
+  "epigraph": "Court metre is a lock with three wards: count, stave, and rhyme.",
+  "hints": [
+   "Sort the eight before you pair them: half of these rhyme on the coda alone, half on vowel and coda both. Only one kind may open a long line.",
+   "The chief stave is the FIRST stress of the second half-line — not its first word. An unstressed word may stand in front of it.",
+   "Read the props of each opening half-line against the staves stamped on the hasp. That stamp fixes which long line comes first."
+  ],
+  "difficulty": {
+   "searchSpace": 40320,
+   "minSteps": 25,
+   "estMinutes": 16
+  },
+  "truth": "{\"lines\":[[2,0],[5,1],[4,7],[3,6]]}",
+  "nWrongs": 10,
+  "distinctNear": [
+   "2 of the four long lines stand. The rest break metre.",
+   "3 of the four long lines stand. The rest break metre.",
+   "0 of the four long lines stand. The rest break metre."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "2 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "2 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "2 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "2 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "2 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "2 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "3 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "0 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "2 of the four long lines stand. The rest break metre."
+   },
+   {
+    "ok": false,
+    "near": "2 of the four long lines stand. The rest break metre."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "11-skerry",
+  "ordinal": 11,
+  "title": "The Skerry Road",
+  "epigraph": "The sea keeps no road. It lends one, twice a day, and takes it back.",
+  "hints": [
+   "The tide turns with every leg you commit. The first leg runs on the ebb.",
+   "Two ebb-cut sounds cannot be taken one after the other — unless what lies between them takes no tide at all.",
+   "A portage costs two legs and leaves the tide exactly where it stood. A loop of three legs turns the tide and leaves you where you stood. Count in pairs, not in distance."
+  ],
+  "difficulty": {
+   "searchSpace": 300000000,
+   "minSteps": 26,
+   "estMinutes": 16
+  },
+  "truth": "{\"route\":[0,2,1,5,7,4,6,8,10,12,13]}",
+  "nWrongs": 10,
+  "distinctNear": [
+   "A flood-cut sound will not take that leg of the tide.",
+   "The passage holds, but a shorter road exists.",
+   "The fleet does not lie at that skerry.",
+   "The road stops short of the hoard.",
+   "No water joins Skipsvik to the next.",
+   "No water joins Draugsker to the next."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "A flood-cut sound will not take that leg of the tide."
+   },
+   {
+    "ok": false,
+    "near": "The passage holds, but a shorter road exists."
+   },
+   {
+    "ok": false,
+    "near": "The fleet does not lie at that skerry."
+   },
+   {
+    "ok": false,
+    "near": "The road stops short of the hoard."
+   },
+   {
+    "ok": false,
+    "near": "The fleet does not lie at that skerry."
+   },
+   {
+    "ok": false,
+    "near": "No water joins Skipsvik to the next."
+   },
+   {
+    "ok": false,
+    "near": "No water joins Draugsker to the next."
+   },
+   {
+    "ok": false,
+    "near": "A flood-cut sound will not take that leg of the tide."
+   },
+   {
+    "ok": false,
+    "near": "No water joins Skipsvik to the next."
+   },
+   {
+    "ok": false,
+    "near": "No water joins Skipsvik to the next."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "12-veitsla",
+  "ordinal": 12,
+  "title": "The Feast Benches",
+  "epigraph": "Ale swore nine oaths at that table. Eight of them were sober.",
+  "hints": [
+   "Nine men swore. One was in his cups. The other eight agree with each other — and with one seating only.",
+   "Take an oath and assume it is the boast: strike it out, then see whether the remaining eight can seat the hall at all. Most of them cannot.",
+   "Work from the strongest oaths first. A man set across the boards is set on both benches at once, and a feud tells you where a man is not."
+  ],
+  "difficulty": {
+   "searchSpace": 360000,
+   "minSteps": 28,
+   "estMinutes": 18
+  },
+  "truth": "{\"benches\":[[\"Dagfinn\",\"Bjolan\",\"Sigtrygg\",\"Hjalti\"],[\"Ketil\",\"Nokkvi\",\"Ljot\",\"Ragnvald\"]],\"boast\":4}",
+  "nWrongs": 12,
+  "distinctNear": [
+   "More than one oath falls, and only one man was drunk.",
+   "The oath you named as the boast still stands in that hall.",
+   "The hall is read from the bench that holds Bjolan."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "More than one oath falls, and only one man was drunk."
+   },
+   {
+    "ok": false,
+    "near": "More than one oath falls, and only one man was drunk."
+   },
+   {
+    "ok": false,
+    "near": "More than one oath falls, and only one man was drunk."
+   },
+   {
+    "ok": false,
+    "near": "More than one oath falls, and only one man was drunk."
+   },
+   {
+    "ok": false,
+    "near": "The oath you named as the boast still stands in that hall."
+   },
+   {
+    "ok": false,
+    "near": "The oath you named as the boast still stands in that hall."
+   },
+   {
+    "ok": false,
+    "near": "The oath you named as the boast still stands in that hall."
+   },
+   {
+    "ok": false,
+    "near": "The oath you named as the boast still stands in that hall."
+   },
+   {
+    "ok": false,
+    "near": "The oath you named as the boast still stands in that hall."
+   },
+   {
+    "ok": false,
+    "near": "The hall is read from the bench that holds Bjolan."
+   },
+   {
+    "ok": false,
+    "near": "The oath you named as the boast still stands in that hall."
+   },
+   {
+    "ok": false,
+    "near": "The oath you named as the boast still stands in that hall."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "13-althing",
+  "ordinal": 13,
+  "title": "The Althing Verdict",
+  "epigraph": "At the law-rock a man is his word. Break the peace, and every word you own breaks with it.",
+  "hints": [
+   "A man is all of a piece here. If one word of his is false, every word of his is false.",
+   "Start where a man speaks of another man rather than of the peace-breaker: those words bind the brands together, two at a time, and cost nothing to test.",
+   "Once the brands are fixed, the peace-breaker follows without argument — a truth-teller narrows him down, and a liar narrows him down just as hard, by the opposite of what he says."
+  ],
+  "difficulty": {
+   "searchSpace": 4600,
+   "minSteps": 30,
+   "estMinutes": 20
+  },
+  "truth": "{\"culprit\":5,\"liars\":[true,false,false,false,true,false,false,true,false]}",
+  "nWrongs": 11,
+  "distinctNear": [
+   "The whole rock roars against that verdict.",
+   "Several voices at the rock cannot stand under that verdict.",
+   "One voice at the rock cannot stand under that verdict."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "The whole rock roars against that verdict."
+   },
+   {
+    "ok": false,
+    "near": "Several voices at the rock cannot stand under that verdict."
+   },
+   {
+    "ok": false,
+    "near": "One voice at the rock cannot stand under that verdict."
+   },
+   {
+    "ok": false,
+    "near": "The whole rock roars against that verdict."
+   },
+   {
+    "ok": false,
+    "near": "One voice at the rock cannot stand under that verdict."
+   },
+   {
+    "ok": false,
+    "near": "One voice at the rock cannot stand under that verdict."
+   },
+   {
+    "ok": false,
+    "near": "One voice at the rock cannot stand under that verdict."
+   },
+   {
+    "ok": false,
+    "near": "The whole rock roars against that verdict."
+   },
+   {
+    "ok": false,
+    "near": "The whole rock roars against that verdict."
+   },
+   {
+    "ok": false,
+    "near": "The whole rock roars against that verdict."
+   },
+   {
+    "ok": false,
+    "near": "The whole rock roars against that verdict."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "14-bindrune",
+  "ordinal": 14,
+  "title": "The Bind-Rune Seal",
+  "epigraph": "Six names cut over one another on a single stave. The stave belongs to all of them and to none.",
+  "hints": [
+   "Every stroke in the seal belongs to some rune. Find the rune that owns each stroke, and you have found the seal.",
+   "The long stave down the middle belongs to every rune that hangs on it — so it names none of them. Judge a rune by its branches only.",
+   "A rune that could be lifted out without the carving losing a single stroke was never bound in. That is the whole test, and it disqualifies the ice-rune every time."
+  ],
+  "difficulty": {
+   "searchSpace": 66000,
+   "minSteps": 32,
+   "estMinutes": 22
+  },
+  "truth": "{\"runes\":[\"ᚠ\",\"ᚦ\",\"ᚱ\",\"ᛏ\",\"ᛘ\"]}",
+  "nWrongs": 10,
+  "distinctNear": [
+   "One of those runes adds nothing the others have not already cut.",
+   "Your runes cut strokes the seal does not carry.",
+   "Strokes in the seal that none of your runes account for.",
+   "Name them in the order of the row, from ᚠ onward."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "One of those runes adds nothing the others have not already cut."
+   },
+   {
+    "ok": false,
+    "near": "Your runes cut strokes the seal does not carry."
+   },
+   {
+    "ok": false,
+    "near": "Your runes cut strokes the seal does not carry."
+   },
+   {
+    "ok": false,
+    "near": "Strokes in the seal that none of your runes account for."
+   },
+   {
+    "ok": false,
+    "near": "Strokes in the seal that none of your runes account for."
+   },
+   {
+    "ok": false,
+    "near": "Your runes cut strokes the seal does not carry."
+   },
+   {
+    "ok": false,
+    "near": "Name them in the order of the row, from ᚠ onward."
+   },
+   {
+    "ok": false,
+    "near": "Your runes cut strokes the seal does not carry."
+   },
+   {
+    "ok": false,
+    "near": "Your runes cut strokes the seal does not carry."
+   },
+   {
+    "ok": false,
+    "near": "Your runes cut strokes the seal does not carry."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ },
+ {
+  "id": "15-oathring",
+  "ordinal": 15,
+  "title": "The Oath-Ring",
+  "epigraph": "Fourteen locks gave up fourteen names. The ring asks only where each of them was standing.",
+  "hints": [
+   "The numbers on the shards are not weights and not counts. They are strides.",
+   "Stride sunwise from a shard by its own number and you land on its neighbour — not its neighbour on the ring, but the one that follows it in the elder row.",
+   "The row closes: water strides back to wealth, ᛚ to ᚠ. Hang wealth on the north nail, and every other shard follows by counting."
+  ],
+  "difficulty": {
+   "searchSpace": 87000000000,
+   "minSteps": 34,
+   "estMinutes": 25
+  },
+  "truth": "{\"ring\":[\"ᚠ\",\"ᛏ\",\"ᚱ\",\"ᚦ\",\"ᛁ\",\"ᚾ\",\"ᛒ\",\"ᛋ\",\"ᚢ\",\"ᛅ\",\"ᚼ\",\"ᛘ\",\"ᛚ\",\"ᚴ\"]}",
+  "nWrongs": 12,
+  "distinctNear": [
+   "The ring is read from the north nail, and something else is hanging on it.",
+   "The strides do not close the row.",
+   "Two shards have each other's slot."
+  ],
+  "nullNear": 0,
+  "lines": [
+   {
+    "ok": false,
+    "near": "The ring is read from the north nail, and something else is hanging on it."
+   },
+   {
+    "ok": false,
+    "near": "The ring is read from the north nail, and something else is hanging on it."
+   },
+   {
+    "ok": false,
+    "near": "The ring is read from the north nail, and something else is hanging on it."
+   },
+   {
+    "ok": false,
+    "near": "The ring is read from the north nail, and something else is hanging on it."
+   },
+   {
+    "ok": false,
+    "near": "The strides do not close the row."
+   },
+   {
+    "ok": false,
+    "near": "The ring is read from the north nail, and something else is hanging on it."
+   },
+   {
+    "ok": false,
+    "near": "The ring is read from the north nail, and something else is hanging on it."
+   },
+   {
+    "ok": false,
+    "near": "The ring is read from the north nail, and something else is hanging on it."
+   },
+   {
+    "ok": false,
+    "near": "The ring is read from the north nail, and something else is hanging on it."
+   },
+   {
+    "ok": false,
+    "near": "Two shards have each other's slot."
+   },
+   {
+    "ok": false,
+    "near": "Two shards have each other's slot."
+   },
+   {
+    "ok": false,
+    "near": "Two shards have each other's slot."
+   }
+  ],
+  "junk": [
+   {
+    "input": "null",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "[]",
+    "ok": false,
+    "near": null,
+    "threw": null
+   },
+   {
+    "input": "{\"nonsense\":1}",
+    "ok": false,
+    "near": null,
+    "threw": null
+   }
+  ]
+ }
+]

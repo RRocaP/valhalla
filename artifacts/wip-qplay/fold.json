@@ -1,0 +1,202 @@
+[
+ {
+  "vp": "1280x800",
+  "ord": 6,
+  "scrollRange": 353,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "1280x800",
+  "ord": 7,
+  "scrollRange": 210,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": true
+ },
+ {
+  "vp": "1280x800",
+  "ord": 8,
+  "scrollRange": 196,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": true
+ },
+ {
+  "vp": "1280x800",
+  "ord": 9,
+  "scrollRange": 335,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "1280x800",
+  "ord": 10,
+  "scrollRange": 388,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "1280x800",
+  "ord": 11,
+  "scrollRange": 357,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "1280x800",
+  "ord": 12,
+  "scrollRange": 915,
+  "actionFound": true,
+  "actionVisible": false,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "1280x800",
+  "ord": 13,
+  "scrollRange": 766,
+  "actionFound": true,
+  "actionVisible": false,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "1280x800",
+  "ord": 14,
+  "scrollRange": 383,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "1280x800",
+  "ord": 15,
+  "scrollRange": 326,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "390x844",
+  "ord": 6,
+  "scrollRange": 602,
+  "actionFound": true,
+  "actionVisible": false,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "390x844",
+  "ord": 7,
+  "scrollRange": 229,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": true
+ },
+ {
+  "vp": "390x844",
+  "ord": 8,
+  "scrollRange": 183,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": true
+ },
+ {
+  "vp": "390x844",
+  "ord": 9,
+  "scrollRange": 328,
+  "actionFound": true,
+  "actionVisible": false,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "390x844",
+  "ord": 10,
+  "scrollRange": 344,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "390x844",
+  "ord": 11,
+  "scrollRange": 79,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": true,
+  "hintsVisibleWithAction": true,
+  "titleVisibleWithAction": true
+ },
+ {
+  "vp": "390x844",
+  "ord": 12,
+  "scrollRange": 826,
+  "actionFound": true,
+  "actionVisible": false,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "390x844",
+  "ord": 13,
+  "scrollRange": 1289,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "390x844",
+  "ord": 14,
+  "scrollRange": 309,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": false
+ },
+ {
+  "vp": "390x844",
+  "ord": 15,
+  "scrollRange": 271,
+  "actionFound": true,
+  "actionVisible": true,
+  "nearVisibleWithAction": false,
+  "hintsVisibleWithAction": false,
+  "titleVisibleWithAction": true
+ }
+]

@@ -1,0 +1,13 @@
+  mark before-gesture @ctx null
+  mark gesture @ctx 0.192
+loop geometry: {"preWrapRms":0.13080300908007486,"postWrapRms":0.13492488711609654,"bodyRms":0.2300534739512971,"firstSampleAfterWrap":0.0647938996553421,"lastSampleBeforeWrap":0.05973130092024803} loopStart 8.750020833333334 loopEnd 273.50002083333334 dur 279.0135
+loop length 264.75s; first wrap ~ctx 266.1s; plan: ride to 2 wraps
+  mark probe:enter-duel-lock(motif dare) @ctx 41.17333333333333
+  mark probe:answer-dare(ui confirm) @ctx 44.282666666666664
+  mark probe:take-hint(motif hint) @ctx 46.309333333333335
+  mark probe:ui-tick @ctx 49.333333333333336
+  mark probe:end @ctx 51.35466666666667
+  mark ride-start @ctx 51.904
+  mark ride-end @ctx 807.76
+samples 7859 errors 0
+exit=0
