@@ -139,6 +139,24 @@ Infants», epítet «Lloat a tots els fiords per negar-se a l'esport viking de
 moda: empalar criatures en llances.» Names (BOURJ, RØIS, ÅNDREAS, FOLKLORE,
 ÄRYÄ STÖRK, RAMON) and VALHALLA never translate.
 
+## Yield verses (FROZEN — 2-line saga cards after each yield, journal-echoed)
+
+| After | EN | ES | CA |
+|---|---|---|---|
+| 03 | "Three locks sang and the beacon-jarl fell silent. / The hall marks the stranger who counts with the tide." | «Tres cerraduras cantaron y el jarl de las almenaras calló. / El salón señala al forastero que cuenta con la marea.» | «Tres panys van cantar i el jarl de les alimares va emmudir. / La sala assenyala el foraster que compta amb la marea.» |
+| 06 | "The seer's riddle broke like ice underfoot. / Even the raven banner dipped, and Røis poured you mead." | «El acertijo del vidente se quebró como hielo bajo los pies. / Hasta el estandarte del cuervo se inclinó, y Røis te sirvió hidromiel.» | «L'endevinalla del vident es va trencar com gel sota els peus. / Fins i tot l'estendard del corb es va vinclar, i en Røis et va servir hidromel.» |
+| 09 | "The hound-jarl found no fault to bite. / He set his bow at your feet — the hall drew breath." | «El jarl-sabueso no halló falta que morder. / Dejó su arco a tus pies — el salón contuvo el aliento.» | «El jarl-gos no va trobar cap falta per mossegar. / Va deixar l'arc als teus peus — la sala va contenir l'alè.» |
+| 12 | "The benches held and the mead ran clear. / Folklore drank to your name — the first he has ever remembered." | «Los bancos aguantaron y el hidromiel corrió claro. / Folklore bebió a tu nombre — el primero que recuerda.» | «Els bancs van aguantar i l'hidromel va rajar clar. / En Folklore va beure al teu nom — el primer que recorda.» |
+| 15 (epilogue, before credits) | "Fourteen runes closed the ring; the fifteenth was your hand. / The Queen stood, and the hall stood with her. The chest is open. The tale is yours." | «Catorce runas cerraron el anillo; la decimoquinta fue tu mano. / La Reina se alzó, y el salón con ella. El cofre está abierto. La historia es tuya.» | «Catorze runes van tancar l'anell; la quinzena va ser la teva mà. / La Reina es va alçar, i la sala amb ella. El cofre és obert. La història és teva.» |
+
+## Streak respect (FROZEN — first-try solve streaks, save-derived, presentation only)
+
+| Streak | EN | ES | CA |
+|---|---|---|---|
+| 2 | "Two locks, first stroke each. The benches begin to murmur." | «Dos cerraduras, al primer golpe. Los bancos empiezan a murmurar.» | «Dos panys, al primer cop. Els bancs comencen a murmurar.» |
+| 3 | "Three clean strokes. {jarl} has stopped smiling." | «Tres golpes limpios. {jarl} ha dejado de sonreír.» | «Tres cops nets. {jarl} ha deixat de somriure.» |
+| 4+ | "The hall no longer doubts. It watches." | «El salón ya no duda. Observa.» | «La sala ja no dubta. Observa.» |
+
 ## Accessibility
 
 Dare card and yield beat fully keyboard operable (Enter advances, Esc backs
