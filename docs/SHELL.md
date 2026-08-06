@@ -19,7 +19,7 @@ placeholder + name).
 
 ## Screens
 
-1. **Threshold** — title `OATHWOOD`, subtitle `Fifteen Locks of the Northmen`,
+1. **Threshold** — title `VALHALLA`, subtitle `Fifteen Locks of the Northmen`,
    one carved button: `Lay hands on the chest`. That gesture calls
    `audio.enable()` + `drone.start()`. A quiet `Continue` state appears instead
    when a save exists, plus `Begin anew` (confirm once).
@@ -45,7 +45,7 @@ placeholder + name).
    `Raise the horns` (→ credits) and `Seal the chest again` (reset, confirm).
 5. **Credits** — enters with `audio.music.credits()`. A slow saga scroll
    (wheel/keys/touch also scrub; fully readable under reduced motion as a
-   paged list): OATHWOOD · THE CHALLENGERS (the five, in duel order, small
+   paged list): VALHALLA · THE CHALLENGERS (the five, in duel order, small
    graded portraits + names) · THE HOARD — TEBI THE OSTEOPATH ·
    Snake-in-the-Eye, and JARL ÅLANØ with his epithet · THE SCORE —
    "Frostbound Lullaby" & "Hjá Vindi" · toward the end **JARL RAMON**, his

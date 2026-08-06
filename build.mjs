@@ -81,7 +81,12 @@ writeFileSync(join(ROOT, 'index.html'), html);
 const bytes = Buffer.byteLength(html);
 const mb = (bytes / 1048576).toFixed(2);
 console.log(`index.html: ${bytes} bytes (${mb} MB), ${lockFiles.length} locks bundled`);
-const external = js.replace(/data:[^"'` )]+/g, '').match(/https?:\/\//g);
+// CONTRACT §2: the xmlns attribute is permitted (inline SVG); data URIs are stripped
+// to their own charset so an encoded payload cannot swallow the text after it.
+const external = js
+  .replace(/\bxmlns(:[a-zA-Z]+)?=(\\?["'])https?:\/\/[^"'\\]*\2/g, '')
+  .replace(/data:[a-zA-Z0-9+/=;,.\-_]+/g, '')
+  .match(/https?:\/\//g);
 if (external) {
   console.error(`FAIL: ${external.length} external URL(s) in bundle`);
   process.exit(1);

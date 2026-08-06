@@ -1,4 +1,4 @@
-# OATHWOOD — Fifteen Locks of the Northmen
+# VALHALLA — Fifteen Locks of the Northmen
 
 An original, offline, single-file puzzle game. A carved oak sea-chest from the
 Viking Age bears fifteen locks; each is a puzzle drawn from the world of the

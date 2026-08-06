@@ -35,7 +35,8 @@ export const DUELS = {
   },
 };
 
-export const DUEL_ORDER = [3, 6, 9, 12, 15].map((ord) => DUELS[ord].key);
+export const DUEL_ORDER = [3, 6, 9, 12, 15];
+export const DUEL_CAST = DUEL_ORDER.map((ord) => ({ key: DUELS[ord].key, name: DUELS[ord].name }));
 
 export function duelFor(ordinal) {
   return DUELS[ordinal] || null;

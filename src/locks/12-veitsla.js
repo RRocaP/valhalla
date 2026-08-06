@@ -70,33 +70,76 @@ function violations(constraints, pos) {
 
 const popcount = (m) => { let c = 0; while (m) { m &= m - 1; c++; } return c; };
 
-// Every canonical seating: the alphabetically-first chieftain (index 0) on bench A.
-function eachCanonicalSeating(fn) {
-  const pos = new Array(8);
-  const used = new Array(8).fill(false);
+const CANONICAL_COUNT = 20160; // 4 · 7! — the alphabetically-first chieftain sits on bench A
+
+// Every canonical seating, flat: seat of person p in seating i is flat[i*8 + p].
+function canonicalSeatings() {
+  const flat = new Int8Array(CANONICAL_COUNT * 8);
+  const pos = new Int8Array(8);
+  const used = new Uint8Array(8);
+  let w = 0;
   (function rec(person) {
-    if (person === 8) { fn(pos); return; }
+    if (person === 8) { flat.set(pos, w); w += 8; return; }
     for (let s = 0; s < 8; s++) {
       if (used[s] || (person === 0 && s >= 4)) continue;
-      used[s] = true;
+      used[s] = 1;
       pos[person] = s;
       rec(person + 1);
-      used[s] = false;
+      used[s] = 0;
     }
   })(0);
+  return flat;
 }
 
-// One pass over the canonical hall. Returns the valid (seating, boast) pairs
-// and every seating that is within two broken oaths of standing.
-function sweepHall(constraints) {
+function holdsRaw(kind, a, b) {
+  switch (kind) {
+    case 'opposite': return Math.abs(a - b) === 4;
+    case 'not-adjacent': return !(benchOf(a) === benchOf(b) && Math.abs(a - b) === 1);
+    case 'left-of': return benchOf(a) === benchOf(b) && a < b;
+    case 'same-bench': return benchOf(a) === benchOf(b);
+    default: return false;
+  }
+}
+
+// Tightest kinds first, so the live list collapses in the first passes. The bit
+// index of an oath is always its DISPLAY index — only the scan order changes.
+const STRENGTH = { opposite: 0, 'left-of': 1, 'same-bench': 2, 'not-adjacent': 3 };
+
+// Live-list sweep of the whole canonical hall. Any seating that breaks three or
+// more oaths can never be a solution or a decoy, so it leaves the list for good.
+function sweepHall(oaths, flat) {
+  const seatings = flat || canonicalSeatings();
+  let live = new Int32Array(CANONICAL_COUNT);
+  for (let i = 0; i < CANONICAL_COUNT; i++) live[i] = i;
+  let n = CANONICAL_COUNT;
+  const masks = new Int32Array(CANONICAL_COUNT);
+  const order = oaths.map((o, i) => i).sort((a, b) => STRENGTH[oaths[a].kind] - STRENGTH[oaths[b].kind]);
+  for (const oi of order) {
+    const o = oaths[oi];
+    const bit = 1 << oi;
+    let w = 0;
+    for (let k = 0; k < n; k++) {
+      const idx = live[k];
+      const base = idx * 8;
+      let m = masks[idx];
+      if (!holdsRaw(o.kind, seatings[base + o.x], seatings[base + o.y])) m |= bit;
+      if (popcount(m) > 2) continue;
+      masks[idx] = m;
+      live[w++] = idx;
+    }
+    n = w;
+  }
   const solutions = [];
   const nearMisses = [];
-  eachCanonicalSeating((pos) => {
-    const mask = violations(constraints, pos);
+  for (let k = 0; k < n; k++) {
+    const idx = live[k];
+    const mask = masks[idx];
     const bits = popcount(mask);
-    if (bits === 1) solutions.push({ pos: pos.slice(), boast: Math.log2(mask) | 0 });
-    else if (bits === 2) nearMisses.push({ pos: pos.slice(), mask });
-  });
+    if (bits > 2) continue;
+    const pos = Array.from(seatings.subarray(idx * 8, idx * 8 + 8));
+    if (bits === 1) solutions.push({ pos, boast: Math.log2(mask) | 0 });
+    else if (bits === 2) nearMisses.push({ pos, mask });
+  }
   return { solutions, nearMisses };
 }
 

@@ -141,9 +141,12 @@ function mutate(answer, r) {
 
 const locks = [];
 for (const f of files) {
-  const mod = await import(pathToFileURL(join(ROOT, 'src/locks', f)).href);
-  const lock = mod.default;
   const id = f.replace(/\.js$/, '');
+  let mod;
+  // one unparsable module must not take the whole report down with it
+  try { mod = await import(pathToFileURL(join(ROOT, 'src/locks', f)).href); }
+  catch (e) { fail(id, 'import', `${e.constructor.name}: ${e.message.split('\n')[0]}`); continue; }
+  const lock = mod.default;
   if (!lock || typeof lock !== 'object') { fail(id, 'iface', 'no default export object'); continue; }
   if (lock.id !== id) fail(id, 'iface', `id "${lock.id}" != filename "${id}"`);
   if (lock.ordinal !== Number(f.slice(0, 2))) fail(id, 'iface', 'ordinal != filename prefix');
@@ -156,8 +159,16 @@ for (const f of files) {
   locks.push(lock);
 }
 
-if (!PARTIAL && !ONLY && locks.length !== 15) {
-  fail('suite', 'count', `expected 15 locks, found ${locks.length}`);
+// a count of 15 does not imply ordinals 1..15 are covered (two files may share a prefix)
+const ordinals = locks.map((l) => l.ordinal);
+const dupes = [...new Set(ordinals.filter((o, i) => ordinals.indexOf(o) !== i))];
+if (dupes.length) fail('suite', 'ordinals', `duplicate ordinal(s): ${dupes.join(', ')}`);
+if (!files.length) fail('suite', 'count', `no lock files matched${ONLY ? ` --only ${ONLY}` : ''}`);
+if (!PARTIAL && !ONLY) {
+  if (locks.length !== 15) fail('suite', 'count', `expected 15 locks, found ${locks.length}`);
+  const missing = [];
+  for (let i = 1; i <= 15; i++) if (!ordinals.includes(i)) missing.push(i);
+  if (missing.length) fail('suite', 'count', `missing ordinal(s): ${missing.join(', ')}`);
 }
 
 for (const lock of locks) {
@@ -243,8 +254,8 @@ for (const lock of locks) {
   const d = lock.difficulty || {};
   const floor = FLOORS[lock.ordinal];
   if (floor) {
-    if (!(d.minSteps >= floor[0])) fail(lock.id, 'difficulty', `minSteps ${d.minSteps} < floor ${floor[0]}`);
-    if (!(d.estMinutes >= floor[1])) fail(lock.id, 'difficulty', `estMinutes ${d.estMinutes} < floor ${floor[1]}`);
+    if (!(Number.isFinite(d.minSteps) && d.minSteps >= floor[0])) fail(lock.id, 'difficulty', `minSteps ${d.minSteps} < floor ${floor[0]}`);
+    if (!(Number.isFinite(d.estMinutes) && d.estMinutes >= floor[1])) fail(lock.id, 'difficulty', `estMinutes ${d.estMinutes} < floor ${floor[1]}`);
   }
   L.ms = Date.now() - t0;
 }
@@ -266,10 +277,18 @@ if (existsSync(idx)) {
   const bytes = Buffer.byteLength(html);
   report.bundleBytes = bytes;
   if (bytes > 2 * 1048576) fail('bundle', 'size', `${bytes} > 2.0MB`);
-  const stripped = html.replace(/data:[^"'` )]+/g, '').replace(/<!--[\s\S]*?-->/g, '');
+  else if (bytes > 1.5 * 1048576) console.warn(`WARN: index.html ${(bytes / 1048576).toFixed(2)} MB — over the 1.5 MB warn line`);
+  // CONTRACT §2 exempts comments and the xmlns attribute; data URIs are stripped to
+  // their own charset so an encoded payload cannot swallow the text that follows it.
+  const stripped = html
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\bxmlns(:[a-zA-Z]+)?=(["'])https?:\/\/[^"']*\2/g, '')
+    .replace(/data:[a-zA-Z0-9+/=;,.\-_]+/g, '');
   const ext = stripped.match(/https?:\/\//g);
   if (ext) fail('bundle', 'external', `${ext.length} external URL(s)`);
-  if (/\beval\s*\(/.test(stripped) || /new\s+Function\s*\(/.test(stripped)) fail('bundle', 'eval', 'eval/new Function present');
+  if (/\beval\s*\(/.test(stripped) || /new\s+Function\s*\(/.test(stripped) || /\(\s*0\s*,\s*eval\s*\)/.test(stripped)) {
+    fail('bundle', 'eval', 'eval/new Function present');
+  }
 } else if (!PARTIAL) {
   fail('bundle', 'missing', 'index.html not built');
 }

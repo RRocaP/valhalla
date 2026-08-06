@@ -123,6 +123,299 @@ function wrongAnswers(instance) {
   return out;
 }
 
+// ------------------------------------------------------------------ the view
+
+const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
+const MONO = "ui-monospace,'SF Mono',Menlo,monospace";
+const WINDOW = 31; // nights shown around the dial at once
+
+function mount(ctx) {
+  const art = ctx.art;
+  const p = art.palette;
+  const instance = ctx.instance;
+  const fires = [p.blood, p.fjordLight, p.pineLight];
+
+  const cleanup = [];
+  const timers = [];
+  const on = (el, ev, fn, opts) => {
+    el.addEventListener(ev, fn, opts);
+    cleanup.push(() => el.removeEventListener(ev, fn, opts));
+  };
+  const sfx = (k) => { try { ctx.audio && ctx.audio.ui && ctx.audio.ui(k); } catch (e) { /* silent hall */ } };
+  const say = (text) => { try { ctx.note && ctx.note(text); } catch (e) { /* no journal */ } };
+  const node = (tag, css, text) => {
+    const n = document.createElement(tag);
+    if (css) n.style.cssText = css;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  // ---- state -------------------------------------------------------------
+  let night = ctx.solved ? solve(instance).night : 1;
+  const longest = Math.max(...instance.beacons.map((b) => b.cycle));
+
+  const wrap = node('div', `display:grid;gap:14px;justify-items:center;font-family:${SERIF};color:${p.bone}`);
+  const style = node('style');
+  style.textContent = `
+    .ow3-dial{touch-action:none;cursor:grab;border-radius:50%;outline-offset:4px}
+    .ow3-dial:focus-visible{outline:2px solid ${p.goldBright}}
+    .ow3-dial[data-turning="1"]{cursor:grabbing}
+    .ow3-act{font-family:${SERIF};font-size:16px;color:${p.bone};background:${p.oakDeep};
+      border:1px solid ${p.gold};border-radius:3px;padding:12px 20px;min-height:44px;cursor:pointer}
+    .ow3-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
+    .ow3-act[disabled]{opacity:.5;cursor:default}
+    .ow3-row{display:flex;gap:10px;align-items:baseline;font-size:13px;color:${p.boneDim}}
+  `;
+  wrap.append(style);
+
+  const law = node('p', `margin:0;font-size:13px;color:${p.boneDim};line-height:1.5;text-align:center`,
+    `Tonight is night nought. The dial runs to night ${instance.dialMax}, and past that the whole pattern comes round again.`);
+
+  const gfx = art.makeCanvas(320, 320);
+  gfx.canvas.className = 'ow3-dial';
+  gfx.canvas.style.maxWidth = '100%';
+  gfx.canvas.style.height = 'auto';
+  gfx.canvas.setAttribute('tabindex', '0');
+  gfx.canvas.setAttribute('role', 'slider');
+  gfx.canvas.setAttribute('aria-label', 'The night dial');
+  gfx.canvas.setAttribute('aria-valuemin', '1');
+  gfx.canvas.setAttribute('aria-valuemax', String(instance.dialMax));
+
+  const ledger = node('div', 'display:grid;gap:4px;justify-items:start');
+  const ledgerRows = instance.beacons.map((b, i) => {
+    const row = node('div');
+    row.className = 'ow3-row';
+    const swatch = node('span', `display:inline-block;width:10px;height:10px;border-radius:50%;background:${fires[i]}`);
+    const text = node('span');
+    row.append(swatch, text);
+    ledger.append(row);
+    return { text, b, i };
+  });
+
+  const help = node('p', `margin:0;font-size:13px;color:${p.boneDim};text-align:center`,
+    `Turn the dial to the night. By key: arrows for one night, up and down for ten, page keys for ${longest}.`);
+  const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};text-align:center`);
+  status.setAttribute('aria-live', 'polite');
+
+  const submitBtn = node('button', null, 'Set the dial');
+  submitBtn.className = 'ow3-act';
+  submitBtn.type = 'button';
+
+  wrap.append(law, gfx.canvas, ledger, help, submitBtn, status);
+  ctx.root.append(wrap);
+
+  // ---- painting ----------------------------------------------------------
+  const burnsHere = (b, t) => t >= 1 && (t + b.lastBurned) % b.cycle === 0;
+  const litCount = (t) => instance.beacons.filter((b) => burnsHere(b, t)).length;
+
+  function paint() {
+    const c = gfx.ctx;
+    const W = gfx.w, H = gfx.h;
+    const cx = W / 2, cy = H / 2;
+    c.clearRect(0, 0, W, H);
+
+    c.save();
+    c.fillStyle = p.tar;
+    c.beginPath();
+    c.arc(cx, cy, 150, 0, Math.PI * 2);
+    c.fill();
+    c.strokeStyle = p.oakLight;
+    c.lineWidth = 2;
+    c.stroke();
+    c.restore();
+
+    const step = (Math.PI * 2) / WINDOW;
+    const half = (WINDOW - 1) / 2;
+
+    for (let k = -half; k <= half; k++) {
+      const t = night + k;
+      if (t < 1 || t > instance.dialMax) continue;
+      const a = -Math.PI / 2 + k * step;
+      const cos = Math.cos(a), sin = Math.sin(a);
+
+      c.save();
+      c.strokeStyle = k === 0 ? p.goldBright : p.oakLight;
+      c.lineWidth = k === 0 ? 2.5 : 1;
+      c.beginPath();
+      c.moveTo(cx + cos * 138, cy + sin * 138);
+      c.lineTo(cx + cos * (k === 0 ? 122 : 130), cy + sin * (k === 0 ? 122 : 130));
+      c.stroke();
+      c.restore();
+
+      instance.beacons.forEach((b, i) => {
+        if (!burnsHere(b, t)) return;
+        const r = 108 - i * 22;
+        c.save();
+        c.fillStyle = fires[i];
+        c.beginPath();
+        c.arc(cx + cos * r, cy + sin * r, 4, 0, Math.PI * 2);
+        c.fill();
+        c.restore();
+      });
+
+      if (litCount(t) === instance.beacons.length) {
+        try { art.glow(c, cx + cos * 122, cy + sin * 122, 16, p.goldBright, 0.9); } catch (e) { /* stub */ }
+        c.save();
+        c.strokeStyle = p.gold;
+        c.lineWidth = 2;
+        c.beginPath();
+        c.arc(cx + cos * 122, cy + sin * 122, 9, 0, Math.PI * 2);
+        c.stroke();
+        c.restore();
+      }
+    }
+
+    // the north nail, and the reckoning at it
+    c.save();
+    c.fillStyle = p.gold;
+    c.beginPath();
+    c.moveTo(cx, cy - 152);
+    c.lineTo(cx - 7, cy - 166);
+    c.lineTo(cx + 7, cy - 166);
+    c.closePath();
+    c.fill();
+
+    c.fillStyle = p.bone;
+    c.textAlign = 'center';
+    c.font = `600 40px ${MONO}`;
+    c.fillText(String(night), cx, cy + 6);
+    c.fillStyle = p.boneDim;
+    c.font = `13px ${SERIF}`;
+    c.fillText('nights hence', cx, cy + 28);
+    c.restore();
+
+    instance.beacons.forEach((b, i) => {
+      const x = cx - 34 + i * 34;
+      const y = cy + 58;
+      const lit = burnsHere(b, night);
+      if (lit) { try { art.glow(c, x, y, 18, fires[i], 0.8); } catch (e) { /* stub */ } }
+      c.save();
+      c.beginPath();
+      c.arc(x, y, 9, 0, Math.PI * 2);
+      c.fillStyle = lit ? fires[i] : p.oakDeep;
+      c.fill();
+      c.strokeStyle = lit ? p.goldBright : p.oakLight;
+      c.lineWidth = 1.5;
+      c.stroke();
+      c.restore();
+    });
+  }
+
+  function describe() {
+    const parts = instance.beacons.map((b) => `${b.name} ${burnsHere(b, night) ? 'burns' : 'is dark'}`);
+    return `Night ${night} — ${parts.join(', ')}.`;
+  }
+
+  let noteTimer = null;
+  function render(quiet) {
+    paint();
+    ledgerRows.forEach((r) => {
+      const when = r.b.lastBurned === 0 ? 'burned tonight' : `burned ${r.b.lastBurned} night${r.b.lastBurned > 1 ? 's' : ''} ago`;
+      r.text.textContent = `${r.b.name} — every ${r.b.cycle} nights, ${when}${burnsHere(r.b, night) ? ' · burning' : ''}`;
+    });
+    gfx.canvas.setAttribute('aria-valuenow', String(night));
+    gfx.canvas.setAttribute('aria-valuetext', describe());
+    status.textContent = describe();
+    if (quiet) return;
+    if (noteTimer) clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => { say(describe()); noteTimer = null; }, 600);
+    timers.push(noteTimer);
+  }
+
+  function setNight(t) {
+    const next = Math.max(1, Math.min(instance.dialMax, t));
+    if (next === night) return;
+    night = next;
+    sfx('tick');
+    render();
+  }
+
+  // ---- turning the dial --------------------------------------------------
+  let turn = null;
+  const angleAt = (ev) => {
+    const r = gfx.canvas.getBoundingClientRect();
+    return Math.atan2(ev.clientY - (r.top + r.height / 2), ev.clientX - (r.left + r.width / 2));
+  };
+
+  on(gfx.canvas, 'pointerdown', (ev) => {
+    if (ctx.solved) return;
+    turn = { angle: angleAt(ev), carried: 0 };
+    gfx.canvas.dataset.turning = '1';
+    try { gfx.canvas.setPointerCapture(ev.pointerId); } catch (e) { /* mouse without capture */ }
+  });
+  on(gfx.canvas, 'pointermove', (ev) => {
+    if (!turn) return;
+    ev.preventDefault();
+    const a = angleAt(ev);
+    let d = a - turn.angle;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    turn.angle = a;
+    turn.carried += d / ((Math.PI * 2) / WINDOW);
+    const steps = Math.trunc(turn.carried);
+    if (steps) { turn.carried -= steps; setNight(night + steps); }
+  });
+  const stopTurn = (ev) => {
+    if (!turn) return;
+    turn = null;
+    gfx.canvas.dataset.turning = '0';
+    try { gfx.canvas.releasePointerCapture(ev.pointerId); } catch (e) { /* already gone */ }
+    sfx('knock');
+  };
+  on(gfx.canvas, 'pointerup', stopTurn);
+  on(gfx.canvas, 'pointercancel', stopTurn);
+
+  on(gfx.canvas, 'keydown', (ev) => {
+    if (ctx.solved) return;
+    const keys = {
+      ArrowRight: 1, ArrowLeft: -1, ArrowUp: 10, ArrowDown: -10,
+      PageUp: longest, PageDown: -longest,
+    };
+    if (ev.key in keys) { ev.preventDefault(); setNight(night + keys[ev.key]); }
+    else if (ev.key === 'Home') { ev.preventDefault(); setNight(1); }
+    else if (ev.key === 'End') { ev.preventDefault(); setNight(instance.dialMax); }
+    else if (ev.key === 'Enter') { ev.preventDefault(); submitBtn.click(); }
+  });
+
+  function handle(res) {
+    if (!res || res.ok) return;
+    if (res.near) { status.textContent = res.near; say(res.near); }
+  }
+
+  on(submitBtn, 'click', () => {
+    if (ctx.solved) return;
+    sfx('confirm');
+    say(`The dial is set to night ${night}.`);
+    let res;
+    try { res = ctx.submit({ night }); } catch (e) { return; }
+    if (res && typeof res.then === 'function') res.then(handle, () => {});
+    else handle(res);
+  });
+
+  // ---- open the lock -----------------------------------------------------
+  render(true);
+  say('Three beacons, three reckonings: '
+    + instance.beacons.map((b) => `${b.name} every ${b.cycle} nights, last burned ${b.lastBurned} nights ago`).join('; ')
+    + `. The dial runs from night 1 to night ${instance.dialMax}.`);
+  if (ctx.solved) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'The dial is set';
+    status.textContent = `All three burned together on night ${night}.`;
+  }
+
+  return {
+    unmount() {
+      for (const off of cleanup) off();
+      cleanup.length = 0;
+      for (const t of timers) clearTimeout(t);
+      timers.length = 0;
+      if (noteTimer) clearTimeout(noteTimer);
+      turn = null;
+      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    },
+  };
+}
+
 export default {
   id: '03-beacons',
   ordinal: 3,
@@ -148,5 +441,5 @@ export default {
     'Past the three reckonings multiplied the whole pattern comes round again. The night you want lies within one turn of that wheel.',
   ],
 
-  mount(ctx) { return { unmount() {} }; },
+  mount,
 };

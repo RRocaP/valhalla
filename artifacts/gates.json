@@ -1,15 +1,80 @@
 {
-  "when": "2026-08-06T08:49:21.691Z",
-  "seeds": 60,
+  "when": "2026-08-06T08:54:33.682Z",
+  "seeds": 40,
   "locks": {
+    "01-runerow": {
+      "solverOk": 40,
+      "rejected": 320,
+      "mutantsTried": 118,
+      "mutantsRejected": 118,
+      "ms": 4
+    },
+    "02-bismer": {
+      "solverOk": 40,
+      "rejected": 320,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 2
+    },
+    "03-beacons": {
+      "solverOk": 40,
+      "rejected": 473,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 2
+    },
+    "04-strakes": {
+      "solverOk": 40,
+      "rejected": 440,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 4
+    },
+    "05-knotwork": {
+      "solverOk": 40,
+      "rejected": 320,
+      "mutantsTried": 115,
+      "mutantsRejected": 115,
+      "ms": 184
+    },
+    "06-jotunvillur": {
+      "solverOk": 40,
+      "rejected": 384,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 8
+    },
+    "08-hacksilver": {
+      "solverOk": 40,
+      "rejected": 400,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 8
+    },
+    "09-sunstone": {
+      "solverOk": 40,
+      "rejected": 360,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 1
+    },
     "11-skerry": {
-      "solverOk": 60,
-      "rejected": 584,
-      "mutantsTried": 180,
-      "mutantsRejected": 180,
-      "ms": 406
+      "solverOk": 40,
+      "rejected": 390,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 285
+    },
+    "12-veitsla": {
+      "solverOk": 1,
+      "rejected": 12,
+      "mutantsTried": 3,
+      "mutantsRejected": 3,
+      "ms": 18576
     }
   },
-  "failures": [],
-  "bundleBytes": 684950
+  "failures": [
+    "[12-veitsla] solver-gate: seed 1: canonical answer rejected"
+  ],
+  "bundleBytes": 911695
 }

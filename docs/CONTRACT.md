@@ -5,8 +5,9 @@ report to the lead rather than widening the contract.
 
 ## 1. Product
 
-`OATHWOOD — Fifteen Locks of the Northmen`. A carved oak sea-chest with fifteen
-locks. The player opens them in order. Viking Age (793–1066). There is **no**
+`VALHALLA — Fifteen Locks of the Northmen` (project codename "oathwood" —
+internal ids, paths, and the save key keep the codename; every player-visible
+surface says VALHALLA). A carved oak sea-chest with fifteen locks. The player opens them in order. Viking Age (793–1066). There is **no**
 travel framing, no itinerary, no boarding, no named real person, no dedication,
 no story about anybody. The only fiction is the chest and the locks.
 
