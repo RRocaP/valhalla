@@ -1,0 +1,86 @@
+[
+ {
+  "lang": "es",
+  "vp": "desk",
+  "title": "Los Bancos del Convite",
+  "epigraph": "La cerveza juró nueve juramentos en aquella mesa. Ocho de ellos estaban sobrios.",
+  "plate": "Sienta a los ocho de modo que se sostenga cada juramento — salvo uno, la bravata del bebido. Nómbrala.",
+  "oathCap": "El tablón de juramentos — nueve placas, y una se juró en la bebida",
+  "oath0": "Nokkvi juró que comió su carne al otro lado de la mesa, frente a Bjolan.",
+  "tally": "0 de 9 juramentos se sostienen",
+  "swear": [
+   "Hint 1",
+   "Hint 2",
+   "Hint 3",
+   "Close the lock"
+  ],
+  "seatAria": "Vacío: el banco cercano, asiento 1.",
+  "chipAria": "Escudo de Bjolan. Levántalo hacia un asiento.",
+  "help": "Cada hombre queda frente al que tiene al otro lado de la mesa. El asiento alto está a la izquierda en ambos bancos. Toca a un hombre y luego un asiento — o arrástralo. Toca a un hombre sentado para levantarlo. Toca una placa para llamar bravata a ese juramento.",
+  "overflow": 0,
+  "errs": []
+ },
+ {
+  "lang": "es",
+  "vp": "phone",
+  "title": "Los Bancos del Convite",
+  "epigraph": "La cerveza juró nueve juramentos en aquella mesa. Ocho de ellos estaban sobrios.",
+  "plate": "Sienta a los ocho de modo que se sostenga cada juramento — salvo uno, la bravata del bebido. Nómbrala.",
+  "oathCap": "El tablón de juramentos — nueve placas, y una se juró en la bebida",
+  "oath0": "Nokkvi juró que comió su carne al otro lado de la mesa, frente a Bjolan.",
+  "tally": "0 de 9 juramentos se sostienen",
+  "swear": [
+   "Hint 1",
+   "Hint 2",
+   "Hint 3",
+   "Close the lock"
+  ],
+  "seatAria": "Vacío: el banco cercano, asiento 1.",
+  "chipAria": "Escudo de Bjolan. Levántalo hacia un asiento.",
+  "help": "Cada hombre queda frente al que tiene al otro lado de la mesa. El asiento alto está a la izquierda en ambos bancos. Toca a un hombre y luego un asiento — o arrástralo. Toca a un hombre sentado para levantarlo. Toca una placa para llamar bravata a ese juramento.",
+  "overflow": 0,
+  "errs": []
+ },
+ {
+  "lang": "ca",
+  "vp": "desk",
+  "title": "Els Bancs del Convit",
+  "epigraph": "La cervesa va jurar nou juraments en aquella taula. Vuit d’ells estaven sobris.",
+  "plate": "Asseu els vuit de manera que s’aguanti cada jurament — llevat d’un, la bravata del begut. Anomena-la.",
+  "oathCap": "El tauler de juraments — nou plaques, i una es va jurar beguda",
+  "oath0": "Nokkvi va jurar que va menjar la carn a l’altre costat de la taula, davant de Bjolan.",
+  "tally": "0 de 9 juraments s’aguanten",
+  "swear": [
+   "Hint 1",
+   "Hint 2",
+   "Hint 3",
+   "Close the lock"
+  ],
+  "seatAria": "Buit: el banc del davant, seient 1.",
+  "chipAria": "Escut de Bjolan. Alça’l cap a un seient.",
+  "help": "Cada home queda davant del qui té a l’altre costat de la taula. El seient alt és a l’esquerra dels dos bancs. Toca un home i després un seient — o arrossega’l. Toca un home assegut per alçar-lo. Toca una placa per anomenar bravata aquell jurament.",
+  "overflow": 0,
+  "errs": []
+ },
+ {
+  "lang": "ca",
+  "vp": "phone",
+  "title": "Els Bancs del Convit",
+  "epigraph": "La cervesa va jurar nou juraments en aquella taula. Vuit d’ells estaven sobris.",
+  "plate": "Asseu els vuit de manera que s’aguanti cada jurament — llevat d’un, la bravata del begut. Anomena-la.",
+  "oathCap": "El tauler de juraments — nou plaques, i una es va jurar beguda",
+  "oath0": "Nokkvi va jurar que va menjar la carn a l’altre costat de la taula, davant de Bjolan.",
+  "tally": "0 de 9 juraments s’aguanten",
+  "swear": [
+   "Hint 1",
+   "Hint 2",
+   "Hint 3",
+   "Close the lock"
+  ],
+  "seatAria": "Buit: el banc del davant, seient 1.",
+  "chipAria": "Escut de Bjolan. Alça’l cap a un seient.",
+  "help": "Cada home queda davant del qui té a l’altre costat de la taula. El seient alt és a l’esquerra dels dos bancs. Toca un home i després un seient — o arrossega’l. Toca un home assegut per alçar-lo. Toca una placa per anomenar bravata aquell jurament.",
+  "overflow": 0,
+  "errs": []
+ }
+]

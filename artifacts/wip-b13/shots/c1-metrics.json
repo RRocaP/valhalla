@@ -1,0 +1,122 @@
+[
+ {
+  "vp": "desk",
+  "box": {
+   "w": 820,
+   "h": 1220
+  },
+  "scrollH": 1220,
+  "occupancy": 0.895,
+  "largestVoid": 0.027,
+  "gap": 12,
+  "nCanvas": 13,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 1592,
+    "h": 142,
+    "cssW": 796,
+    "cssH": 71,
+    "ink": 225998,
+    "cover": 1
+   },
+   {
+    "w": 1640,
+    "h": 886,
+    "cssW": 796,
+    "cssH": 430,
+    "ink": 1453040,
+    "cover": 1
+   },
+   {
+    "w": 328,
+    "h": 40,
+    "cssW": 328,
+    "cssH": 40,
+    "ink": 2240,
+    "cover": 0.171
+   },
+   {
+    "w": 518,
+    "h": 292,
+    "cssW": 257,
+    "cssH": 144,
+    "ink": 151164,
+    "cover": 0.999
+   }
+  ],
+  "under44": [],
+  "contrast": {
+   "plate": 12.38,
+   "name": 9.8,
+   "sayLive": 9.88,
+   "sayHeld": null,
+   "sayBroken": null
+  },
+  "sayStates": {
+   "live": 14
+  },
+  "tally": "0 of 9 stones stand consistent",
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "box": {
+   "w": 366,
+   "h": 2074
+  },
+  "scrollH": 2074,
+  "occupancy": 0.888,
+  "largestVoid": 0.022,
+  "gap": 12,
+  "nCanvas": 13,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 684,
+    "h": 188,
+    "cssW": 342,
+    "cssH": 94,
+    "ink": 128526,
+    "cover": 0.999
+   },
+   {
+    "w": 732,
+    "h": 570,
+    "cssW": 342,
+    "cssH": 266,
+    "ink": 417240,
+    "cover": 1
+   },
+   {
+    "w": 216,
+    "h": 40,
+    "cssW": 216,
+    "cssH": 40,
+    "ink": 2016,
+    "cover": 0.233
+   },
+   {
+    "w": 684,
+    "h": 292,
+    "cssW": 340,
+    "cssH": 144,
+    "ink": 199636,
+    "cover": 1
+   }
+  ],
+  "under44": [],
+  "contrast": {
+   "plate": 12.13,
+   "name": 10,
+   "sayLive": 9.97,
+   "sayHeld": null,
+   "sayBroken": null
+  },
+  "sayStates": {
+   "live": 14
+  },
+  "tally": "0 of 9 stones stand consistent",
+  "consoleErrors": []
+ }
+]

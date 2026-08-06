@@ -1,0 +1,42 @@
+[
+ {
+  "vp": "desk",
+  "viewport": "1280x800",
+  "clip": {
+   "w": 820,
+   "h": 957
+  },
+  "fieldOccupancy": 0.713,
+  "largestDeadPct": 8.4,
+  "deadBox": {
+   "x": 0,
+   "y": 442,
+   "w": 818,
+   "h": 356
+  },
+  "px": "1640x1600",
+  "boardOccupancy": 0.812,
+  "boardDeadPct": 1.1,
+  "box": {
+   "w": 820,
+   "h": 957
+  },
+  "scrollH": 957,
+  "boardToControls": 0,
+  "under44": [],
+  "canvases": [
+   {
+    "w": 1640,
+    "h": 1082,
+    "cover": 1
+   },
+   {
+    "w": 264,
+    "h": 48,
+    "cover": 0.14
+   }
+  ],
+  "overflowX": 0,
+  "consoleErrors": []
+ }
+]

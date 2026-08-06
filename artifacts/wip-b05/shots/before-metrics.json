@@ -1,0 +1,118 @@
+[
+ {
+  "vp": "desk",
+  "dsf": 2,
+  "img": "1640x1146",
+  "root": {
+   "w": 820,
+   "h": 572
+  },
+  "scrollH": 572,
+  "canvasCss": {
+   "w": 360,
+   "h": 360
+  },
+  "boardRel": {
+   "x": 230,
+   "y": 65,
+   "w": 360,
+   "h": 360
+  },
+  "textRel": [
+   {
+    "x": 12,
+    "y": 12,
+    "w": 796,
+    "h": 39
+   },
+   {
+    "x": 75.46875,
+    "y": 444,
+    "w": 669.0625,
+    "h": 17
+   },
+   {
+    "x": 225.296875,
+    "y": 475,
+    "w": 145.734375,
+    "h": 51
+   },
+   {
+    "x": 381.03125,
+    "y": 475,
+    "w": 213.65625,
+    "h": 51
+   }
+  ],
+  "gapPx": 50,
+  "nCanvas": 1,
+  "under44": [],
+  "text": "One band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same. | Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band. | Follow the band | Bind the knot",
+  "grid": "102x71",
+  "occupancy": 26,
+  "maxVoid": 58.3,
+  "deadZoneN": 108,
+  "deadZoneMedian": 4.95,
+  "deadZoneP90": 7.22,
+  "layers": 7,
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "dsf": 2,
+  "img": "732x1320",
+  "root": {
+   "w": 366,
+   "h": 660
+  },
+  "scrollH": 660,
+  "canvasCss": {
+   "w": 342,
+   "h": 342
+  },
+  "boardRel": {
+   "x": 12,
+   "y": 84.5,
+   "w": 342,
+   "h": 342
+  },
+  "textRel": [
+   {
+    "x": 12,
+    "y": 12,
+    "w": 342,
+    "h": 58.5
+   },
+   {
+    "x": 12,
+    "y": 445.5,
+    "w": 342,
+    "h": 51
+   },
+   {
+    "x": 110.125,
+    "y": 510.5,
+    "w": 145.734375,
+    "h": 45
+   },
+   {
+    "x": 83.96875,
+    "y": 565.5,
+    "w": 198.046875,
+    "h": 48
+   }
+  ],
+  "gapPx": 139,
+  "nCanvas": 1,
+  "under44": [],
+  "text": "One band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same. | Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band. | Follow the band | Bind the knot",
+  "grid": "45x82",
+  "occupancy": 51.3,
+  "maxVoid": 20.5,
+  "deadZoneN": 210,
+  "deadZoneMedian": 1.5,
+  "deadZoneP90": 1.58,
+  "layers": 8,
+  "consoleErrors": []
+ }
+]

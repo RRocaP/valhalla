@@ -150,6 +150,28 @@ function castShadow(ctx, w, h, x, lean, halfTop, halfBot, alpha) {
   ctx.fill();
 }
 
+// The hall's light spilling around the board. At 1280 this enriches the side
+// fields; at 390, where a dense board covers nearly the whole viewport, this
+// edge is most of the room the player can still see — it is what keeps the
+// five phone rooms apart.
+function edgeRim(ctx, w, h, color, alpha) {
+  const d = Math.min(w, h) * 0.11;
+  const runs = [
+    [0, 0, d, 0],       // left
+    [w, 0, w - d, 0],   // right
+    [0, 0, 0, d],       // top
+    [0, h, 0, h - d],   // bottom
+  ];
+  for (const [x0, y0, x1, y1] of runs) {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, rgba(color, alpha));
+    g.addColorStop(0.45, rgba(color, alpha * 0.35));
+    g.addColorStop(1, rgba(color, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  }
+}
+
 // Subtract the mood back out where the shell's text sits: the header band
 // (numeral / title / epigraph) hard, the footer band (near-line, hints,
 // latch) softer. Feathered ellipses, so there is no seam to see.
@@ -194,6 +216,7 @@ function fieldTorchlit(ctx, w, h) {
   // the unlit middle of the hall between the two brackets
   pool(ctx, w * 0.5, h * 0.62, Math.max(w, h) * 0.42, palette.tar, 0.22, 1.1);
   pool(ctx, w * 0.5, h * 1.02, w * 0.5, palette.ember, 0.1, 0.5);
+  edgeRim(ctx, w, h, AMBER, 0.22);
 }
 
 function fieldSeer(ctx, w, h) {
@@ -215,6 +238,7 @@ function fieldSeer(ctx, w, h) {
   // the tent walls close in
   for (const x of [0, w]) pool(ctx, x, h * 0.5, w * 0.24, VIOLET, 0.3, 2.6);
   pool(ctx, w * 0.5, h * 1.04, w * 0.6, palette.tar, 0.3, 0.42);
+  edgeRim(ctx, w, h, VIOLET, 0.3);
 }
 
 function fieldSnowlight(ctx, w, h) {
@@ -244,6 +268,7 @@ function fieldSnowlight(ctx, w, h) {
   // the cold sits in the corners of the room
   for (const x of [0, w]) pool(ctx, x, h * 0.62, w * 0.2, palette.fjord, 0.28, 2.4);
   pool(ctx, w * 0.5, h * 1.05, w * 0.62, palette.fjord, 0.3, 0.42);
+  edgeRim(ctx, w, h, mix(SNOW, palette.fjord, 0.35), 0.3);
 }
 
 function fieldFeast(ctx, w, h) {
@@ -272,6 +297,7 @@ function fieldFeast(ctx, w, h) {
   ctx.fillRect(0, h * 0.78, w, h * 0.22);
   // rafters: the roof of a feast hall is the darkest thing in it
   pool(ctx, w * 0.5, -h * 0.04, w * 0.62, palette.tar, 0.34, 0.55);
+  edgeRim(ctx, w, h, MEAD, 0.26);
 }
 
 function fieldThrone(ctx, w, h) {
@@ -298,6 +324,7 @@ function fieldThrone(ctx, w, h) {
   });
   pool(ctx, xl, -h * 0.06, w * 0.2, COLD_GOLD, 0.18, 1.1);
   pool(ctx, w * 0.5, h * 1.06, w * 0.66, palette.tar, 0.34, 0.46);
+  edgeRim(ctx, w, h, mix(palette.fjord, palette.tar, 0.45), 0.34);
 }
 
 const FIELDS = {

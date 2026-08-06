@@ -185,7 +185,7 @@ p{margin:0}
 /* ---- language switcher (CONTRACT §4.1 amendment): three carved plates,
    the current tongue gold-struck. ≥44px targets. ---- */
 .lang-row{display:flex;gap:8px;flex-wrap:wrap}
-.lang-btn{min-width:56px;min-height:44px;padding:8px 12px;border-radius:6px;
+.lang-btn{min-width:56px;min-height:45px;padding:8px 12px;border-radius:6px;
   font-family:var(--font-display);font-weight:700;letter-spacing:.1em;font-size:.9rem;color:var(--boneDim);
   background:linear-gradient(180deg,var(--oak) 0%,var(--oakDeep) 100%);
   box-shadow:0 2px 0 rgba(12,9,6,.7),0 3px 6px rgba(12,9,6,.35),

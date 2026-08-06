@@ -1,0 +1,4 @@
+— 05 — bands defined in journal; toggle pulse timer cleaned; near fault path
+
+— 01 — grip survives re-render: focus restored, capture re-established
+  THREW TypeError: el.addEventListener is not a function

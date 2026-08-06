@@ -1,0 +1,44 @@
+{
+ "en": {
+  "title": "The Twelve Pieces",
+  "epigraph": "One of these was cut by a liar. The beam remembers; it does ",
+  "plate": "Three weighings are sworn. One piece is false — name it, and say if it weighs heavy or light.",
+  "caption": "3 beam canvases",
+  "reading": "The ingot end — first: left pan; second: left pan; third: withheld.",
+  "staging": "You will swear: the ingot end — salted, and weighs heavy.",
+  "pans": [
+   "heavy — salted",
+   "light — clipped"
+  ],
+  "swear": "Swear the accusation",
+  "aria": "arm-ring cut, marked fé"
+ },
+ "es": {
+  "title": "Las Doce Piezas",
+  "epigraph": "Una de éstas la cortó un mentiroso. La balanza lo recuerda; ",
+  "plate": "Tres pesadas están juradas. Una pieza es falsa — nómbrala, y di si pesa de más o de menos.",
+  "caption": "3 beam canvases",
+  "reading": "el cabo de lingote — primera: platillo izquierdo; segunda: platillo izquierdo; tercera: apartada.",
+  "staging": "Vas a jurar: el cabo de lingote — la pieza está salada y pesa de más.",
+  "pans": [
+   "de más — salada",
+   "de menos — cercenada"
+  ],
+  "swear": "Jurar la acusación",
+  "aria": "el corte de brazalete, con la marca fé"
+ },
+ "ca": {
+  "title": "Les Dotze Peces",
+  "epigraph": "Una d’aquestes la va tallar un mentider. La balança se’n rec",
+  "plate": "Tres pesades estan jurades. Una peça és falsa — anomena-la, i digues si pesa de més o de menys.",
+  "caption": "3 beam canvases",
+  "reading": "el cap de lingot — primera: platet esquerre; segona: platet esquerre; tercera: apartada.",
+  "staging": "Juraràs: el cap de lingot — la peça és salada i pesa de més.",
+  "pans": [
+   "de més — salada",
+   "de menys — escapçada"
+  ],
+  "swear": "Jurar l’acusació",
+  "aria": "el tall de braçalet, amb la marca fé"
+ }
+}

@@ -1,0 +1,112 @@
+[
+ {
+  "vp": "desk",
+  "ord": 2,
+  "path": "artifacts/wip-moods/shots/c2-g1-l2-desk.png",
+  "hasMood": true,
+  "moodInk": 4096000,
+  "moodCover": 1,
+  "moodName": "torchlit",
+  "tintVar": "#d48c4b",
+  "errs": []
+ },
+ {
+  "vp": "desk",
+  "ord": 5,
+  "path": "artifacts/wip-moods/shots/c2-g2-l5-desk.png",
+  "hasMood": true,
+  "moodInk": 4096000,
+  "moodCover": 1,
+  "moodName": "seer",
+  "tintVar": "#4c4a6a",
+  "errs": []
+ },
+ {
+  "vp": "desk",
+  "ord": 8,
+  "path": "artifacts/wip-moods/shots/c2-g3-l8-desk.png",
+  "hasMood": true,
+  "moodInk": 4096000,
+  "moodCover": 1,
+  "moodName": "snowlight",
+  "tintVar": "#a8b2b5",
+  "errs": []
+ },
+ {
+  "vp": "desk",
+  "ord": 11,
+  "path": "artifacts/wip-moods/shots/c2-g4-l11-desk.png",
+  "hasMood": true,
+  "moodInk": 4096000,
+  "moodCover": 1,
+  "moodName": "feast",
+  "tintVar": "#c6862c",
+  "errs": []
+ },
+ {
+  "vp": "desk",
+  "ord": 14,
+  "path": "artifacts/wip-moods/shots/c2-g5-l14-desk.png",
+  "hasMood": true,
+  "moodInk": 4096000,
+  "moodCover": 1,
+  "moodName": "throne",
+  "tintVar": "#d4b65c",
+  "errs": []
+ },
+ {
+  "vp": "phone",
+  "ord": 2,
+  "path": "artifacts/wip-moods/shots/c2-g1-l2-phone.png",
+  "hasMood": true,
+  "moodInk": 1316640,
+  "moodCover": 1,
+  "moodName": "torchlit",
+  "tintVar": "#d48c4b",
+  "errs": []
+ },
+ {
+  "vp": "phone",
+  "ord": 5,
+  "path": "artifacts/wip-moods/shots/c2-g2-l5-phone.png",
+  "hasMood": true,
+  "moodInk": 1316640,
+  "moodCover": 1,
+  "moodName": "seer",
+  "tintVar": "#4c4a6a",
+  "errs": []
+ },
+ {
+  "vp": "phone",
+  "ord": 8,
+  "path": "artifacts/wip-moods/shots/c2-g3-l8-phone.png",
+  "hasMood": true,
+  "moodInk": 1316640,
+  "moodCover": 1,
+  "moodName": "snowlight",
+  "tintVar": "#a8b2b5",
+  "errs": []
+ },
+ {
+  "vp": "phone",
+  "ord": 11,
+  "path": "artifacts/wip-moods/shots/c2-g4-l11-phone.png",
+  "hasMood": true,
+  "moodInk": 1316640,
+  "moodCover": 1,
+  "moodName": "feast",
+  "tintVar": "#c6862c",
+  "errs": []
+ },
+ {
+  "vp": "phone",
+  "ord": 14,
+  "path": "artifacts/wip-moods/shots/c2-g5-l14-phone.png",
+  "hasMood": true,
+  "moodInk": 1316640,
+  "moodCover": 1,
+  "moodName": "throne",
+  "tintVar": "#d4b65c",
+  "errs": []
+ }
+]

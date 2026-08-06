@@ -1,0 +1,4 @@
+— 05-knotwork — lay the crossings, follow the band, submit
+
+— all five — a solved lock re-opens without a submit path
+  THREW TypeError: el.addEventListener is not a function

@@ -5,6 +5,7 @@
 import { test, expect } from '@playwright/test';
 import {
   gotoAutotest, beginFromThreshold, openLockFromLid, expectDareCard,
+  expectNoDareCard, answerTheDare,
   drivers, owAnswerAndInstance, owSave, assertTouchTargets, sampleContrastRatio,
 } from './helpers.mjs';
 
@@ -56,8 +57,16 @@ test('floors: console, horizontal scroll, touch targets, contrast, offline reloa
     await assertTouchTargets(page, '.screen-lid');
   });
 
-  await test.step('lock 1 room: touch targets + contrast + no h-scroll', async () => {
+  await test.step('lock 1 room: touch targets + contrast + no h-scroll (incl. Bourj dare)', async () => {
     await openLockFromLid(page, 1);
+    // gauntlet cadence: Bourj dares at lock 1 now (docs/JARLS.md v3) — audit
+    // the dare card here, then answer it to reach the board
+    const duel = await expectDareCard(page, 1);
+    await assertNoHorizontalScroll(page, 'dare-card-01');
+    await assertTouchTargets(page, '.dare-card');
+    const tauntContrast = await sampleContrastRatio(page, '.dare-taunt');
+    expect(tauntContrast, `.dare-taunt (${duel.name}) contrast`).toBeGreaterThanOrEqual(4.5);
+    await answerTheDare(page);
     await assertNoHorizontalScroll(page, 'lockroom-01-runerow');
     await assertTouchTargets(page, '.screen-lockroom');
     const epigraphContrast = await sampleContrastRatio(page, '.lock-epigraph');
@@ -73,14 +82,11 @@ test('floors: console, horizontal scroll, touch targets, contrast, offline reloa
     await expect(page.locator('.screen-lid')).toBeVisible();
   });
 
-  await test.step('lock 3 dare card: touch targets + contrast + no h-scroll', async () => {
+  await test.step('lock 3 room (gauntlet finale lock, no dare card here)', async () => {
     await openLockFromLid(page, 3);
-    const duel = await expectDareCard(page, 3);
-    await assertNoHorizontalScroll(page, 'dare-card');
-    await assertTouchTargets(page, '.dare-card');
-    const tauntContrast = await sampleContrastRatio(page, '.dare-taunt');
-    expect(tauntContrast, '.dare-taunt contrast ratio').not.toBeNull();
-    expect(tauntContrast, `.dare-taunt (${duel.name}) contrast ratio (WCAG body text floor 4.5:1)`).toBeGreaterThanOrEqual(4.5);
+    await expectNoDareCard(page);
+    await assertNoHorizontalScroll(page, 'lockroom-03-beacons');
+    await assertTouchTargets(page, '.screen-lockroom');
   });
 
   await test.step('offline: reload, then continue playing with the network blocked', async () => {
@@ -128,9 +134,10 @@ test('floors: console, horizontal scroll, touch targets, contrast, offline reloa
     }
     await expect(page.locator('.screen-lid')).toBeVisible();
 
+    // gauntlet cadence: lock 3 is Bourj's yield lock — no dare card here
+    // (his dare fired at lock 1, already answered pre-reload)
     await openLockFromLid(page, 3);
-    await expectDareCard(page, 3);
-    await page.locator('.dare-card').getByRole('button', { name: 'Answer the dare', exact: true }).click();
+    await expectNoDareCard(page);
     await solveByRealInput(page, '03-beacons');
     await expect(page.locator('.screen-lid')).toBeVisible();
 

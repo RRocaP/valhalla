@@ -8,7 +8,11 @@ import { droneGainFor } from './voices.js';
 
 const AMP_THRESHOLD_DB = -60;
 export const AMP_THRESHOLD = Math.pow(10, AMP_THRESHOLD_DB / 20);
-const CROSSFADE_SECONDS = 0.5; // baked tail-into-head crossfade at the loop seam
+// Baked tail-into-head morph at the loop seam. v1 shipped 0.5 s; the act2/3
+// bodies close up to ~2 dB off their opening level even after wrap-point
+// matching, and a 2.5 s equal-power morph turns that step into a tide
+// (measured: join flux and |dRMS| in artifacts/wip-score/metrics.json).
+const CROSSFADE_SECONDS = 2.5;
 const HANDOFF_SECONDS = 2.0; // drone -> gameplay music crossfade
 const CREDITS_FADE_SECONDS = 1.5; // gameplay -> credits fade
 const STOP_FADE_SECONDS = 1.2; // music -> silence, drone returns
@@ -58,11 +62,24 @@ export function findLoopBounds(buffer, ampThreshold = AMP_THRESHOLD) {
   return { startSample: start, endSample: end };
 }
 
-// Scan the trimmed span with RMS windows and return the steady-level body
-// plus its median RMS (linear). Rationale (measured, artifacts/wip-fable-b/
-// metrics-before.json): the tracks open/close with long musical fades, so
-// looping the silence-trimmed bounds lurched 14-25 dB at every wrap. The loop
-// must live where the music lives.
+// Scan the trimmed span with RMS windows and return the steady-level body,
+// its median RMS (linear), and a median-level entry point. Rationale
+// (measured, artifacts/wip-fable-b/metrics-before.json + wip-score/
+// metrics.json): the tracks open/close with long musical fades, so looping
+// the silence-trimmed bounds lurched 14-25 dB at every wrap, and entering an
+// act at the first "steady" window still landed on builds/swells up to
+// ~2.5 dB off the body level — audible as a hole or a wall in the act
+// crossfade. The loop must live where the music lives, and every entrance
+// and wrap must land on body-level material.
+const ENTRY_RUN_WINDOWS = 8; // 2 s at the 0.25 s scan window
+const ENTRY_BAND_DB = 1.5; // entry run must average within this of the body
+const ENTRY_HOLD_WINDOWS = 32; // ...preferring the run whose next 8 s hold closest
+const HEAD_SLIDE_WINDOWS = 120; // search at most 30 s in for a cleaner morph exit
+const END_MATCH_WINDOWS = 80; // search up to 20 s back for a level-matched wrap
+const MATCH_PENALTY_DB = 0.05; // per window moved: keep the music whole
+const MATCH_HYSTERESIS_DB = 0.75; // don't move loop points for marginal gains
+const dbOf = (x) => 20 * Math.log10(Math.max(x, 1e-12));
+
 export function findLoopRegion(buffer, startSample, endSample) {
   const sr = buffer.sampleRate;
   const win = Math.max(1, Math.round(REGION_WINDOW_SECONDS * sr));
@@ -82,20 +99,125 @@ export function findLoopRegion(buffer, startSample, endSample) {
     return s[s.length >> 1];
   };
   if (rms.length < 8) {
-    return { regionStart: startSample, regionEnd: endSample, bodyRms: medianOf(rms) };
+    return { regionStart: startSample, regionEnd: endSample, bodyRms: medianOf(rms), handoffStart: startSample, entryStart: startSample };
   }
   const floor = medianOf(rms) * Math.pow(10, REGION_FLOOR_DB / 20);
   let i0 = 0;
   while (i0 < rms.length - 1 && !(rms[i0] >= floor && rms[i0 + 1] >= floor)) i0++;
   let i1 = rms.length - 1;
   while (i1 > 0 && !(rms[i1] >= floor && rms[i1 - 1] >= floor)) i1--;
-  const regionStart = startSample + i0 * win;
-  const regionEnd = Math.min(endSample, startSample + (i1 + 1) * win);
-  if (regionEnd - regionStart < (endSample - startSample) / 2) {
+  if ((i1 + 1 - i0) * win < (endSample - startSample) / 2) {
     // degenerate scan: keep full span
-    return { regionStart: startSample, regionEnd: endSample, bodyRms: medianOf(rms) };
+    return { regionStart: startSample, regionEnd: endSample, bodyRms: medianOf(rms), handoffStart: startSample, entryStart: startSample };
   }
-  return { regionStart, regionEnd, bodyRms: medianOf(rms.slice(i0, i1 + 1)) };
+  const cfWindows = Math.ceil((CROSSFADE_SECONDS * sr) / win);
+  const meanDbAt = (a, b) => { // mean level of windows [a, b], inclusive
+    let s = 0;
+    for (let i = a; i <= b; i++) s += dbOf(rms[i]);
+    return s / (b - a + 1);
+  };
+  // Morph-exit matching: the wrap exits the baked morph INTO the head at
+  // offset +bake, so a level step across that boundary is heard as a lurch
+  // at every pass (measured up to 2.4 dB). Score each candidate head by the
+  // step across its own boundary (1 s either side), penalize sliding away
+  // from the raw start, and only move on a real gain — tracks that already
+  // wrap cleanly stay put and no music is skipped for marginal numbers.
+  {
+    const stepAt = (j) => Math.abs(
+      meanDbAt(j + cfWindows, Math.min(j + cfWindows + 3, i1)) -
+      meanDbAt(Math.max(j, j + cfWindows - 4), j + cfWindows - 1));
+    const jMax = Math.min(i0 + HEAD_SLIDE_WINDOWS, i1 - cfWindows - 4);
+    const rawStep = stepAt(i0);
+    let best = i0;
+    let bestCost = rawStep;
+    for (let j = i0 + 1; j <= jMax; j++) {
+      const cost = stepAt(j) + (j - i0) * MATCH_PENALTY_DB;
+      if (cost < bestCost) { bestCost = cost; best = j; }
+    }
+    if (rawStep - bestCost >= MATCH_HYSTERESIS_DB) i0 = best; // real gain only
+  }
+  // Wrap-level matching: walk the loop end back (<= 20 s, same penalty and
+  // hysteresis — the music should play as whole as possible) to a window run
+  // whose closing second sits close to the opening second's level, so the
+  // baked tail-into-head morph joins like with like (the raw i1 landed on
+  // phrase boundaries and stepped up to 2.8 dB at the wrap, measured in
+  // artifacts/wip-score/metrics.json).
+  const headDb = meanDbAt(i0, Math.min(i0 + 3, i1));
+  const rawCost = Math.abs(meanDbAt(Math.max(i0, i1 - 3), i1) - headDb);
+  let end = i1;
+  let bestCost = rawCost;
+  for (let e = i1 - 1; e >= Math.max(i0 + ENTRY_RUN_WINDOWS, i1 - END_MATCH_WINDOWS); e--) {
+    const cost = Math.abs(meanDbAt(Math.max(i0, e - 3), e) - headDb) + (i1 - e) * MATCH_PENALTY_DB;
+    if (cost < bestCost) { bestCost = cost; end = e; }
+  }
+  if (rawCost - bestCost < MATCH_HYSTERESIS_DB) end = i1; // marginal gain: keep it whole
+  const bodyRms = medianOf(rms.slice(i0, end + 1));
+  // Two purpose-built entries (measured, artifacts/wip-score/metrics.json):
+  //
+  // handoff entry — for the drone handoff and any cold start. The earliest
+  // SOFT run after the intro: 2 s averaging [-2.5, +0.5] dB of the body,
+  // never below -4 or above +2. The drone was tuned (OW-FABLE-B) against
+  // Act I entering on its soft build (~-2 dB) and blooming from there;
+  // entering at full body level walls +3 dB over the drone. May sit inside
+  // the baked head (v1 did the same with its 0.5 s bake): the 2 s handoff
+  // fade-in masks the morph.
+  //
+  // act-crossfade entry — for act() switches over live music. The run whose
+  // opening 2 s averages within ENTRY_BAND_DB of the body and stays inside
+  // +-3 dB (no hidden lull, no opening transient), preferring the hold whose
+  // following 8 s sits closest to the body level (hot holds cost extra) —
+  // the incoming act must land AT the running loudness, not on a build or a
+  // swell. Sits past the baked head so a switch never plays the wrap morph.
+  // Both carry an earliness preference: first impressions play the piece's
+  // opening material, not its middle.
+  const bodyDb = dbOf(bodyRms);
+  let handoff = -1;
+  for (let j = i0; j + ENTRY_RUN_WINDOWS - 1 <= end; j++) {
+    let sum = 0;
+    let min = Infinity;
+    let max = -Infinity;
+    for (let i = j; i < j + ENTRY_RUN_WINDOWS; i++) {
+      const d = dbOf(rms[i]);
+      sum += d;
+      if (d < min) min = d;
+      if (d > max) max = d;
+    }
+    const rel = sum / ENTRY_RUN_WINDOWS - bodyDb;
+    if (rel >= -2.5 && rel <= 0.5 && min >= bodyDb - 4 && max <= bodyDb + 2) { handoff = j; break; }
+  }
+  if (handoff < 0) handoff = i0;
+  const bestEntryFrom = (from) => {
+    let best = -1;
+    let bestScore = Infinity;
+    for (let j = from; j + ENTRY_RUN_WINDOWS - 1 <= end; j++) {
+      let sum = 0;
+      let min = Infinity;
+      let max = -Infinity;
+      for (let i = j; i < j + ENTRY_RUN_WINDOWS; i++) {
+        const d = dbOf(rms[i]);
+        sum += d;
+        if (d < min) min = d;
+        if (d > max) max = d;
+      }
+      if (Math.abs(sum / ENTRY_RUN_WINDOWS - bodyDb) > ENTRY_BAND_DB) continue;
+      if (min < bodyDb - 3 || max > bodyDb + 3) continue;
+      const holdEnd = Math.min(j + ENTRY_HOLD_WINDOWS - 1, end);
+      const hold = meanDbAt(j, holdEnd) - bodyDb;
+      const score = Math.abs(hold) + Math.max(0, hold) + (j - from) * (MATCH_PENALTY_DB / 2.5);
+      if (score < bestScore - 1e-9) { bestScore = score; best = j; } // ties keep the earliest
+    }
+    return best;
+  };
+  let entry = bestEntryFrom(Math.min(i0 + cfWindows, end));
+  if (entry < 0) entry = bestEntryFrom(i0);
+  if (entry < 0) entry = i0;
+  return {
+    regionStart: startSample + i0 * win,
+    regionEnd: Math.min(endSample, startSample + (end + 1) * win),
+    bodyRms,
+    handoffStart: startSample + handoff * win,
+    entryStart: startSample + entry * win,
+  };
 }
 
 // Bakes an equal-power crossfade of the region tail into the region head, in
@@ -125,19 +247,21 @@ export function bakeSeamlessLoop(buffer, startSample, endSample, crossfadeSecond
 }
 
 // Per-track prepare(): the whole v1 discipline in one deterministic pass —
-// trim edges at -60 dBFS, find the steady body, bake the seam, enter at the
-// body start (starting inside the fade-in intro hollowed the drone->music
-// handoff out by 15.7 dB, measured). Also reports the body's median RMS so
-// acts can be level-seated against REF_BODY_RMS_DB.
+// trim edges at -60 dBFS, find the steady body, bake the seam, and choose
+// the two entrances (soft handoff entry past the fade-in intro — starting
+// inside the intro hollowed the drone->music handoff out by 15.7 dB,
+// measured — and a body-level act-crossfade entry). Also reports the body's
+// median RMS so acts can be level-seated against REF_BODY_RMS_DB.
 export function prepareSeamlessLoop(buffer) {
   const { startSample, endSample } = findLoopBounds(buffer);
-  const { regionStart, regionEnd, bodyRms } = findLoopRegion(buffer, startSample, endSample);
+  const { regionStart, regionEnd, bodyRms, handoffStart, entryStart } = findLoopRegion(buffer, startSample, endSample);
   const { loopStart, loopEnd } = bakeSeamlessLoop(buffer, regionStart, regionEnd);
   return {
     loopStart,
     loopEnd,
-    playStart: regionStart / buffer.sampleRate,
-    bodyRmsDb: 20 * Math.log10(Math.max(bodyRms, 1e-12)),
+    playStart: handoffStart / buffer.sampleRate, // drone handoffs + cold starts
+    actStart: entryStart / buffer.sampleRate, // act() crossfades over live music
+    bodyRmsDb: dbOf(bodyRms),
   };
 }
 
@@ -156,7 +280,7 @@ export function levelFor(bodyRmsDb) {
 export function createMusic(ctx, bus, drone) {
   const newTrack = (url) => ({
     url, ready: false, fetching: false, buffer: null,
-    loopStart: 0, loopEnd: 0, playStart: 0, level: MUSIC_LEVEL,
+    loopStart: 0, loopEnd: 0, playStart: 0, actStart: 0, level: MUSIC_LEVEL,
   });
   const tracks = {
     1: newTrack('./music.mp3'),
@@ -262,7 +386,7 @@ export function createMusic(ctx, bus, drone) {
     g.gain.setValueCurveAtTime(actCurve(tr.level, true), t, ACT_CROSSFADE_SECONDS);
     src.connect(g);
     g.connect(bus);
-    src.start(t, tr.playStart);
+    src.start(t, tr.actStart); // land AT the running loudness, not on a build
     playing = { src, g, level: tr.level };
     // outgoing act: equal-power cosine to zero from its seated level, then
     // release the nodes. (Anchoring at old.level assumes the fade-in long
@@ -303,11 +427,15 @@ export function createMusic(ctx, bus, drone) {
     tr.fetching = true;
     fetchDecode(tr.url).then((buf) => {
       tr.fetching = false;
-      const { loopStart, loopEnd, playStart, bodyRmsDb } = prepareSeamlessLoop(buf);
+      const { loopStart, loopEnd, playStart, actStart, bodyRmsDb } = prepareSeamlessLoop(buf);
       tr.buffer = buf;
       tr.loopStart = loopStart;
       tr.loopEnd = loopEnd;
-      tr.playStart = playStart;
+      // Handoffs/cold starts use the soft entry; act() crossfades use the
+      // body-level one. Credits fades in from silence on a fresh screen, so
+      // it keeps its own opening — just past the baked morph segment.
+      tr.playStart = key === 'credits' ? loopStart : playStart;
+      tr.actStart = actStart;
       // Act I and credits keep the v1 trim exactly; acts II/III seat their
       // body to Act I's reference so crossfades hold loudness flat.
       tr.level = (key === 2 || key === 3) ? levelFor(bodyRmsDb) : MUSIC_LEVEL;

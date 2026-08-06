@@ -1,0 +1,144 @@
+[
+ {
+  "vp": "desk",
+  "dsf": 2,
+  "img": "1640x1396",
+  "root": {
+   "w": 820,
+   "h": 697
+  },
+  "scrollH": 697,
+  "canvasCss": {
+   "w": 796,
+   "h": 459
+  },
+  "boardRel": {
+   "x": 12,
+   "y": 60,
+   "w": 796,
+   "h": 458.734375
+  },
+  "workRel": {
+   "x": 225.66315789473683,
+   "y": 80.94736842105263,
+   "w": 368.6736842105263,
+   "h": 368.6632420091324
+  },
+  "textRel": [
+   {
+    "x": 12,
+    "y": 12,
+    "w": 796,
+    "h": 39
+   },
+   {
+    "x": 225.296875,
+    "y": 540.734375,
+    "w": 145.734375,
+    "h": 45
+   },
+   {
+    "x": 381.03125,
+    "y": 537.734375,
+    "w": 213.65625,
+    "h": 51
+   },
+   {
+    "x": 12,
+    "y": 616.734375,
+    "w": 796,
+    "h": 20
+   },
+   {
+    "x": 12,
+    "y": 645.734375,
+    "w": 796,
+    "h": 39
+   }
+  ],
+  "gapPx": 9,
+  "nCanvas": 1,
+  "under44": [],
+  "text": "Turn the free crossings until one unbroken band runs the whole panel, over-under all the way. | Follow the band | Bind the knot | The weave reads as 8 bands. | One band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same. Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band.",
+  "grid": "102x87",
+  "occupancy": 66.6,
+  "maxVoid": 14.9,
+  "deadZoneN": 2060,
+  "deadZoneMedian": 1.36,
+  "deadZoneP90": 5.96,
+  "benchOccupancy": 73.4,
+  "layers": 5,
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "dsf": 2,
+  "img": "732x1770",
+  "root": {
+   "w": 366,
+   "h": 884
+  },
+  "scrollH": 884,
+  "canvasCss": {
+   "w": 342,
+   "h": 494
+  },
+  "boardRel": {
+   "x": 12,
+   "y": 102,
+   "w": 342,
+   "h": 493.796875
+  },
+  "workRel": {
+   "x": 29.448979591836736,
+   "y": 122.93877551020408,
+   "w": 307.10204081632656,
+   "h": 307.0962897526502
+  },
+  "textRel": [
+   {
+    "x": 12,
+    "y": 12,
+    "w": 342,
+    "h": 81
+   },
+   {
+    "x": 110.125,
+    "y": 614.796875,
+    "w": 145.734375,
+    "h": 45
+   },
+   {
+    "x": 83.96875,
+    "y": 669.796875,
+    "w": 198.046875,
+    "h": 48
+   },
+   {
+    "x": 12,
+    "y": 745.796875,
+    "w": 342,
+    "h": 20
+   },
+   {
+    "x": 12,
+    "y": 774.796875,
+    "w": 342,
+    "h": 97.5
+   }
+  ],
+  "gapPx": 9,
+  "nCanvas": 1,
+  "under44": [],
+  "text": "Turn the free crossings until one unbroken band runs the whole panel, over-under all the way. | Follow the band | Bind the knot | The weave reads as 8 bands. | One band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same. Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band.",
+  "grid": "45x110",
+  "occupancy": 73.9,
+  "maxVoid": 3.7,
+  "deadZoneN": 815,
+  "deadZoneMedian": 1.45,
+  "deadZoneP90": 7.19,
+  "benchOccupancy": 88.9,
+  "layers": 8,
+  "consoleErrors": []
+ }
+]

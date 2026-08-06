@@ -1,0 +1,82 @@
+[
+ {
+  "vp": "desk",
+  "state": "full",
+  "root": {
+   "w": 820,
+   "h": 648
+  },
+  "scrollH": 648,
+  "docScrollW": 1280,
+  "innerW": 1280,
+  "canvasCss": {
+   "w": 356,
+   "h": 356
+  },
+  "gapPx": -660.8,
+  "nCanvas": 16,
+  "under44": [],
+  "box": {
+   "cx": 356,
+   "cy": 356,
+   "rIn": 219.94559999999998,
+   "rOut": 298.55039999999997
+  },
+  "text": "Hang all fourteen shards. The ring knows its own law.\n\nThe hasp — your hoard, one shard off every lock you opened\n\nAll fourteen sockets hang full. Close the ring.\n\nTake the ring apart\nClose the ring\n\nTap a shard, then a socket — or drag it there. The iron rivet is slot 0; the ring runs sunwise from it.",
+  "canvas": "712x712",
+  "tiles": 1936,
+  "occupancy": 79.5,
+  "maxVoid": 5.3,
+  "deadZoneN": 1039,
+  "deadZoneMedian": 3.08,
+  "deadZoneP90": 12.95,
+  "layers": 6,
+  "layerSet": [
+   6,
+   11,
+   10,
+   11
+  ],
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "state": "full",
+  "root": {
+   "w": 366,
+   "h": 733
+  },
+  "scrollH": 733,
+  "docScrollW": 390,
+  "innerW": 390,
+  "canvasCss": {
+   "w": 299,
+   "h": 299
+  },
+  "gapPx": -654.5,
+  "nCanvas": 16,
+  "under44": [],
+  "box": {
+   "cx": 299,
+   "cy": 299,
+   "rIn": 174.48239999999998,
+   "rOut": 240.5016
+  },
+  "text": "Hang all fourteen shards. The ring knows its own law.\n\nThe hasp — your hoard, one shard off every lock you opened\n\nAll fourteen sockets hang full. Close the ring.\n\nTake the ring apart\nClose the ring\n\nTap a shard, then a socket — or drag it there. The iron rivet is slot 0; the ring runs sunwise from it.",
+  "canvas": "598x598",
+  "tiles": 1369,
+  "occupancy": 79.1,
+  "maxVoid": 5.8,
+  "deadZoneN": 747,
+  "deadZoneMedian": 3.49,
+  "deadZoneP90": 13.06,
+  "layers": 8,
+  "layerSet": [
+   8,
+   12,
+   12,
+   11
+  ],
+  "consoleErrors": []
+ }
+]

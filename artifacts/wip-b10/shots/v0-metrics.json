@@ -1,0 +1,202 @@
+[
+ {
+  "vp": "desk",
+  "phase": "fresh",
+  "box": {
+   "w": 820,
+   "h": 813
+  },
+  "scrollH": 813,
+  "occupancy": 0.89,
+  "largestVoid": 0.02,
+  "gap": 9,
+  "nCanvas": 4,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 538,
+    "cover": 0.162
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 505,
+    "cover": 0.152
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 316,
+    "cover": 0.095
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 415,
+    "cover": 0.125
+   }
+  ],
+  "under44": [],
+  "consoleErrors": []
+ },
+ {
+  "vp": "desk",
+  "phase": "seated",
+  "box": {
+   "w": 820,
+   "h": 467
+  },
+  "scrollH": 467,
+  "occupancy": 0.715,
+  "largestVoid": 0.034,
+  "gap": 9,
+  "nCanvas": 4,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 538,
+    "cover": 0.162
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 505,
+    "cover": 0.152
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 316,
+    "cover": 0.095
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 415,
+    "cover": 0.125
+   }
+  ],
+  "under44": [],
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "phase": "fresh",
+  "box": {
+   "w": 366,
+   "h": 830
+  },
+  "scrollH": 830,
+  "occupancy": 0.884,
+  "largestVoid": 0.022,
+  "gap": 9,
+  "nCanvas": 4,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 538,
+    "cover": 0.162
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 505,
+    "cover": 0.152
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 316,
+    "cover": 0.095
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 415,
+    "cover": 0.125
+   }
+  ],
+  "under44": [],
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "phase": "seated",
+  "box": {
+   "w": 366,
+   "h": 588
+  },
+  "scrollH": 588,
+  "occupancy": 0.666,
+  "largestVoid": 0.042,
+  "gap": 9,
+  "nCanvas": 4,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 538,
+    "cover": 0.162
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 505,
+    "cover": 0.152
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 316,
+    "cover": 0.095
+   },
+   {
+    "w": 52,
+    "h": 64,
+    "cssW": 26,
+    "cssH": 32,
+    "ink": 415,
+    "cover": 0.125
+   }
+  ],
+  "under44": [],
+  "consoleErrors": []
+ }
+]

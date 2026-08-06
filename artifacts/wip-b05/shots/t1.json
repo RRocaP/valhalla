@@ -1,0 +1,66 @@
+[
+ {
+  "vp": "desk",
+  "showingGhost": true,
+  "showingSkip": true,
+  "showingEnded": true,
+  "plate": "Turn the free crossings until one unbroken band runs the whole panel, over-under all the way.",
+  "gleamLine": "row 2, stave 1: a crossing, the running band lies over.",
+  "tallyTrail": [
+   "row 3, stave 1: a crossing, the standing band lies over.",
+   "row 3, stave 2: a crossing, the running band lies over.",
+   "row 4, stave 1: a crossing, the running band lies over.",
+   "row 4, stave 2: a crossing, the standing band lies over.",
+   "row 4, stave 3: a crossing, the running band lies over."
+  ],
+  "finalTally": "row 4, stave 3: a crossing, the running band lies over.",
+  "boundOk": true,
+  "errors": []
+ },
+ {
+  "vp": "phone",
+  "showingGhost": true,
+  "showingSkip": true,
+  "showingEnded": true,
+  "plate": "Turn the free crossings until one unbroken band runs the whole panel, over-under all the way.",
+  "gleamLine": "row 2, stave 1: a crossing, the running band lies over.",
+  "tallyTrail": [
+   "row 3, stave 1: a crossing, the standing band lies over.",
+   "row 3, stave 2: a crossing, the running band lies over.",
+   "row 4, stave 1: a crossing, the running band lies over.",
+   "row 4, stave 2: a crossing, the standing band lies over.",
+   "row 4, stave 3: a crossing, the running band lies over."
+  ],
+  "finalTally": "row 4, stave 3: a crossing, the running band lies over.",
+  "boundOk": true,
+  "errors": []
+ },
+ {
+  "vp": "desk/reduced",
+  "showingGhost": true,
+  "showingSkip": true,
+  "errors": []
+ },
+ {
+  "vp": "desk/es",
+  "plate": "Turn the free crossings until one unbroken band runs the whole panel, over-under all the way.",
+  "lines": [
+   "The weave reads as 8 bands.",
+   "One band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same. Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band."
+  ],
+  "submitText": "Bind the knot",
+  "afterClick": "row 1, stave 1: a crossing, the standing band lies over.",
+  "errors": []
+ },
+ {
+  "vp": "desk/ca",
+  "plate": "Turn the free crossings until one unbroken band runs the whole panel, over-under all the way.",
+  "lines": [
+   "The weave reads as 8 bands.",
+   "One band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same. Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band."
+  ],
+  "submitText": "Bind the knot",
+  "afterClick": "row 1, stave 1: a crossing, the standing band lies over.",
+  "errors": []
+ }
+]

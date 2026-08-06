@@ -142,8 +142,10 @@ try {
   for (const style of ['proud', 'ember']) {
     for (const size of [280, 480]) {
       for (const facing of [1, -1]) {
-        cell(big, size, `${style} ${size} ${facing > 0 ? 'R' : 'L'}`, 'oak',
-          (ctx, x, y, s) => draw(ctx, x, y, s, { facing, style }));
+        for (const ground of ['oak', 'tar']) {
+          cell(big, size, `${style} ${size} ${facing > 0 ? 'R' : 'L'} ${ground}`, ground,
+            (ctx, x, y, s) => draw(ctx, x, y, s, { facing, style }));
+        }
       }
     }
   }

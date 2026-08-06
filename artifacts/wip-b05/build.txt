@@ -1,0 +1,7 @@
+
+> oathwood@0.1.0 build
+> node build.mjs
+
+treasure: assets/tebi.jpg inlined (121357 bytes)
+index.html: 1583025 bytes (1.51 MB), 15 locks bundled
+WARN: bundle over 1.5 MB — trim before ship

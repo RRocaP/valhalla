@@ -1,0 +1,52 @@
+[
+ {
+  "vp": "desk",
+  "box": {
+   "w": 820,
+   "h": 1340
+  },
+  "scrollH": 1340,
+  "occupancy": 0.619,
+  "largestVoid": 0.163,
+  "gap": 963,
+  "nCanvas": 1,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 1440,
+    "h": 500,
+    "cssW": 796,
+    "cssH": 276,
+    "ink": 720000,
+    "cover": 1
+   }
+  ],
+  "under44": [],
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "box": {
+   "w": 366,
+   "h": 1332
+  },
+  "scrollH": 1332,
+  "occupancy": 0.81,
+  "largestVoid": 0.022,
+  "gap": 1112,
+  "nCanvas": 1,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 1440,
+    "h": 500,
+    "cssW": 342,
+    "cssH": 119,
+    "ink": 720000,
+    "cover": 1
+   }
+  ],
+  "under44": [],
+  "consoleErrors": []
+ }
+]

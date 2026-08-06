@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ✓  1 [desktop] › tests/e2e/journey.spec.mjs:12:1 › full journey: threshold -> fifteen locks -> finale -> credits (29.1s)
+
+  1 passed (29.4s)

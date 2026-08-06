@@ -1,0 +1,60 @@
+[
+ {
+  "vp": "desk",
+  "state": "empty",
+  "root": {
+   "w": 820,
+   "h": 542
+  },
+  "scrollH": 542,
+  "docScrollW": 1280,
+  "innerW": 1280,
+  "canvasCss": {
+   "w": 236,
+   "h": 236
+  },
+  "gapPx": -567.8,
+  "nCanvas": 16,
+  "under44": [],
+  "box": null,
+  "text": "Hang all fourteen shards. The ring knows its own law.\n\nThe hasp — your hoard, one shard off every lock you opened\n\n0 of fourteen sockets hang full\n\nTake the ring apart\nClose the ring\n\nTap a shard, then tap a socket — or drag it there. The iron rivet at the top is slot 0, and the ring runs sunwise from it.",
+  "canvas": "472x472",
+  "tiles": 841,
+  "occupancy": 73.8,
+  "maxVoid": 5.5,
+  "deadZoneN": 0,
+  "deadZoneMedian": null,
+  "deadZoneP90": null,
+  "layers": 3,
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "state": "empty",
+  "root": {
+   "w": 366,
+   "h": 751
+  },
+  "scrollH": 751,
+  "docScrollW": 390,
+  "innerW": 390,
+  "canvasCss": {
+   "w": 236,
+   "h": 236
+  },
+  "gapPx": -649.5,
+  "nCanvas": 16,
+  "under44": [],
+  "box": null,
+  "text": "Hang all fourteen shards. The ring knows its own law.\n\nThe hasp — your hoard, one shard off every lock you opened\n\n0 of fourteen sockets hang full\n\nTake the ring apart\nClose the ring\n\nTap a shard, then tap a socket — or drag it there. The iron rivet at the top is slot 0, and the ring runs sunwise from it.",
+  "canvas": "472x472",
+  "tiles": 841,
+  "occupancy": 73.8,
+  "maxVoid": 5.5,
+  "deadZoneN": 0,
+  "deadZoneMedian": null,
+  "deadZoneP90": null,
+  "layers": 3,
+  "consoleErrors": []
+ }
+]

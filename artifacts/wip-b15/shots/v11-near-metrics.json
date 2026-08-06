@@ -1,0 +1,86 @@
+[
+ {
+  "vp": "desk",
+  "state": "near",
+  "root": {
+   "w": 820,
+   "h": 648
+  },
+  "scrollH": 648,
+  "docScrollW": 1280,
+  "innerW": 1280,
+  "canvasCss": {
+   "w": 469,
+   "h": 469
+  },
+  "gapPx": -660.8,
+  "nCanvas": 16,
+  "under44": [],
+  "box": {
+   "cx": 469,
+   "cy": 469,
+   "rIn": 317,
+   "rOut": 413
+  },
+  "text": "Hang all fourteen shards. The ring knows its own law.\n\nThe hasp — your hoard, one shard off every lock you opened\n\n13 of fourteen sockets hang full\n\nTake the ring apart\nClose the ring\n\nTap a shard, then a socket — or drag it there. The iron rivet is slot 0; the ring runs sunwise from it.",
+  "canvas": "938x938",
+  "tiles": 3364,
+  "occupancy": 75.2,
+  "maxVoid": 5.4,
+  "deadZoneN": 1675,
+  "deadZoneMedian": 1.73,
+  "deadZoneP90": 7.86,
+  "layers": 5,
+  "layerSet": [
+   5,
+   9,
+   9,
+   9
+  ],
+  "consoleErrors": [
+   "pageerror: drawDragonHead is not defined"
+  ]
+ },
+ {
+  "vp": "phone",
+  "state": "near",
+  "root": {
+   "w": 366,
+   "h": 733
+  },
+  "scrollH": 733,
+  "docScrollW": 390,
+  "innerW": 390,
+  "canvasCss": {
+   "w": 301,
+   "h": 301
+  },
+  "gapPx": -654.5,
+  "nCanvas": 16,
+  "under44": [],
+  "box": {
+   "cx": 301,
+   "cy": 301,
+   "rIn": 176.0776,
+   "rOut": 242.5384
+  },
+  "text": "Hang all fourteen shards. The ring knows its own law.\n\nThe hasp — your hoard, one shard off every lock you opened\n\n13 of fourteen sockets hang full\n\nTake the ring apart\nClose the ring\n\nTap a shard, then a socket — or drag it there. The iron rivet is slot 0; the ring runs sunwise from it.",
+  "canvas": "602x602",
+  "tiles": 1369,
+  "occupancy": 78.7,
+  "maxVoid": 5.8,
+  "deadZoneN": 740,
+  "deadZoneMedian": 2.89,
+  "deadZoneP90": 8.32,
+  "layers": 8,
+  "layerSet": [
+   8,
+   10,
+   10,
+   10
+  ],
+  "consoleErrors": [
+   "pageerror: drawDragonHead is not defined"
+  ]
+ }
+]

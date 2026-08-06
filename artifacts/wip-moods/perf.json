@@ -1,0 +1,167 @@
+{
+ "dpr": 2,
+ "perf": [
+  {
+   "g": 1,
+   "ms": 0.019000000059604644,
+   "clearMs": 0.0002500000596046448
+  },
+  {
+   "g": 2,
+   "ms": 0.018250000029802323,
+   "clearMs": 0.0002500000596046448
+  },
+  {
+   "g": 3,
+   "ms": 0.02450000002980232,
+   "clearMs": 0.0002499999105930328
+  },
+  {
+   "g": 4,
+   "ms": 0.01,
+   "clearMs": 0.0002499999105930328
+  },
+  {
+   "g": 5,
+   "ms": 0.008499999940395355,
+   "clearMs": 0.0002500000596046448
+  }
+ ],
+ "ink": [
+  {
+   "ord": 2,
+   "gauntlet": 1,
+   "text": [
+    {
+     "sel": ".lock-epigraph",
+     "mean": 5.43,
+     "woodOnly": 6.21,
+     "worstPixel": 4.69,
+     "worstPixelWoodOnly": 5.67
+    },
+    {
+     "sel": ".lock-title",
+     "mean": 8.82,
+     "woodOnly": 9.82,
+     "worstPixel": 6.31,
+     "worstPixelWoodOnly": 6.84
+    },
+    {
+     "sel": ".ledger-numeral",
+     "mean": 6.89,
+     "woodOnly": 7.45,
+     "worstPixel": 5.37,
+     "worstPixelWoodOnly": 5.76
+    }
+   ]
+  },
+  {
+   "ord": 5,
+   "gauntlet": 2,
+   "text": [
+    {
+     "sel": ".lock-epigraph",
+     "mean": 5.69,
+     "woodOnly": 6.1,
+     "worstPixel": 5.13,
+     "worstPixelWoodOnly": 5.6
+    },
+    {
+     "sel": ".lock-title",
+     "mean": 9.43,
+     "woodOnly": 9.71,
+     "worstPixel": 6.82,
+     "worstPixelWoodOnly": 6.8
+    },
+    {
+     "sel": ".ledger-numeral",
+     "mean": 7.3,
+     "woodOnly": 7.41,
+     "worstPixel": 5.83,
+     "worstPixelWoodOnly": 5.75
+    }
+   ]
+  },
+  {
+   "ord": 8,
+   "gauntlet": 3,
+   "text": [
+    {
+     "sel": ".lock-epigraph",
+     "mean": 5.04,
+     "woodOnly": 6.09,
+     "worstPixel": 4.7,
+     "worstPixelWoodOnly": 5.68
+    },
+    {
+     "sel": ".lock-title",
+     "mean": 8.54,
+     "woodOnly": 9.73,
+     "worstPixel": 6.21,
+     "worstPixelWoodOnly": 6.87
+    },
+    {
+     "sel": ".ledger-numeral",
+     "mean": 6.74,
+     "woodOnly": 7.38,
+     "worstPixel": 5.23,
+     "worstPixelWoodOnly": 5.67
+    }
+   ]
+  },
+  {
+   "ord": 11,
+   "gauntlet": 4,
+   "text": [
+    {
+     "sel": ".lock-epigraph",
+     "mean": 6.09,
+     "woodOnly": 6.12,
+     "worstPixel": 5.65,
+     "worstPixelWoodOnly": 5.62
+    },
+    {
+     "sel": ".lock-title",
+     "mean": 9.99,
+     "woodOnly": 9.76,
+     "worstPixel": 7.22,
+     "worstPixelWoodOnly": 6.98
+    },
+    {
+     "sel": ".ledger-numeral",
+     "mean": 7.62,
+     "woodOnly": 7.47,
+     "worstPixel": 5.97,
+     "worstPixelWoodOnly": 5.76
+    }
+   ]
+  },
+  {
+   "ord": 14,
+   "gauntlet": 5,
+   "text": [
+    {
+     "sel": ".lock-epigraph",
+     "mean": 6.45,
+     "woodOnly": 6.22,
+     "worstPixel": 5.79,
+     "worstPixelWoodOnly": 5.68
+    },
+    {
+     "sel": ".lock-title",
+     "mean": 10.09,
+     "woodOnly": 9.83,
+     "worstPixel": 7.17,
+     "worstPixelWoodOnly": 6.98
+    },
+    {
+     "sel": ".ledger-numeral",
+     "mean": 7.71,
+     "woodOnly": 7.55,
+     "worstPixel": 5.98,
+     "worstPixelWoodOnly": 5.79
+    }
+   ]
+  }
+ ]
+}

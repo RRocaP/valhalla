@@ -1,0 +1,16 @@
+OW-SCORE progression-score metrics (plot-less table; full data: metrics.json)
+generated 2026-08-06T22:37:44.726Z
+
+act1->act2         pre -26.6dB            post -24.9dB           dip -3.20dB        bump -3.67dB              
+act2->act3         pre -32.8dB            post -27.8dB           dip -6.74dB        bump -0.63dB              
+handoff (v1 reg.)  drone -27.8dB          music -26.3dB          hole -0.25dB       wall -0.74dB              
+seam_act1          loop 10.75..272.50s    flux 0.50x p95         dRMS -0.46dB                                 
+seam_act2          loop 7.84..180.84s     flux 0.78x p95         dRMS 0.41dB                                  
+seam_act3          loop 5.25..169.75s     flux 0.85x p95         dRMS -1.36dB                                 
+seam_credits       loop 9.75..262.00s     flux 0.40x p95         dRMS 0.05dB                                  
+prep act1          279.0s                 body -13.60dBFS        level 0.240        prep 46.8ms               
+prep act2          182.1s                 body -15.01dBFS        level 0.282        prep 18.1ms               
+prep act3          171.4s                 body -14.15dBFS        level 0.255        prep 17.6ms               
+prep credits       265.0s                 body -17.96dBFS        level 0.240        prep 23.6ms               
+
+28/28 checks pass

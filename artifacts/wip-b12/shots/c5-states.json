@@ -1,0 +1,124 @@
+[
+ {
+  "vp": "desk",
+  "boast": 4,
+  "showing": {
+   "states": [
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending"
+   ],
+   "tally": "0 of 9 oaths hold",
+   "ghost": false
+  },
+  "partial": {
+   "states": [
+    "hold",
+    "pending",
+    "hold",
+    "hold",
+    "broken",
+    "hold",
+    "pending",
+    "hold",
+    "pending"
+   ],
+   "tally": "5 of 9 oaths hold"
+  },
+  "accused": {
+   "states": [
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "broken",
+    "hold",
+    "hold",
+    "hold",
+    "hold"
+   ],
+   "pressed": [
+    "false",
+    "false",
+    "false",
+    "false",
+    "true",
+    "false",
+    "false",
+    "false",
+    "false"
+   ],
+   "tally": "8 of 9 oaths hold. Name the ninth and swear.",
+   "swearOn": true
+  },
+  "solved": true,
+  "errs": []
+ },
+ {
+  "vp": "phone",
+  "boast": 4,
+  "showing": {
+   "states": [
+    "hold",
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending",
+    "pending"
+   ],
+   "tally": "1 of 9 oaths hold",
+   "ghost": true
+  },
+  "partial": {
+   "states": [
+    "hold",
+    "pending",
+    "hold",
+    "hold",
+    "broken",
+    "hold",
+    "pending",
+    "hold",
+    "pending"
+   ],
+   "tally": "5 of 9 oaths hold"
+  },
+  "accused": {
+   "states": [
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "broken",
+    "hold",
+    "hold",
+    "hold",
+    "hold"
+   ],
+   "pressed": [
+    "false",
+    "false",
+    "false",
+    "false",
+    "true",
+    "false",
+    "false",
+    "false",
+    "false"
+   ],
+   "tally": "8 of 9 oaths hold. Name the ninth and swear.",
+   "swearOn": true
+  },
+  "solved": true,
+  "errs": []
+ }
+]

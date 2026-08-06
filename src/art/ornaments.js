@@ -9,6 +9,7 @@ import { carveStroke, glow as glowFx, prefersReducedMotion } from './util.js';
 import { fillGoldLayered } from './gold.js';
 import { drawKnot } from './knot.js';
 import { drawRune } from './runes.js';
+import { drawDragonHead } from './dragon.js';
 
 function ringPoints(cx, cy, size, points, skip) {
   const rad = size * 0.42;
@@ -158,7 +159,16 @@ function dragonheadSilhouette(c, s) {
 }
 
 function dragonhead(ctx, x, y, size, opts) {
-  const mirror = opts.mirror ? -1 : 1;
+  // Ramon-approved carved prow-beast (src/art/dragon.js) supersedes the old
+  // curl. Ornament anchor is the figure's visual center; drawDragonHead
+  // anchors at the neck base with the head rising ~0.96·size above it.
+  drawDragonHead(ctx, x, y + size * 0.46, size, {
+    facing: opts && opts.mirror ? -1 : 1,
+    style: (opts && opts.style) || 'proud',
+    t: (opts && opts.t) || 0,
+  });
+  return;
+  // eslint-disable-next-line no-unreachable -
   const s = size;
   ctx.save();
   ctx.translate(x, y);

@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createAudio } from '../../src/audio/index.js';
 import { clamp01, PENT } from '../../src/audio/voices.js';
-import { findLoopBounds, bakeSeamlessLoop, prepareSeamlessLoop, DUCK_GAIN_FACTOR } from '../../src/audio/music.js';
+import { findLoopBounds, bakeSeamlessLoop, prepareSeamlessLoop, DUCK_GAIN_FACTOR, ACT_CROSSFADE_SECONDS } from '../../src/audio/music.js';
 
 // ---------------------------------------------------------------------
 // minimal mock AudioContext
@@ -23,6 +23,7 @@ class MockAudioParam {
   linearRampToValueAtTime(v, t) { this.value = v; this.calls.push(['lin', v, t]); return this; }
   exponentialRampToValueAtTime(v, t) { this.value = v; this.calls.push(['exp', v, t]); return this; }
   setTargetAtTime(v, t, tc) { this.value = v; this.calls.push(['target', v, t, tc]); return this; }
+  setValueCurveAtTime(curve, t, dur) { this.value = curve[curve.length - 1]; this.calls.push(['curve', Float32Array.from(curve), t, dur]); return this; }
   cancelScheduledValues(t) { this.calls.push(['cancel', t]); return this; }
 }
 
@@ -203,6 +204,7 @@ test('no AudioContext is constructed before enable()', () => {
   audio.music.start();
   audio.music.credits();
   audio.music.stop();
+  audio.music.act(2);
   assert.strictEqual(constructed, 0, 'no call before enable() should construct a context');
   audio.enable();
   assert.strictEqual(constructed, 1);
@@ -219,6 +221,8 @@ test('ui/motif/drone/music calls before enable() never throw and stay inert', ()
     audio.music.start();
     audio.music.credits();
     audio.music.stop();
+    audio.music.act(2);
+    audio.music.act(3);
   });
   assert.strictEqual(audio.music.ready, false);
 });
@@ -592,6 +596,295 @@ test('music: a decodeAudioData rejection is also swallowed', async () => {
     assert.doesNotThrow(() => audio.music.start());
     for (let i = 0; i < 10; i++) await Promise.resolve();
     assert.strictEqual(audio.music.ready, false);
+  } finally {
+    restore();
+  }
+});
+
+// ---------------------------------------------------------------------
+// music acts (v2 progression score): music.act(n), docs/AUDIO.md addendum
+// ---------------------------------------------------------------------
+
+// URL-aware fetch mock: byteLength encodes the track so a per-instance
+// decode impl can tag the produced buffer with its source.
+const ACT_LEN = { './music.mp3': 8, './act2.mp3': 12, './act3.mp3': 16, './credits.mp3': 20 };
+const ACT_TAG = { 8: 'act1', 12: 'act2', 16: 'act3', 20: 'credits' };
+function actFetchImpl(urls, failFor = () => false) {
+  return async (url) => {
+    urls.push(url);
+    if (failFor(url)) throw new Error('network down: ' + url);
+    return { ok: true, arrayBuffer: async () => new ArrayBuffer(ACT_LEN[url] ?? 4) };
+  };
+}
+function tagDecode(c) {
+  c._decodeImpl = async (ab) => {
+    const buf = defaultMusicBuffer(c);
+    buf._tag = ACT_TAG[ab.byteLength] || 'unknown';
+    return buf;
+  };
+}
+const loopSources = (c, from = 0) => since(c, from).filter((n) => n._kind === 'bufferSource' && n.loop === true);
+
+test('music.act(): invalid n is a no-op after enable (no fetch, no nodes, no throw)', () => {
+  const urls = [];
+  const restore = withMockFetch(actFetchImpl(urls));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    const baseline = mark(c);
+    assert.doesNotThrow(() => {
+      for (const n of [0, 4, -1, 1.5, '2', null, undefined, NaN]) audio.music.act(n);
+    });
+    assert.strictEqual(urls.length, 0, 'invalid act values must not fetch');
+    assert.strictEqual(since(c, baseline).length, 0, 'invalid act values must not allocate');
+  } finally {
+    restore();
+  }
+});
+
+test('music.act(): lazy — act2.mp3 unfetched until requested; current act plays until the new buffer is ready', async () => {
+  const urls = [];
+  const restore = withMockFetch(actFetchImpl(urls));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+    assert.deepStrictEqual(urls, ['./music.mp3'], 'start() must fetch only the current act');
+    const act1Src = loopSources(c).find((s) => s.buffer && s.buffer._tag === 'act1');
+    assert.ok(act1Src, 'act 1 should be looping');
+    assert.strictEqual(act1Src.stoppedAt, null);
+
+    const beforeSwitch = mark(c);
+    audio.music.act(2);
+    assert.deepStrictEqual(urls, ['./music.mp3', './act2.mp3'], 'act(2) lazily fetches its own file');
+    assert.strictEqual(loopSources(c, beforeSwitch).length, 0, 'no new source before the decode lands');
+    assert.strictEqual(act1Src.stoppedAt, null, 'act 1 must keep playing while act 2 decodes');
+
+    assert.ok(await waitFor(() => loopSources(c, beforeSwitch).length === 1), 'act 2 source should appear');
+    const act2Src = loopSources(c, beforeSwitch)[0];
+    assert.strictEqual(act2Src.buffer._tag, 'act2');
+    assert.ok(act2Src.loopEnd > act2Src.loopStart, 'act 2 must body-loop with baked seam points');
+    assert.ok(act2Src.startedAt !== null);
+    assert.ok(act1Src.stoppedAt !== null, 'the old act is scheduled to stop after the crossfade');
+    assert.ok(act1Src.stoppedAt >= ACT_CROSSFADE_SECONDS, `old act stops at ${act1Src.stoppedAt}, before the fade ends`);
+    assert.strictEqual(audio.music.ready, true, 'ready now reflects act 2');
+  } finally {
+    restore();
+  }
+});
+
+test('music.act(): equal-power ~2.5s crossfade scheduling shape on both gains', async () => {
+  const restore = withMockFetch(actFetchImpl([]));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+    const act1Src = loopSources(c).find((s) => s.buffer._tag === 'act1');
+    const act1Gain = act1Src.connections[0];
+    assert.strictEqual(act1Gain._kind, 'gain');
+
+    const beforeSwitch = mark(c);
+    audio.music.act(2);
+    assert.ok(await waitFor(() => loopSources(c, beforeSwitch).length === 1));
+    const act2Src = loopSources(c, beforeSwitch)[0];
+    const act2Gain = act2Src.connections[0];
+
+    const inCall = act2Gain.gain.calls.find((call) => call[0] === 'curve');
+    const outCall = act1Gain.gain.calls.filter((call) => call[0] === 'curve').at(-1);
+    assert.ok(inCall, 'incoming act gain must use a curve automation');
+    assert.ok(outCall, 'outgoing act gain must use a curve automation');
+    assert.strictEqual(inCall[3], ACT_CROSSFADE_SECONDS);
+    assert.strictEqual(outCall[3], ACT_CROSSFADE_SECONDS);
+    assert.strictEqual(inCall[2], outCall[2], 'both curves start at the same time');
+    const [rise, fall] = [inCall[1], outCall[1]];
+    assert.strictEqual(rise.length, fall.length);
+    assert.strictEqual(rise[0], 0, 'incoming starts silent');
+    const inLevel = rise[rise.length - 1];
+    const outLevel = fall[0];
+    assert.ok(inLevel > 0 && outLevel > 0);
+    assert.ok(Math.abs(fall[fall.length - 1]) < 1e-6, 'outgoing ends silent');
+    for (let i = 0; i < rise.length; i++) {
+      const power = (rise[i] / inLevel) ** 2 + (fall[i] / outLevel) ** 2;
+      assert.ok(Math.abs(power - 1) < 1e-6, `curves not equal-power at point ${i}: ${power}`);
+    }
+    // the outgoing gain's curve must come after a cancel of its fade-in automation
+    const outCalls = act1Gain.gain.calls;
+    const cancelIdx = outCalls.findIndex((call) => call[0] === 'cancel');
+    assert.ok(cancelIdx !== -1 && cancelIdx < outCalls.indexOf(outCall), 'cancel precedes the fade-out curve');
+  } finally {
+    restore();
+  }
+});
+
+test('music.act(): idempotent — same act and duplicate switches never double-fetch or double-allocate', async () => {
+  const urls = [];
+  const restore = withMockFetch(actFetchImpl(urls));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+
+    const baseline = mark(c);
+    audio.music.act(1); // already the current act
+    assert.strictEqual(since(c, baseline).length, 0);
+    assert.deepStrictEqual(urls, ['./music.mp3']);
+
+    audio.music.act(2);
+    audio.music.act(2); // duplicate while the fetch is in flight
+    assert.strictEqual(urls.filter((u) => u === './act2.mp3').length, 1, 'one fetch per act');
+    assert.ok(await waitFor(() => loopSources(c, baseline).length === 1));
+
+    const afterSwitch = mark(c);
+    audio.music.act(2); // now the current act: full no-op
+    for (let i = 0; i < 10; i++) await Promise.resolve();
+    assert.strictEqual(loopSources(c, afterSwitch).length, 0, 'repeat act(2) must not re-crossfade');
+    assert.strictEqual(urls.filter((u) => u === './act2.mp3').length, 1);
+  } finally {
+    restore();
+  }
+});
+
+test('music.act(): fetch failure stays on the current act silently and retries on the next act() call', async () => {
+  const urls = [];
+  let act2Down = true;
+  const restore = withMockFetch(actFetchImpl(urls, (url) => act2Down && url === './act2.mp3'));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+    const act1Src = loopSources(c).find((s) => s.buffer._tag === 'act1');
+
+    assert.doesNotThrow(() => audio.music.act(2));
+    for (let i = 0; i < 10; i++) await Promise.resolve(); // let the rejection settle
+    assert.strictEqual(act1Src.stoppedAt, null, 'act 1 must keep playing through the failure');
+    assert.strictEqual(audio.music.ready, true, 'ready still reflects the (unchanged) current act');
+
+    act2Down = false;
+    const beforeRetry = mark(c);
+    assert.doesNotThrow(() => audio.music.act(2)); // documented retry-on-next-call
+    assert.strictEqual(urls.filter((u) => u === './act2.mp3').length, 2, 'the retry re-fetches');
+    assert.ok(await waitFor(() => loopSources(c, beforeRetry).length === 1), 'retry completes the switch');
+    assert.strictEqual(loopSources(c, beforeRetry)[0].buffer._tag, 'act2');
+  } finally {
+    restore();
+  }
+});
+
+test('music.credits() fades whatever act is live; start() resumes the CURRENT act, not act 1', async () => {
+  const urls = [];
+  const restore = withMockFetch(actFetchImpl(urls));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+    const m0 = mark(c);
+    audio.music.act(2);
+    assert.ok(await waitFor(() => loopSources(c, m0).length === 1));
+    const act2Src = loopSources(c, m0)[0];
+
+    const m1 = mark(c);
+    audio.music.credits();
+    assert.ok(act2Src.stoppedAt !== null, 'credits() must fade the live act 2 out');
+    assert.ok(await waitFor(() => loopSources(c, m1).some((s) => s.buffer._tag === 'credits')));
+    const creditsSrc = loopSources(c, m1).find((s) => s.buffer._tag === 'credits');
+
+    const m2 = mark(c);
+    audio.music.start(); // e.g. credits screen skipped back into the game
+    assert.ok(creditsSrc.stoppedAt !== null, 'start() must fade the credits loop out');
+    assert.ok(await waitFor(() => loopSources(c, m2).length === 1));
+    assert.strictEqual(loopSources(c, m2)[0].buffer._tag, 'act2', 'start() resumes act 2, the current act');
+    assert.strictEqual(urls.filter((u) => u === './act2.mp3').length, 1, 'the cached act 2 buffer is reused');
+  } finally {
+    restore();
+  }
+});
+
+test('music.act() while stopped or mid-stop keeps the selection; start() resumes it (save-progress path)', async () => {
+  const urls = [];
+  const restore = withMockFetch(actFetchImpl(urls));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+    audio.music.act(3); // fetch in flight...
+    audio.music.stop(); // ...and the player backs out mid-switch
+    const m0 = mark(c);
+    for (let i = 0; i < 10; i++) await Promise.resolve();
+    assert.strictEqual(loopSources(c, m0).length, 0, 'stopped mode: the landed act must not start playing');
+    audio.music.start();
+    assert.ok(await waitFor(() => loopSources(c, m0).length === 1));
+    assert.strictEqual(loopSources(c, m0)[0].buffer._tag, 'act3', 'start() resumes the selected act');
+  } finally {
+    restore();
+  }
+});
+
+test('music.act() before start() (load from save): only the saved act is fetched, drone hands off to it', async () => {
+  const urls = [];
+  const restore = withMockFetch(actFetchImpl(urls));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    const beforeDrone = mark(c);
+    audio.drone.start();
+    const droneBus = graphNodes(c).droneBus;
+    const droneOut = since(c, beforeDrone).find((n) => n._kind === 'gain' && n.connections.includes(droneBus));
+
+    const m0 = mark(c); // the drone's own noise loop is a looping source too
+    audio.music.act(3);
+    assert.strictEqual(audio.music.ready, false, 'ready is false until the selected act has a buffer');
+    audio.music.start();
+    assert.ok(await waitFor(() => loopSources(c, m0).length === 1), 'the saved act starts once decoded');
+    assert.deepStrictEqual(urls, ['./act3.mp3'], 'music.mp3 must NOT be fetched when resuming at act 3');
+    assert.strictEqual(loopSources(c, m0)[0].buffer._tag, 'act3');
+    assert.strictEqual(audio.music.ready, true);
+    const last = droneOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
+    assert.ok(last && Math.abs(last[1] - 0) < 1e-6, 'the drone crossfades under act 3 exactly as it does under act 1');
+  } finally {
+    restore();
+  }
+});
+
+test('music.act(): a switch issued while the context is suspended (iOS) still schedules and survives resume', async () => {
+  const restore = withMockFetch(actFetchImpl([]));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+    c.state = 'suspended'; // backgrounded tab: currentTime freezes, calls must not be lost
+    const m0 = mark(c);
+    audio.music.act(2);
+    assert.ok(await waitFor(() => loopSources(c, m0).length === 1), 'the switch lands while suspended');
+    const act2Src = loopSources(c, m0)[0];
+    assert.strictEqual(act2Src.buffer._tag, 'act2');
+    assert.ok(act2Src.startedAt !== null, 'source scheduled against the frozen clock');
+    await c.resume();
+    assert.strictEqual(c.state, 'running');
+    assert.strictEqual(audio.music.ready, true);
   } finally {
     restore();
   }

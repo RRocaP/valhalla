@@ -97,6 +97,9 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
       if (!audio.enabled) {
         audio.enable();
         audio.drone.start();
+        // act BEFORE start: the lazy loader then fetches only the saved act
+        audio.music?.act?.(save.opened.includes('12-veitsla') ? 3
+          : save.opened.includes('06-jotunvillur') ? 2 : 1);
         audio.music?.start?.();
         audio.drone.intensity(progressFraction(locks, save));
       }

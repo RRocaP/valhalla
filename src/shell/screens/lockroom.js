@@ -435,6 +435,9 @@ overlay.append(stage, line);
     const canTween = typeof art.portrait === 'function' && !!img;
     if (!canTween) drawPortraitPlaceholder(port.ctx, p, 0, 0, port.w, port.h, yieldDuel.name);
     audio.motif('yield');
+    // act switches ride the chapter turns (docs/CONTRACT.md §1 v2)
+    if (lock.id === '06-jotunvillur') audio.music?.act?.(2);
+    else if (lock.id === '12-veitsla') audio.music?.act?.(3);
     cancelBeat = playBeat({
       el: overlay, duration: 1200, reducedMotion,
       render(t) { if (canTween) art.portrait(port.ctx, img, 0, 0, port.w, port.h, { bow: t, rim: 0.5 * (1 - t * 0.5) }); },

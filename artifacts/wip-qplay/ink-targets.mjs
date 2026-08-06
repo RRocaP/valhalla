@@ -15,6 +15,9 @@ for (const vp of [H.DESKTOP, H.PHONE]) {
     await H.crossThreshold(page);
     await H.enterLock(page, ord);
     await H.answerDare(page);
+    // B10/B13 finding: a fixed settle sampled empty .lock-root on dare locks —
+    // the floor passed by measuring nothing. Wait for real board content.
+    await page.waitForSelector('.lock-root canvas, .lock-root button', { timeout: 10000 });
     await page.waitForTimeout(450);
     const m = await page.evaluate(() => {
       const root = document.querySelector('.lock-root');

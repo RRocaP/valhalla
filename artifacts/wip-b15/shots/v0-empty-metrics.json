@@ -1,0 +1,60 @@
+[
+ {
+  "vp": "desk",
+  "state": "empty",
+  "root": {
+   "w": 820,
+   "h": 728
+  },
+  "scrollH": 728,
+  "docScrollW": 1280,
+  "innerW": 1280,
+  "canvasCss": {
+   "w": 460,
+   "h": 460
+  },
+  "gapPx": 166.8,
+  "nCanvas": 15,
+  "under44": [],
+  "box": null,
+  "text": "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n\nThe shards, still on the hasp\n\n8\n9\n13\n11\n11\n9\n13\n5\n12\n8\n5\n5\n1\n2\n\nTap a shard, then tap a slot — or drag it there. The nail at the top is slot 0, and the ring runs sunwise from it.\n\nTake the ring apart\nClose the ring",
+  "canvas": "1120x1120",
+  "tiles": 4900,
+  "occupancy": 66.1,
+  "maxVoid": 3.9,
+  "deadZoneN": 0,
+  "deadZoneMedian": null,
+  "deadZoneP90": null,
+  "layers": 2,
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "state": "empty",
+  "root": {
+   "w": 366,
+   "h": 757
+  },
+  "scrollH": 757,
+  "docScrollW": 390,
+  "innerW": 390,
+  "canvasCss": {
+   "w": 342,
+   "h": 342
+  },
+  "gapPx": 314.4,
+  "nCanvas": 15,
+  "under44": [],
+  "box": null,
+  "text": "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n\nThe shards, still on the hasp\n\n8\n9\n13\n11\n11\n9\n13\n5\n12\n8\n5\n5\n1\n2\n\nTap a shard, then tap a slot — or drag it there. The nail at the top is slot 0, and the ring runs sunwise from it.\n\nTake the ring apart\nClose the ring",
+  "canvas": "1120x1120",
+  "tiles": 4900,
+  "occupancy": 66.1,
+  "maxVoid": 3.9,
+  "deadZoneN": 0,
+  "deadZoneMedian": null,
+  "deadZoneP90": null,
+  "layers": 2,
+  "consoleErrors": []
+ }
+]

@@ -1,0 +1,5 @@
+desk  field 1640x1396 dsf2 root 820x697 scrollH 697 board 796x459
+      occupancy 77.6% (bench 91.2%)  maxVoid 7.8%  gap 9px  layers 4  deadZone med 1.58 p90 3.91 (n=3081)  under44 0  errs 0
+phone field 732x1770 dsf2 root 366x884 scrollH 884 board 342x494
+      occupancy 77.2% (bench 95.5%)  maxVoid 3.9%  gap 9px  layers 6  deadZone med 1.56 p90 6.79 (n=997)  under44 0  errs 0
+DENSITY RUBRIC: GREEN

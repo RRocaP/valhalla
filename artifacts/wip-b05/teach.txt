@@ -1,0 +1,41 @@
+--- desk
+    showingGhost: true
+    showingSkip: true
+    showingEnded: true
+    plate: Turn the free crossings until one unbroken band runs the whole panel, over-under all the way.
+    gleamLine: row 2, stave 1: a crossing, the running band lies over.
+    frameStats: {"median":8.3,"p95":9.8,"max":9.8,"over32":0}
+    tallyTrail: ["The weave reads as 6 bands.","The weave reads as 4 bands.","The weave reads as 4 bands.","The weave reads as 4 bands.","The weave reads as one band. Bind the knot."]
+    finalTally: The weave reads as one band. Bind the knot.
+    boundOk: true
+    errors: []
+--- phone
+    showingGhost: true
+    showingSkip: true
+    showingEnded: true
+    plate: Turn the free crossings until one unbroken band runs the whole panel, over-under all the way.
+    gleamLine: row 2, stave 1: a crossing, the running band lies over.
+    frameStats: {"median":8.3,"p95":9.7,"max":10.1,"over32":0}
+    tallyTrail: ["The weave reads as 6 bands.","The weave reads as 4 bands.","The weave reads as 4 bands.","The weave reads as 4 bands.","The weave reads as one band. Bind the knot."]
+    finalTally: The weave reads as one band. Bind the knot.
+    boundOk: true
+    errors: []
+--- desk/reduced
+    showingGhost: true
+    showingSkip: true
+    errors: []
+--- desk/es
+    plate: Gira los cruces libres hasta que una sola banda sin quiebro recorra todo el panel, por encima y por debajo hasta el final.
+    tally: El tejido se lee como 8 bandas.
+    law: Una sola banda recorre el panel entero y vuelve sobre sí misma. Siguiéndola, cada cruce va por encima, luego por debajo, luego por encima — nunca dos veces igual. Toca un cruce para tenderlo del otro modo. Con el teclado: flechas para recorrer el panel, espacio para tender un cruce, T para seguir la banda.
+    submitText: Atar el nudo
+    afterClick: fila 1, asta 1: un cruce, la banda en pie queda por encima.
+    errors: []
+--- desk/ca
+    plate: Gira els creuaments lliures fins que una sola banda sense trencament recorri tot el plafó, per damunt i per sota fins al final.
+    tally: El teixit es llegeix com 8 bandes.
+    law: Una sola banda recorre el plafó sencer i torna sobre si mateixa. Seguint-la, cada creuament va per damunt, després per sota, després per damunt — mai dues vegades igual. Toca un creuament per estendre’l de l’altra manera. Amb el teclat: fletxes per recórrer el plafó, espai per estendre un creuament, T per seguir la banda.
+    submitText: Lligar el nus
+    afterClick: fila 1, asta 1: un creuament, la banda dreta queda per damunt.
+    errors: []
+TEACH GATE: GREEN

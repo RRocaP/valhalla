@@ -1,0 +1,56 @@
+[
+ {
+  "vp": "desk",
+  "viewport": "1280x800",
+  "clip": {
+   "w": 820,
+   "h": 782
+  },
+  "fieldOccupancy": 0.181,
+  "largestDeadPct": 29.2,
+  "px": "1640x1568",
+  "box": {
+   "w": 820,
+   "h": 782
+  },
+  "scrollH": 782,
+  "boardToControls": 150,
+  "under44": [],
+  "canvases": [
+   {
+    "w": 1440,
+    "h": 860,
+    "cover": 1
+   }
+  ],
+  "overflowX": 0,
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "viewport": "390x844",
+  "clip": {
+   "w": 366,
+   "h": 565
+  },
+  "fieldOccupancy": 0.298,
+  "largestDeadPct": 14.9,
+  "px": "732x1132",
+  "box": {
+   "w": 366,
+   "h": 565
+  },
+  "scrollH": 565,
+  "boardToControls": 150,
+  "under44": [],
+  "canvases": [
+   {
+    "w": 1440,
+    "h": 860,
+    "cover": 1
+   }
+  ],
+  "overflowX": 0,
+  "consoleErrors": []
+ }
+]

@@ -1,0 +1,70 @@
+[
+ {
+  "vp": "desk",
+  "box": {
+   "x": 230,
+   "y": 170,
+   "w": 820,
+   "h": 651
+  },
+  "scrollH": 651,
+  "viewH": 800,
+  "nCanvas": 2,
+  "ink": [
+   {
+    "w": 1512,
+    "h": 328,
+    "ink": 495936,
+    "cover": 1
+   },
+   {
+    "w": 1512,
+    "h": 584,
+    "ink": 883008,
+    "cover": 1
+   }
+  ],
+  "nCtrl": 2,
+  "under44": [],
+  "boardToControlsGap": 9,
+  "lowestControlTop": 728.6,
+  "occupancy": 0.579,
+  "largestDeadZone": 0.099,
+  "cells": 32185,
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "box": {
+   "x": 12,
+   "y": 132,
+   "w": 366,
+   "h": 673
+  },
+  "scrollH": 673,
+  "viewH": 844,
+  "nCanvas": 2,
+  "ink": [
+   {
+    "w": 712,
+    "h": 316,
+    "ink": 224992,
+    "cover": 1
+   },
+   {
+    "w": 712,
+    "h": 564,
+    "ink": 401568,
+    "cover": 1
+   }
+  ],
+  "nCtrl": 2,
+  "under44": [],
+  "boardToControlsGap": 9,
+  "lowestControlTop": 695.8,
+  "occupancy": 0.64,
+  "largestDeadZone": 0.098,
+  "cells": 15288,
+  "consoleErrors": []
+ }
+]

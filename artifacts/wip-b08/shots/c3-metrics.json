@@ -1,0 +1,142 @@
+[
+ {
+  "vp": "desk",
+  "box": {
+   "w": 820,
+   "h": 753
+  },
+  "scrollH": 753,
+  "occupancy": 0.877,
+  "largestVoid": 0.027,
+  "gap": 39,
+  "nCanvas": 21,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 1592,
+    "h": 132,
+    "cssW": 796,
+    "cssH": 66,
+    "ink": 210144,
+    "cover": 1
+   },
+   {
+    "w": 518,
+    "h": 384,
+    "cssW": 259,
+    "cssH": 192,
+    "ink": 198912,
+    "cover": 1
+   },
+   {
+    "w": 518,
+    "h": 384,
+    "cssW": 259,
+    "cssH": 192,
+    "ink": 198912,
+    "cover": 1
+   },
+   {
+    "w": 518,
+    "h": 384,
+    "cssW": 259,
+    "cssH": 192,
+    "ink": 198912,
+    "cover": 1
+   },
+   {
+    "w": 1592,
+    "h": 246,
+    "cssW": 796,
+    "cssH": 123,
+    "ink": 391632,
+    "cover": 1
+   },
+   {
+    "w": 116,
+    "h": 126,
+    "cssW": 58,
+    "cssH": 63,
+    "ink": 3067,
+    "cover": 0.21
+   }
+  ],
+  "under44": [],
+  "staged": {
+   "stage": "You will swear: the coin, halved, salted heavy.",
+   "read": "The coin, halved — first: left pan; second: withheld; third: withheld.",
+   "swearEnabled": true
+  },
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "box": {
+   "w": 366,
+   "h": 1233
+  },
+  "scrollH": 1233,
+  "occupancy": 0.904,
+  "largestVoid": 0.022,
+  "gap": 39,
+  "nCanvas": 21,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 684,
+    "h": 152,
+    "cssW": 342,
+    "cssH": 76,
+    "ink": 103968,
+    "cover": 1
+   },
+   {
+    "w": 684,
+    "h": 300,
+    "cssW": 342,
+    "cssH": 150,
+    "ink": 205200,
+    "cover": 1
+   },
+   {
+    "w": 684,
+    "h": 300,
+    "cssW": 342,
+    "cssH": 150,
+    "ink": 205200,
+    "cover": 1
+   },
+   {
+    "w": 684,
+    "h": 300,
+    "cssW": 342,
+    "cssH": 150,
+    "ink": 205200,
+    "cover": 1
+   },
+   {
+    "w": 684,
+    "h": 612,
+    "cssW": 342,
+    "cssH": 306,
+    "ink": 418608,
+    "cover": 1
+   },
+   {
+    "w": 144,
+    "h": 156,
+    "cssW": 72,
+    "cssH": 78,
+    "ink": 4650,
+    "cover": 0.207
+   }
+  ],
+  "under44": [],
+  "staged": {
+   "stage": "You will swear: the coin, halved, salted heavy.",
+   "read": "The coin, halved — first: left pan; second: withheld; third: withheld.",
+   "swearEnabled": true
+  },
+  "consoleErrors": []
+ }
+]
