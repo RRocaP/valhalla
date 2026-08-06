@@ -1,5 +1,12 @@
 # THE FIFTEEN LOCKS — frozen designs
 
+> ENTRY-CURVE AMENDMENT (Ramon, 2026-08-07): the game must start much simpler
+> — roca-airways gentle — and grow variety/intuition into the difficulty.
+> Locks 02–05 generate GENTLER instances (fewer elements, smaller spaces) than
+> originally specced; mechanics, answer shapes, uniqueness guarantees, and the
+> non-decreasing ramp all stand. Gauntlet I (01–03) should feel winnable by
+> anyone in minutes; the teeth arrive from gauntlet II onward.
+
 Each lock below is frozen in: mechanic, answer semantics, shard, difficulty
 floors. The assigned worker has creative latitude in: instance generation,
 surface writing (epigraph, hints, near-miss lines), and the view — inside these

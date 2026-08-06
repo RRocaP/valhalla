@@ -113,13 +113,38 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     group.active = !!nextLock && group.g === gauntletFor(nextLock.ordinal);
   });
 
-  // Announce the armed gauntlet's jarl the first time it is seen. Idempotent
-  // via a content check against the journal (no new save fields).
+  // Progressive reveal (Ramon 2026-08-07): a jarl's name appears only once
+  // you have faced their dare (journal holds the taunt), any of their locks
+  // stands open, or the wager itself named them (gauntlet I). Until then the
+  // banner hangs sealed.
+  const SEALED = { en: 'A SEALED BANNER', es: 'ESTANDARTE SELLADO', ca: 'ESTENDARD SEGELLAT' };
+  const GWORD = { en: 'GAUNTLET', es: 'DESAFÍO', ca: 'REPTE' };
+  const ROMANG = ['I', 'II', 'III', 'IV', 'V'];
+  const isRevealed = (g) =>
+    g.dareAt === 1 ||
+    journalHasLine(save, g.taunt) ||
+    save.opened.some((id) => {
+      const n = Number(id.slice(0, 2));
+      return n >= g.dareAt && n <= g.yieldAt;
+    });
+
+  // Announce the armed gauntlet the first time it is seen — by name only if
+  // revealed; otherwise a veiled line. Idempotent via journal content checks.
   const activeGroup = gauntletGroups.find((group) => group.active) || null;
   if (activeGroup) {
-    const marker = `${activeGroup.g.name} bars the`;
-    if (!save.journal.some((line) => line.includes(marker))) {
-      pushJournal(save, `${activeGroup.g.name} bars the ${ordinalWord(activeGroup.g.dareAt)} lock.`);
+    const g = activeGroup.g;
+    if (isRevealed(g)) {
+      const marker = `${g.name} bars the`;
+      if (!save.journal.some((line) => line.includes(marker))) {
+        pushJournal(save, `${g.name} bars the ${ordinalWord(g.dareAt)} lock.`);
+      }
+    } else {
+      const veiled = {
+        en: `A new banner is raised over the ${ordinalWord(g.dareAt)} lock. No one will say whose.`,
+        es: `Un nuevo estandarte se alza sobre la siguiente cerradura. Nadie dice de quién es.`,
+        ca: `Un nou estendard s'alça sobre el pany següent. Ningú no diu de qui és.`,
+      };
+      if (!journalHasLine(save, veiled)) pushJournal(save, lineFor(veiled, lang));
     }
   }
 
@@ -130,7 +155,12 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     const cls = ['chapter-label'];
     if (group.active) cls.push('duel-banner');
     if (group.done) cls.push('chapter-done');
-    group.label = el('div', { class: cls.join(' ') }, lineFor(group.g.title, lang));
+    const gi = ROMANG[Math.max(0, Math.ceil(group.g.dareAt / 3) - 1)];
+    const text = isRevealed(group.g)
+      ? lineFor(group.g.title, lang)
+      : `${GWORD[lang] || GWORD.en} ${gi} — ${SEALED[lang] || SEALED.en}`;
+    if (!isRevealed(group.g)) cls.push('chapter-sealed');
+    group.label = el('div', { class: cls.join(' ') }, text);
     medallionsLayer.append(group.label);
   });
 
