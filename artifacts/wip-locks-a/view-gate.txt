@@ -1,0 +1,14 @@
+
+— 01-runerow — drag, flip, keyboard, submit
+
+— 02-bismer — reckon, strike, accuse, submit
+
+— 03-beacons — turn the dial by hand and by key, submit
+
+— 04-strakes — accuse, raise the stack, submit
+
+— 05-knotwork — lay the crossings, follow the band, submit
+
+— all five — a solved lock re-opens without a submit path
+
+VIEW GATE GREEN — five locks mounted, played, submitted and unmounted

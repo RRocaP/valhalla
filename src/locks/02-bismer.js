@@ -240,7 +240,7 @@ function mount(ctx) {
       c.restore();
       ids.forEach((id, k) => {
         art.drawRune(c, instance.pouches[id].seal, px - 24 + k * 17, py + 26, 16,
-          { color: id === accused ? p.goldBright : p.bone, weight: 0.8 });
+          { color: id === accused ? p.goldBright : p.bone });
       });
     };
     pan(cx - arm, cy + drop, w.left);
@@ -254,7 +254,7 @@ function mount(ctx) {
     c.restore();
     w.aside.forEach((id, k) => {
       art.drawRune(c, instance.pouches[id].seal, cx - 24 + k * 17, H - 22, 15,
-        { color: id === accused ? p.goldBright : p.boneDim, weight: 0.7 });
+        { color: id === accused ? p.goldBright : p.boneDim });
     });
   }
 
@@ -274,7 +274,7 @@ function mount(ctx) {
     const c = v.gfx.ctx;
     c.clearRect(0, 0, v.gfx.w, v.gfx.h);
     art.drawRune(c, instance.pouches[v.i].seal, 6, 2, 36,
-      { color: v.i === accused ? p.goldBright : p.bone, weight: 1 });
+      { color: v.i === accused ? p.goldBright : p.bone });
   }
 
   function render() {

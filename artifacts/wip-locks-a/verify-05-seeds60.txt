@@ -1,3 +1,3 @@
-05-knotwork: solver 60/60 wrongs 480 mutants 173/173 (268ms)
+05-knotwork: solver 60/60 wrongs 480 mutants 173/173 (281ms)
 
 GATES GREEN — 1 lock(s), 60 seeds (partial)

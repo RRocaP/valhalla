@@ -227,7 +227,7 @@ function mount(ctx) {
     const gap = (rail.w - 16) / 16;
     for (let i = 0; i < 16; i++) {
       art.drawRune(c, ORDER[i], 8 + gap * i + (gap - size) / 2, (rail.h - size) / 2, size,
-        { color: p.boneDim, weight: 0.8 });
+        { color: p.boneDim });
     }
   }
 
@@ -252,7 +252,6 @@ function mount(ctx) {
     art.drawRune(c, t.ch, (w - size) / 2, 9, size, {
       color: held === tile.id ? p.goldBright : p.bone,
       mirror: facing,
-      weight: 1,
     });
   }
 

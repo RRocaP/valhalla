@@ -243,6 +243,323 @@ function wrongAnswers(instance) {
   });
 }
 
+// ------------------------------------------------------------------ the view
+
+const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
+const TILE = 90;
+const PANEL = TILE * SIDE;
+
+// Port midpoints inside a cell, and the arc that joins a pair of them.
+function arcPoints(dir, other) {
+  const mid = { [N]: [TILE / 2, 0], [E]: [TILE, TILE / 2], [S]: [TILE / 2, TILE], [W]: [0, TILE / 2] };
+  const a = mid[dir], b = mid[other];
+  if ((dir === N && other === S) || (dir === S && other === N)
+    || (dir === E && other === W) || (dir === W && other === E)) return [a, b];
+
+  const corner = [
+    (dir === E || other === E) ? TILE : 0,
+    (dir === S || other === S) ? TILE : 0,
+  ];
+  const pts = [];
+  const a0 = Math.atan2(a[1] - corner[1], a[0] - corner[0]);
+  let a1 = Math.atan2(b[1] - corner[1], b[0] - corner[0]);
+  while (a1 - a0 > Math.PI) a1 -= Math.PI * 2;
+  while (a0 - a1 > Math.PI) a1 += Math.PI * 2;
+  for (let i = 0; i <= 12; i++) {
+    const t = a0 + (a1 - a0) * (i / 12);
+    pts.push([corner[0] + Math.cos(t) * (TILE / 2), corner[1] + Math.sin(t) * (TILE / 2)]);
+  }
+  return pts;
+}
+
+function mount(ctx) {
+  const art = ctx.art;
+  const p = art.palette;
+  const instance = ctx.instance;
+
+  const cleanup = [];
+  const on = (el, ev, fn, opts) => {
+    el.addEventListener(ev, fn, opts);
+    cleanup.push(() => el.removeEventListener(ev, fn, opts));
+  };
+  const sfx = (k) => { try { ctx.audio && ctx.audio.ui && ctx.audio.ui(k); } catch (e) { /* silent hall */ } };
+  const say = (text) => { try { ctx.note && ctx.note(text); } catch (e) { /* no journal */ } };
+  const node = (tag, css, text) => {
+    const n = document.createElement(tag);
+    if (css) n.style.cssText = css;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  const where = (cell) => `row ${(cell >> 2) + 1}, stave ${(cell & 3) + 1}`;
+
+  // ---- state -------------------------------------------------------------
+  const seq = traceBand(instance.cells, buildLinks(instance.border)).seq;
+  const states = ctx.solved ? solve(instance).states : instance.initial.slice();
+  let focused = instance.free.length ? instance.free[0] : 0;
+
+  const overNow = () => {
+    const map = new Array(CELLS).fill(null);
+    instance.cells.forEach((c, i) => { if (c.kind === 'cross' && c.carved) map[i] = c.over; });
+    instance.free.forEach((cell, i) => { map[cell] = states[i] ? 'ns' : 'we'; });
+    return map;
+  };
+
+  const wrap = node('div', `display:grid;gap:14px;justify-items:center;font-family:${SERIF};color:${p.bone}`);
+  const style = node('style');
+  style.textContent = `
+    .ow5-panel{position:relative;width:100%;max-width:${PANEL}px}
+    .ow5-cell{position:absolute;width:25%;height:25%;background:none;border:0;padding:0;margin:0;
+      cursor:pointer;border-radius:3px}
+    .ow5-cell:focus-visible{outline:2px solid ${p.goldBright};outline-offset:-3px}
+    .ow5-cell[data-carved="1"]{cursor:default}
+    .ow5-act{font-family:${SERIF};font-size:16px;color:${p.bone};background:${p.oakDeep};
+      border:1px solid ${p.gold};border-radius:3px;padding:12px 20px;min-height:44px;cursor:pointer}
+    .ow5-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
+    .ow5-act[disabled]{opacity:.5;cursor:default}
+  `;
+  wrap.append(style);
+
+  const law = node('p', `margin:0;font-size:13px;color:${p.boneDim};line-height:1.5;text-align:center`,
+    'One band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same.');
+
+  const panel = node('div');
+  panel.className = 'ow5-panel';
+  const gfx = art.makeCanvas(PANEL, PANEL);
+  gfx.canvas.style.width = '100%';
+  gfx.canvas.style.height = 'auto';
+  gfx.canvas.setAttribute('aria-hidden', 'true');
+  panel.append(gfx.canvas);
+
+  const grid = node('div', 'position:absolute;inset:0');
+  grid.setAttribute('role', 'group');
+  grid.setAttribute('aria-label', 'The knot panel, four rows of four');
+  panel.append(grid);
+
+  const cellBtns = [];
+  for (let cell = 0; cell < CELLS; cell++) {
+    const btn = node('button');
+    btn.className = 'ow5-cell';
+    btn.type = 'button';
+    btn.style.left = `${(cell & 3) * 25}%`;
+    btn.style.top = `${(cell >> 2) * 25}%`;
+    btn.setAttribute('tabindex', cell === focused ? '0' : '-1');
+    grid.append(btn);
+    cellBtns.push(btn);
+  }
+
+  const help = node('p', `margin:0;font-size:13px;color:${p.boneDim};text-align:center`,
+    'Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band.');
+  const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};text-align:center`);
+  status.setAttribute('aria-live', 'polite');
+
+  const actions = node('div', 'display:flex;gap:10px;flex-wrap:wrap;justify-content:center');
+  const traceBtn = node('button', null, 'Follow the band');
+  traceBtn.className = 'ow5-act';
+  traceBtn.type = 'button';
+  const submitBtn = node('button', null, 'Bind the knot');
+  submitBtn.className = 'ow5-act';
+  submitBtn.type = 'button';
+  actions.append(traceBtn, submitBtn);
+
+  wrap.append(law, panel, help, actions, status);
+  ctx.root.append(wrap);
+
+  // ---- painting ----------------------------------------------------------
+  function band(c, cell, dir, other, opts) {
+    const x0 = (cell & 3) * TILE, y0 = (cell >> 2) * TILE;
+    let pts = arcPoints(dir, other).map(([x, y]) => [x0 + x, y0 + y]);
+    if (opts.gap) {
+      // the band that runs under is cut at the crossing
+      const half = Math.ceil(pts.length / 2);
+      const a = pts.slice(0, half).map(([x, y]) => [x, y]);
+      const b = pts.slice(half);
+      const shrink = (seg, fromEnd) => {
+        const cutFrom = fromEnd ? seg[0] : seg[seg.length - 1];
+        const other2 = fromEnd ? seg[seg.length - 1] : seg[0];
+        const dx = other2[0] - cutFrom[0], dy = other2[1] - cutFrom[1];
+        const len = Math.hypot(dx, dy) || 1;
+        const back = Math.min(11, len * 0.45);
+        const moved = [cutFrom[0] + (dx / len) * back, cutFrom[1] + (dy / len) * back];
+        return fromEnd ? [moved, other2] : [other2, moved];
+      };
+      pts = null;
+      for (const seg of [shrink(a, false), shrink(b, true)]) {
+        art.drawKnot(c, seg, { width: opts.width, color: opts.color });
+      }
+      return;
+    }
+    art.drawKnot(c, pts, { width: opts.width, color: opts.color });
+  }
+
+  function neighbours(cell) {
+    const out = [];
+    seq.forEach((s, q) => {
+      if (s.cell !== cell) return;
+      out.push(seq[(q + 1) % seq.length].cell, seq[(q - 1 + seq.length) % seq.length].cell);
+    });
+    return out.filter((x) => x !== cell);
+  }
+
+  function paint() {
+    const c = gfx.ctx;
+    c.clearRect(0, 0, PANEL, PANEL);
+    art.paintWood(c, PANEL, PANEL, 5, {});
+    art.paintPanel(c, 0, 0, PANEL, PANEL, { title: null });
+
+    const map = overNow();
+    const near = neighbours(focused);
+
+    for (let cell = 0; cell < CELLS; cell++) {
+      const kind = instance.cells[cell].kind;
+      const carved = instance.cells[cell].carved;
+      const lit = cell === focused;
+      const colour = lit ? p.goldBright : (carved ? p.gold : p.bone);
+
+      if (kind === 'cross') {
+        const nsOver = map[cell] === 'ns';
+        band(c, cell, W, E, { width: 11, color: colour, gap: nsOver });
+        band(c, cell, N, S, { width: 11, color: colour, gap: !nsOver });
+      } else {
+        const arcs = ARCS[kind];
+        for (const [a, b] of arcs) band(c, cell, a, b, { width: 11, color: colour, gap: false });
+      }
+
+      const x0 = (cell & 3) * TILE, y0 = (cell >> 2) * TILE;
+      if (carved) {
+        c.save();
+        c.fillStyle = p.gold;
+        for (const [dx, dy] of [[7, 7], [TILE - 7, 7], [7, TILE - 7], [TILE - 7, TILE - 7]]) {
+          c.beginPath();
+          c.arc(x0 + dx, y0 + dy, 2.5, 0, Math.PI * 2);
+          c.fill();
+        }
+        c.restore();
+      }
+      if (near.indexOf(cell) >= 0) {
+        c.save();
+        c.strokeStyle = p.ember;
+        c.lineWidth = 2;
+        c.setLineDash([5, 5]);
+        c.strokeRect(x0 + 4.5, y0 + 4.5, TILE - 9, TILE - 9);
+        c.restore();
+      }
+    }
+  }
+
+  function describeCell(cell) {
+    const c = instance.cells[cell];
+    if (c.kind !== 'cross') return `${where(cell)}: a carved bend.`;
+    const map = overNow();
+    const lie = map[cell] === 'ns' ? 'the standing band lies over' : 'the running band lies over';
+    return `${where(cell)}: ${c.carved ? 'a carved crossing' : 'a crossing'}, ${lie}.`;
+  }
+
+  function render() {
+    paint();
+    for (let cell = 0; cell < CELLS; cell++) {
+      const c = instance.cells[cell];
+      cellBtns[cell].dataset.carved = c.carved ? '1' : '0';
+      cellBtns[cell].setAttribute('tabindex', cell === focused ? '0' : '-1');
+      cellBtns[cell].setAttribute('aria-label', describeCell(cell));
+    }
+  }
+
+  function toggle(cell) {
+    const k = instance.free.indexOf(cell);
+    if (k < 0) {
+      sfx('deny');
+      const line = `${where(cell)} is carved. It cannot be laid otherwise.`;
+      status.textContent = line;
+      say(line);
+      return;
+    }
+    states[k] = !states[k];
+    sfx('flip');
+    render();
+    const line = describeCell(cell);
+    status.textContent = line;
+    say(line);
+  }
+
+  function trace(cell) {
+    const near = neighbours(cell);
+    if (!near.length) {
+      const line = `${where(cell)} is a bend; the band only turns there.`;
+      status.textContent = line;
+      say(line);
+      return;
+    }
+    sfx('slide');
+    const line = `From ${where(cell)} the band runs on to ${near.map(where).join(', and to ')}.`;
+    status.textContent = line;
+    say(line);
+  }
+
+  function focus(cell) {
+    focused = ((cell % CELLS) + CELLS) % CELLS;
+    render();
+    cellBtns[focused].focus();
+  }
+
+  cellBtns.forEach((btn, cell) => {
+    on(btn, 'click', () => {
+      focused = cell;
+      render();
+      if (!ctx.solved) toggle(cell);
+    });
+    on(btn, 'focus', () => { if (focused !== cell) { focused = cell; render(); } });
+    on(btn, 'keydown', (ev) => {
+      const r = cell >> 2, col = cell & 3;
+      if (ev.key === 'ArrowRight') { ev.preventDefault(); focus(r * SIDE + Math.min(SIDE - 1, col + 1)); }
+      else if (ev.key === 'ArrowLeft') { ev.preventDefault(); focus(r * SIDE + Math.max(0, col - 1)); }
+      else if (ev.key === 'ArrowDown') { ev.preventDefault(); focus(Math.min(SIDE - 1, r + 1) * SIDE + col); }
+      else if (ev.key === 'ArrowUp') { ev.preventDefault(); focus(Math.max(0, r - 1) * SIDE + col); }
+      else if (ev.key === 't' || ev.key === 'T') { ev.preventDefault(); trace(cell); }
+      else if (ev.key === ' ' || ev.key === 'Spacebar' || ev.key === 'Enter') {
+        ev.preventDefault();
+        if (!ctx.solved) toggle(cell);
+      }
+    });
+  });
+
+  on(traceBtn, 'click', () => trace(focused));
+
+  function handle(res) {
+    if (!res || res.ok) return;
+    if (res.near) { status.textContent = res.near; say(res.near); }
+  }
+
+  on(submitBtn, 'click', () => {
+    if (ctx.solved) return;
+    sfx('confirm');
+    let res;
+    try { res = ctx.submit({ states: states.slice() }); } catch (e) { return; }
+    if (res && typeof res.then === 'function') res.then(handle, () => {});
+    else handle(res);
+  });
+
+  // ---- open the lock -----------------------------------------------------
+  render();
+  say(`A panel of sixteen tiles. ${instance.free.length} crossings may be laid either way; the rest are carved.`);
+  instance.cells.forEach((c, cell) => {
+    if (c.kind === 'cross' && c.carved) say(`Carved: ${describeCell(cell)}`);
+  });
+  if (ctx.solved) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'The knot is bound';
+    status.textContent = 'The band runs over and under without fault.';
+  }
+
+  return {
+    unmount() {
+      for (const off of cleanup) off();
+      cleanup.length = 0;
+      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    },
+  };
+}
+
 export default {
   id: '05-knotwork',
   ordinal: 5,
@@ -268,5 +585,5 @@ export default {
     'The carved crossings cannot be moved, and they set the count for every crossing that follows along the run. Begin at one and lay each crossing as the band demands.',
   ],
 
-  mount(ctx) { return { unmount() {} }; },
+  mount,
 };

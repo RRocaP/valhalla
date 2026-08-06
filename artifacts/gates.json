@@ -1,5 +1,5 @@
 {
-  "when": "2026-08-06T08:54:33.682Z",
+  "when": "2026-08-06T16:38:30.559Z",
   "seeds": 40,
   "locks": {
     "01-runerow": {
@@ -7,7 +7,7 @@
       "rejected": 320,
       "mutantsTried": 118,
       "mutantsRejected": 118,
-      "ms": 4
+      "ms": 5
     },
     "02-bismer": {
       "solverOk": 40,
@@ -21,28 +21,35 @@
       "rejected": 473,
       "mutantsTried": 120,
       "mutantsRejected": 120,
-      "ms": 2
+      "ms": 3
     },
     "04-strakes": {
       "solverOk": 40,
       "rejected": 440,
       "mutantsTried": 120,
       "mutantsRejected": 120,
-      "ms": 4
+      "ms": 5
     },
     "05-knotwork": {
       "solverOk": 40,
       "rejected": 320,
       "mutantsTried": 115,
       "mutantsRejected": 115,
-      "ms": 184
+      "ms": 196
     },
     "06-jotunvillur": {
       "solverOk": 40,
       "rejected": 384,
       "mutantsTried": 120,
       "mutantsRejected": 120,
-      "ms": 8
+      "ms": 9
+    },
+    "07-tafl": {
+      "solverOk": 3,
+      "rejected": 26,
+      "mutantsTried": 8,
+      "mutantsRejected": 7,
+      "ms": 2485
     },
     "08-hacksilver": {
       "solverOk": 40,
@@ -58,23 +65,51 @@
       "mutantsRejected": 120,
       "ms": 1
     },
+    "10-drottkvaett": {
+      "solverOk": 40,
+      "rejected": 400,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 6
+    },
     "11-skerry": {
       "solverOk": 40,
       "rejected": 390,
       "mutantsTried": 120,
       "mutantsRejected": 120,
-      "ms": 285
+      "ms": 271
     },
     "12-veitsla": {
-      "solverOk": 1,
-      "rejected": 12,
-      "mutantsTried": 3,
-      "mutantsRejected": 3,
-      "ms": 18576
+      "solverOk": 40,
+      "rejected": 479,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 416
+    },
+    "13-althing": {
+      "solverOk": 40,
+      "rejected": 440,
+      "mutantsTried": 117,
+      "mutantsRejected": 117,
+      "ms": 51
+    },
+    "14-bindrune": {
+      "solverOk": 40,
+      "rejected": 400,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 50
+    },
+    "15-oathring": {
+      "solverOk": 40,
+      "rejected": 480,
+      "mutantsTried": 120,
+      "mutantsRejected": 120,
+      "ms": 2
     }
   },
   "failures": [
-    "[12-veitsla] solver-gate: seed 1: canonical answer rejected"
+    "[07-tafl] mutation-gate: seed 2: mutated answer accepted: {\"line\":[[[2,3],[2,6]],[[2,2],[0,2]],[[2,6],[0,6]]]}"
   ],
-  "bundleBytes": 911695
+  "bundleBytes": 997500
 }
