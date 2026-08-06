@@ -159,13 +159,15 @@ async function waitFor(predicate, maxTicks = 50) {
 function assertVoiceDisposes(c, baseline) {
   const slice = since(c, baseline);
   assert.ok(slice.length > 0, 'expected at least one node to be created');
+  // only MockSource instances (oscillator/bufferSource) have startedAt at
+  // all; plain nodes leave it undefined, so use a loose null check.
   for (const n of slice) {
-    if (n.startedAt !== null) {
+    if (n.startedAt != null) {
       assert.ok(n.stoppedAt !== null || typeof n.onended === 'function',
         `started ${n._kind} must have a scheduled stop or onended cleanup`);
     }
   }
-  for (const n of slice) if (n.startedAt !== null) n._end();
+  for (const n of slice) if (n.startedAt != null) n._end();
   for (const n of slice) {
     assert.strictEqual(n.disconnected, true, `${n._kind} #${n._id} leaked (never disconnected)`);
   }

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OATHWOOD — audio preview (dev only, not shipped)</title>
+<!--
+  Dev-only scratch page for the OW-AUDIO worker. Not part of the shipped
+  build (docs/CONTRACT.md owns index.html/index.src.html).
+
+  <base href="/"> makes the module's relative fetch('./music.mp3') /
+  fetch('./credits.mp3') resolve against the *site root* (repo root, per
+  scripts/serve.mjs) instead of this page's own directory
+  (artifacts/wip-audio/). This page must be served via
+  `node scripts/serve.mjs`, not opened via file:// — the shipped
+  index.html at the real repo root needs no such tag and none is added
+  there.
+-->
+<base href="/">
+<link rel="icon" href="data:,"> <!-- suppress the browser's automatic /favicon.ico request (404 noise, unrelated to audio) -->
+<style>
+  html, body { margin: 0; background: #221507; color: #e9dcc3; font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+  body { padding: 24px; max-width: 760px; }
+  h1 { color: #c9a227; font-size: 1.1rem; letter-spacing: .08em; }
+  p.note { color: #b7a98c; font-size: .85rem; }
+  section { border: 1px solid #5a3a1e; border-radius: 6px; padding: 12px 16px; margin: 14px 0; }
+  h2 { margin: 0 0 8px; font-size: .9rem; color: #eecf6d; text-transform: uppercase; letter-spacing: .06em; }
+  button { background: #3a2412; color: #e9dcc3; border: 1px solid #5a3a1e; border-radius: 4px; padding: 8px 12px; margin: 4px 6px 4px 0; font: inherit; cursor: pointer; min-height: 36px; }
+  button:hover:not(:disabled) { border-color: #c9a227; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  label { display: inline-flex; align-items: center; gap: 6px; margin-right: 16px; }
+  input[type=range] { width: 220px; vertical-align: middle; }
+  #status { white-space: pre-line; font-size: .8rem; color: #b7a98c; margin-top: 8px; }
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<h1>OATHWOOD — audio preview</h1>
+<p class="note">Dev-only harness for src/audio/**. Nothing plays until "Enable audio" is pressed (autoplay-safe contract). Serve via <code>node scripts/serve.mjs</code>.</p>
+
+<section>
+  <h2>Gesture</h2>
+  <div class="row">
+    <button id="enable">Enable audio (+ drone start)</button>
+    <label><input type="checkbox" id="mute"> Muted</label>
+  </div>
+</section>
+
+<section>
+  <h2>UI sounds</h2>
+  <div class="row" id="ui-buttons"></div>
+</section>
+
+<section>
+  <h2>Motifs</h2>
+  <div class="row" id="motif-buttons"></div>
+</section>
+
+<section>
+  <h2>Drone</h2>
+  <div class="row">
+    <button id="drone-start" disabled>Drone start</button>
+    <button id="drone-stop" disabled>Drone stop</button>
+    <label>Intensity
+      <input type="range" id="drone-intensity" min="0" max="1" step="0.01" value="0.4" disabled>
+    </label>
+  </div>
+</section>
+
+<section>
+  <h2>Music (streamed)</h2>
+  <div class="row">
+    <button id="music-start" disabled>music.start()</button>
+    <button id="music-credits" disabled>music.credits()</button>
+    <button id="music-stop" disabled>music.stop()</button>
+  </div>
+</section>
+
+<div id="status">not enabled yet</div>
+
+<script type="module">
+  import { createAudio } from '/src/audio/index.js';
+
+  const audio = createAudio();
+  const statusEl = document.getElementById('status');
+
+  const gated = [
+    'drone-start', 'drone-stop', 'drone-intensity',
+    'music-start', 'music-credits', 'music-stop',
+  ];
+
+  const UI_KINDS = ['tick', 'knock', 'slide', 'deny', 'confirm', 'flip'];
+  const MOTIF_KINDS = ['shard', 'unlock', 'hint', 'chest', 'dare', 'yield'];
+
+  const uiWrap = document.getElementById('ui-buttons');
+  for (const kind of UI_KINDS) {
+    const b = document.createElement('button');
+    b.textContent = `ui('${kind}')`;
+    b.disabled = true;
+    b.className = 'gated';
+    b.addEventListener('click', () => audio.ui(kind));
+    gated.push(b);
+    uiWrap.append(b);
+  }
+
+  const motifWrap = document.getElementById('motif-buttons');
+  for (const kind of MOTIF_KINDS) {
+    const b = document.createElement('button');
+    b.textContent = `motif('${kind}')`;
+    b.disabled = true;
+    b.className = 'gated';
+    b.addEventListener('click', () => audio.motif(kind));
+    gated.push(b);
+    motifWrap.append(b);
+  }
+
+  function setEnabledUI(on) {
+    for (const item of gated) {
+      const el = typeof item === 'string' ? document.getElementById(item) : item;
+      if (el) el.disabled = !on;
+    }
+  }
+
+  document.getElementById('enable').addEventListener('click', () => {
+    audio.enable();
+    audio.drone.start();
+    setEnabledUI(true);
+    document.getElementById('enable').disabled = true;
+  });
+
+  document.getElementById('mute').addEventListener('change', (e) => {
+    audio.setMuted(e.target.checked);
+  });
+
+  document.getElementById('drone-start').addEventListener('click', () => audio.drone.start());
+  document.getElementById('drone-stop').addEventListener('click', () => audio.drone.stop());
+  document.getElementById('drone-intensity').addEventListener('input', (e) => {
+    audio.drone.intensity(Number(e.target.value));
+  });
+
+  document.getElementById('music-start').addEventListener('click', () => audio.music.start());
+  document.getElementById('music-credits').addEventListener('click', () => audio.music.credits());
+  document.getElementById('music-stop').addEventListener('click', () => audio.music.stop());
+
+  setInterval(() => {
+    statusEl.textContent =
+      `enabled: ${audio.enabled}\n` +
+      `muted: ${audio.muted}\n` +
+      `music.ready: ${audio.music.ready}`;
+  }, 300);
+</script>
+</body>
+</html>
