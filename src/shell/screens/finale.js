@@ -161,7 +161,9 @@ export function mountFinale(root, {
 
   function paintBackdrop() {
     art.paintWood(bg.ctx, bg.w, bg.h, 793, { shade: 0.2 });
-    art.glow(bg.ctx, bg.w / 2, bg.h * 0.38, Math.max(bg.w, bg.h) * 0.4, p.goldBright, 0.32);
+    // the chest stands open: the hearth at full progress, gilded and bright
+    if (typeof art.hearth === 'function') art.hearth(bg.ctx, bg.w, bg.h, { y: 0.38, progress: 1, strength: 1.5 });
+    else art.glow(bg.ctx, bg.w / 2, bg.h * 0.38, Math.max(bg.w, bg.h) * 0.4, p.goldBright, 0.32);
   }
 
   // The opening lid is a real oak panel — painted wood, carved rim, gilded

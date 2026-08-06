@@ -98,6 +98,8 @@ export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSk
 
   function paintBg() {
     art.paintWood(bg.ctx, bg.w, bg.h, 811, { shade: 0.22 });
+    // the same hearth, banked low for the long scroll — warm, not loud
+    if (typeof art.hearth === 'function') art.hearth(bg.ctx, bg.w, bg.h, { y: 0.26, progress: 1, strength: 0.65 });
   }
   function resize() {
     const w = screen.clientWidth;

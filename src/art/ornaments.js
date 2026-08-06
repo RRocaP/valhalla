@@ -275,7 +275,7 @@ function faceRune(ordinal) {
 // gradient so the top-left of the rim catches the hearth and the bottom-right
 // falls away. This is the difference between "a coloured circle" and "a struck
 // disc seated in a socket".
-function discRim(ctx, x, y, r, lightHex, shadeHex) {
+function discRim(ctx, x, y, r, lightHex, shadeHex, crestAlpha = 0.7) {
   const rimW = Math.max(1.6, r * 0.17);
   const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
   g.addColorStop(0, lightHex);
@@ -287,12 +287,43 @@ function discRim(ctx, x, y, r, lightHex, shadeHex) {
   ctx.beginPath();
   ctx.arc(x, y, r * 0.9, 0, Math.PI * 2);
   ctx.stroke();
-  // thin bright crest along the upper-left arc
-  ctx.strokeStyle = rgba(lightHex, 0.7);
-  ctx.lineWidth = Math.max(0.7, rimW * 0.3);
+  // thin bright crest along the upper-left arc (kept dull on tar-cold discs)
+  if (crestAlpha > 0.01) {
+    ctx.strokeStyle = rgba(lightHex, crestAlpha);
+    ctx.lineWidth = Math.max(0.7, rimW * 0.3);
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.9 - rimW * 0.28, Math.PI * 0.85, Math.PI * 1.75);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Locks 3/6/9/12/15 are barred by challengers (docs/JARLS.md — frozen cast).
+// Their medallions carry the challenger's mark: a blood-painted groove ring
+// in the socket, present in every state, so a duel lock is tellable at a
+// glance before its banner ever shows. Cosmetic only.
+const DUEL_ORDINALS = new Set([3, 6, 9, 12, 15]);
+
+function duelMark(ctx, x, y, r, state) {
+  const tone = state === 'sealed'
+    ? mix(palette.blood, palette.oakDeep, 0.25)
+    : mix(palette.blood, palette.ember, 0.3);
+  ctx.save();
+  ctx.strokeStyle = rgba(tone, state === 'open' ? 0.55 : 0.75);
+  ctx.lineWidth = Math.max(1.1, r * 0.06);
   ctx.beginPath();
-  ctx.arc(x, y, r * 0.9 - rimW * 0.28, Math.PI * 0.85, Math.PI * 1.75);
+  ctx.arc(x, y, r * 1.06, 0, Math.PI * 2);
   ctx.stroke();
+  // four short paint ticks crossing the groove — a binding cord, not a reticle
+  ctx.lineWidth = Math.max(1, r * 0.05);
+  ctx.strokeStyle = rgba(tone, state === 'open' ? 0.6 : 0.85);
+  for (let i = 0; i < 4; i++) {
+    const a = Math.PI * 0.25 + (i * Math.PI) / 2;
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(a) * r * 1.0, y + Math.sin(a) * r * 1.0);
+    ctx.lineTo(x + Math.cos(a) * r * 1.11, y + Math.sin(a) * r * 1.11);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -308,8 +339,10 @@ export function medallion(ctx, x, y, r, state, ordinal) {
   ctx.restore();
 
   if (state === 'open') {
+    // GOLD-STRUCK. The disc is minted metal and the rune stands PROUD of the
+    // field: a tar seat-shadow cast down-right, the gold face on top, and a
+    // thin bone crest catching the key light on its upper-left edge.
     fillGoldLayered(ctx, (c) => c.arc(x, y, r * 0.88, 0, Math.PI * 2), { x: x - r, y: y - r, w: 2 * r, h: 2 * r }, { ticks: 4 });
-    // stamped field: slightly darker centre so the rune reads as struck INTO it
     const field = ctx.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.05, x, y, r * 0.8);
     field.addColorStop(0, rgba(palette.goldBright, 0.25));
     field.addColorStop(1, rgba(mix(palette.gold, palette.tar, 0.45), 0.5));
@@ -319,18 +352,23 @@ export function medallion(ctx, x, y, r, state, ordinal) {
     ctx.arc(x, y, r * 0.72, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
-    // rune: dark incision plus a lit lower lip
-    drawRune(ctx, ch, x - r * 0.55 + r * 0.05, y - r * 0.55 + r * 0.06, r * 1.1, {
-      color: rgba(palette.goldBright, 0.5), weight: r * 0.11,
+    drawRune(ctx, ch, x - r * 0.55 + r * 0.07, y - r * 0.55 + r * 0.09, r * 1.1, {
+      color: rgba(palette.tar, 0.55), weight: r * 0.13,
     });
-    drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, { color: palette.tar, weight: r * 0.11 });
+    drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
+      color: mix(palette.bone, palette.goldBright, 0.3), weight: r * 0.1,
+    });
     discRim(ctx, x, y, r, palette.goldBright, mix(palette.gold, palette.tar, 0.62));
+    if (DUEL_ORDINALS.has(ordinal)) duelMark(ctx, x, y, r, state);
     return;
   }
 
   if (state === 'next') {
+    // EMBER-BREATHING. A live coal: slow asymmetric breath (~4s), fissures in
+    // the crust glowing with the pulse. Reduced motion holds mid-breath —
+    // the light stays present, only the movement stops.
     const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-    const pulse = reduced ? 0 : Math.sin(now / 480) * 0.5 + 0.5;
+    const pulse = reduced ? 0.55 : Math.pow(Math.sin(now / 700) * 0.5 + 0.5, 1.35);
     glowFx(ctx, x, y, r * (1.7 + pulse * 0.55), palette.ember, 0.5 + pulse * 0.4);
     const g = ctx.createRadialGradient(x - r * 0.32, y - r * 0.36, r * 0.08, x, y, r);
     g.addColorStop(0, mix(palette.ember, palette.goldBright, 0.25 + pulse * 0.15));
@@ -340,19 +378,40 @@ export function medallion(ctx, x, y, r, state, ordinal) {
     ctx.beginPath();
     ctx.arc(x, y, r * 0.88, 0, Math.PI * 2);
     ctx.fill();
+    // coal fissures, deterministic per ordinal, brightening as the coal draws
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 5; i++) {
+      const a = ordinal * 0.73 + i * 1.257;
+      const r0 = r * (0.3 + (i % 2) * 0.1);
+      const r1 = r * (0.58 + (i % 3) * 0.07);
+      const bend = 0.16 * ((i % 2) * 2 - 1);
+      ctx.strokeStyle = rgba(mix(palette.ember, palette.goldBright, 0.3 + pulse * 0.5), 0.3 + pulse * 0.45);
+      ctx.lineWidth = Math.max(0.9, r * 0.045);
+      ctx.beginPath();
+      ctx.moveTo(x + Math.cos(a) * r0, y + Math.sin(a) * r0);
+      ctx.quadraticCurveTo(
+        x + Math.cos(a + bend) * (r0 + r1) * 0.55, y + Math.sin(a + bend) * (r0 + r1) * 0.55,
+        x + Math.cos(a) * r1, y + Math.sin(a) * r1,
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
     drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
       color: mix(palette.goldBright, palette.bone, 0.35),
       weight: r * 0.1,
-      glow: reduced ? 0 : 0.3 + pulse * 0.3,
+      glow: reduced ? 0.3 : 0.3 + pulse * 0.3,
     });
     discRim(ctx, x, y, r, mix(palette.ember, palette.goldBright, 0.5), mix(palette.ember, palette.tar, 0.7));
+    if (DUEL_ORDINALS.has(ordinal)) duelMark(ctx, x, y, r, state);
     return;
   }
 
-  // sealed — dark and inert, but the carve + a ghost rune must still read as
-  // "something is here, unopened," not as a flat black hole in the lid.
+  // TAR-COLD. Dark, matte, a shade colder than the wood around it — the ghost
+  // rune barely surfacing through pitch. Still legibly "a place, unopened":
+  // carve and ghost stay readable, but nothing on it catches the hearth.
   const g = ctx.createRadialGradient(x - r * 0.34, y - r * 0.38, r * 0.06, x, y, r);
-  g.addColorStop(0, mix(palette.oakDeep, palette.boneDim, 0.14));
+  g.addColorStop(0, mix(palette.oakDeep, palette.tar, 0.25));
   g.addColorStop(0.55, mix(palette.tar, palette.oakDeep, 0.62));
   g.addColorStop(1, palette.tar);
   ctx.fillStyle = g;
@@ -360,8 +419,11 @@ export function medallion(ctx, x, y, r, state, ordinal) {
   ctx.arc(x, y, r * 0.88, 0, Math.PI * 2);
   ctx.fill();
   ctx.save();
-  ctx.globalAlpha = 0.55;
-  drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, { color: palette.boneDim, weight: r * 0.09 });
+  ctx.globalAlpha = 0.48;
+  drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
+    color: mix(palette.boneDim, palette.fjordLight, 0.22), weight: r * 0.09,
+  });
   ctx.restore();
-  discRim(ctx, x, y, r, mix(palette.oakLight, palette.boneDim, 0.35), palette.tar);
+  discRim(ctx, x, y, r, mix(palette.oakLight, palette.tar, 0.3), palette.tar, 0.22);
+  if (DUEL_ORDINALS.has(ordinal)) duelMark(ctx, x, y, r, state);
 }

@@ -187,7 +187,7 @@ export function mountLockRoom(root, {
     audio.motif('yield');
     cancelBeat = playBeat({
       el: overlay, duration: 1200, reducedMotion,
-      render(t) { if (canTween) art.portrait(port.ctx, img, 0, 0, port.w, port.h, { bow: t }); },
+      render(t) { if (canTween) art.portrait(port.ctx, img, 0, 0, port.w, port.h, { bow: t, rim: 0.5 * (1 - t * 0.5) }); },
       onDone: () => {
         cancelBeat = null;
         if (!save.journal.some((l) => l.includes(duel.yield))) note(`${duel.name} yields: "${duel.yield}"`);
@@ -237,18 +237,28 @@ export function mountLockRoom(root, {
   }
 
   if (showDare) {
+    // Dare theatre: the room darkens to a vignette, the portrait warms up
+    // under a hearth rim-light, the name plate is carved, the taunt set like
+    // an inscription. Entrance styles live in style.js; reduced motion drops
+    // every animation and lands on the fully-lit final state.
+    const vignette = el('div', { class: 'dare-vignette', 'aria-hidden': 'true' });
     const port = art.makeCanvas(220, 260);
+    port.canvas.className = 'dare-portrait';
     const img = portraitsCache ? portraitImage(portraitsCache, duel.key) : null;
-    if (typeof art.portrait === 'function' && img) art.portrait(port.ctx, img, 0, 0, port.w, port.h, {});
+    if (typeof art.portrait === 'function' && img) art.portrait(port.ctx, img, 0, 0, port.w, port.h, { rim: 0.9 });
     else drawPortraitPlaceholder(port.ctx, p, 0, 0, port.w, port.h, duel.name);
     const answerBtn = el('button', { type: 'button', class: 'btn-carved' }, 'Answer the dare');
+    const namePlate = carvedHeading('h3', {
+      art, text: duel.name, size: 30, className: 'dare-name', depth: 0.9,
+      color: p.goldBright, letterSpacing: 3,
+    });
     const card = el('div', { class: 'dare-card' }, [
       port.canvas,
-      el('h3', { class: 'dare-name' }, duel.name),
+      namePlate,
       el('p', { class: 'dare-taunt' }, `"${duel.taunt}"`),
       answerBtn,
     ]);
-    lockRootEl.append(card);
+    lockRootEl.append(vignette, card);
     if (!save.journal.some((l) => l.includes(duel.taunt))) {
       note(`${duel.name}: "${duel.taunt}"`);
     }

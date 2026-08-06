@@ -7,11 +7,12 @@ import { paintPanel } from './panel.js';
 import { drawRune } from './runes.js';
 import { drawKnot } from './knot.js';
 import { ornament, medallion } from './ornaments.js';
-import { glow } from './util.js';
+import { glow, hearthPool } from './util.js';
 import { chestScene, treasureFrame, chestLayout } from './chest.js';
 import { portrait } from './portrait.js';
 import { sticker } from './sticker.js';
 import { carveText } from './text.js';
+import { wordmark } from './wordmark.js';
 
 function dpr() {
   const d = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
@@ -50,5 +51,12 @@ export function createArt() {
     portrait,
     sticker,
     carveText,
+    // Additive (no frozen signature changed), same footing as chestLayout:
+    // hearth() is the single ambient key-light recipe every screen shares —
+    // one warm source concept, progress-warmed; wordmark() is the carved
+    // VALHALLA statement (tracked carveText + rune-flanked rule) used by the
+    // threshold and echoed on the lid.
+    hearth: hearthPool,
+    wordmark,
   };
 }

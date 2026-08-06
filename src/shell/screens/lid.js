@@ -137,9 +137,13 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       const cx = hasp.w / 2 - (n * cell) / 2 + cell * i + cell / 2;
       const cy = hasp.h / 2;
       art.drawRune(hasp.ctx, shard.rune, cx - cell * 0.28, cy - cell * 0.32, cell * 0.56, { color: p.goldBright });
-      hasp.ctx.fillStyle = p.boneDim;
-      hasp.ctx.font = '12px ui-monospace, monospace';
+      // ledger numerals with presence: struck into the rail (tar seat under a
+      // goldBright face), not printed on it
+      hasp.ctx.font = '600 13px ui-monospace, monospace';
       hasp.ctx.textAlign = 'center';
+      hasp.ctx.fillStyle = 'rgba(12,9,6,.9)';
+      hasp.ctx.fillText(String(shard.value), cx + 1, cy + cell * 0.42 + 1);
+      hasp.ctx.fillStyle = p.goldBright;
       hasp.ctx.fillText(String(shard.value), cx, cy + cell * 0.42);
     });
   }

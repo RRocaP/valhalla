@@ -58,6 +58,11 @@ export function createArt() => {
   chestLayout(w, h),                        // ratified 2026-08-06: medallion socket
                                             // centers/radii for the lid — the shell's hit
                                             // targets MUST align to chestScene's sockets
+  hearth(ctx, w, h, opts?),                 // ratified 2026-08-06 (loop 1): shared warm
+                                            // key-light pool; one light concept everywhere
+  wordmark(ctx, w, opts?),                  // ratified 2026-08-06 (loop 1): carved VALHALLA
+                                            // wordmark + rule; threshold full, lid echo
+                                            // (portrait opts.rim also ratified: additive rim-light)
   portrait(ctx, img, x, y, w, h, opts?),    // challenger/credits portrait — see below
   sticker(ctx, img, x, y, w, rot),          // die-cut sticker: white ~4% border, rounded
                                             // corners, soft drop shadow, light palette grade;

@@ -301,11 +301,32 @@ function renderFurniture(w, h) {
   ornament(ctx, 'shieldboss', cx, railTop + railBoxH * 0.5, Math.max(18, chestW * 0.046));
 
   // carved wordmark on the lid band (docs/ART.md: full carveText depth on the
-  // title call-out, not a CSS shadow)
-  carveText(ctx, 'VALHALLA', cx, top + lidH * (portraitish(w, h) ? 0.42 : 0.5) + chestW * 0.016,
-    Math.max(13, chestW * 0.046), {
-      align: 'center', depth: 0.85, color: mix(palette.bone, palette.gold, 0.4), maxWidth: chestW * 0.4,
-    });
+  // title call-out, not a CSS shadow). Tracked like the threshold statement,
+  // flanked by two small gilded diamonds — the wordmark's echo, kept quiet so
+  // the band stays a band and not a second title card.
+  const wmSize = Math.max(13, chestW * 0.046);
+  const wmY = top + lidH * (portraitish(w, h) ? 0.42 : 0.5) + chestW * 0.016;
+  carveText(ctx, 'VALHALLA', cx, wmY, wmSize, {
+    align: 'center', depth: 0.85, color: mix(palette.bone, palette.gold, 0.4),
+    maxWidth: chestW * 0.4, letterSpacing: Math.round(wmSize * 0.22),
+  });
+  const dmR = wmSize * 0.16;
+  const dmY = wmY - wmSize * 0.3;
+  for (const dx of [-1, 1]) {
+    const dmX = cx + dx * chestW * 0.235;
+    const dpath = (c) => {
+      c.moveTo(dmX, dmY - dmR); c.lineTo(dmX + dmR, dmY);
+      c.lineTo(dmX, dmY + dmR); c.lineTo(dmX - dmR, dmY);
+      c.closePath();
+    };
+    carveStroke(ctx, dpath, { width: Math.max(0.9, wmSize * 0.045) });
+    ctx.save();
+    ctx.fillStyle = rgba(palette.gold, 0.75);
+    ctx.beginPath();
+    dpath(ctx);
+    ctx.fill();
+    ctx.restore();
+  }
 
   // 15 carved empty sockets — the recesses the medallions sit in
   for (const s of L.sockets) {
@@ -355,11 +376,30 @@ export function chestScene(ctx, w, h, t = 0, progress = 0) {
     medallion(ctx, s.x, s.y, s.r, medallionState(i + 1, p), i + 1);
   });
 
-  // hearth-light drift; progress warms the light. Frozen under reduced motion.
+  // hearth-light: the room heats as the chest opens. A warm veil washes down
+  // the chest face (clipped to the body so the board keeps its shadow), and
+  // the hearth pool above brightens and gilds with progress. Reduced motion
+  // freezes the drift but keeps the light — static, present.
+  if (p > 0.02) {
+    const warmCol = mix(palette.ember, palette.goldBright, 0.5);
+    const veil = ctx.createLinearGradient(0, L.top, 0, L.top + L.chestH);
+    veil.addColorStop(0, rgba(warmCol, 0.17 * p));
+    veil.addColorStop(0.42, rgba(warmCol, 0.06 * p));
+    veil.addColorStop(1, rgba(warmCol, 0));
+    ctx.save();
+    ctx.beginPath();
+    bodyPath(ctx, L.left, L.top, L.chestW, L.chestH, 0);
+    ctx.clip();
+    ctx.fillStyle = veil;
+    ctx.fillRect(L.left, L.top, L.chestW, L.chestH);
+    ctx.restore();
+    // the board just around the chest catches a little of the same warmth
+    glowFx(ctx, L.cx, L.top + L.chestH * 0.3, L.chestW * 0.78, warmCol, 0.05 * p);
+  }
   const flick = reduced ? 0 : Math.sin(time * 0.0012) * 0.5 + Math.sin(time * 0.0027) * 0.2;
   const glowColor = mix(palette.ember, palette.goldBright, p * 0.6);
   const glowX = L.cx + (reduced ? 0 : Math.sin(time * 0.0006) * L.chestW * 0.06);
-  glowFx(ctx, glowX, L.top - L.chestH * 0.18, L.chestW * 0.6, glowColor, 0.15 + p * 0.2 + flick * 0.05);
+  glowFx(ctx, glowX, L.top - L.chestH * 0.18, L.chestW * 0.6, glowColor, 0.17 + p * 0.3 + flick * 0.05);
 }
 
 export function treasureFrame(ctx, w, h, t = 0) {

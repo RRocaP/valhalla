@@ -75,6 +75,33 @@ export function portrait(ctx, img, x, y, w, h, opts = {}) {
   ctx.restore();
   ctx.restore();
 
+  // opts.rim (0..1, additive): theatre rim-light — the hearth catching the
+  // arch from above and behind, brightest at the crown, dying down the
+  // sides. Two passes: a soft warm haze then a crisp bright edge. Drawn
+  // before the frame so the gold rim seats over it. Deterministic.
+  if (!white && opts.rim) {
+    const rim = clamp01(opts.rim);
+    const rg = ctx.createLinearGradient(0, y, 0, y + h);
+    rg.addColorStop(0, rgba(palette.goldBright, 0.9 * rim));
+    rg.addColorStop(0.4, rgba(palette.ember, 0.42 * rim));
+    rg.addColorStop(0.8, rgba(palette.ember, 0));
+    ctx.save();
+    ctx.lineJoin = 'round';
+    // soft warm haze bleeding inward from the crown
+    ctx.beginPath();
+    archPath(ctx, x, y, w, h, w * 0.03);
+    ctx.strokeStyle = rgba(palette.goldBright, 0.24 * rim);
+    ctx.lineWidth = Math.max(4, w * 0.085);
+    ctx.stroke();
+    // crisp lit edge just inside the arch
+    ctx.beginPath();
+    archPath(ctx, x, y, w, h, w * 0.014);
+    ctx.strokeStyle = rg;
+    ctx.lineWidth = Math.max(1.6, w * 0.024);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   if (white) {
     const borderW = w * 0.03;
     ctx.save();

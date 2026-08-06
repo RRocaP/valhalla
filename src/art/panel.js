@@ -44,12 +44,14 @@ export function paintPanel(ctx, x, y, w, h, opts = {}) {
   paintWood(ctx, w, h, opts.seed ?? 'panel', { vignette: 0.55, grainAlpha: 0.85 });
   ctx.restore();
 
-  // 2. tar wash — a recess sits out of the hearth light. Graded so the top of
-  // the panel (further from the fire) is deepest.
+  // 2. tar wash — a recess sits mostly out of the hearth light. The hearth
+  // hangs high in front of the boards (the same above-left key the carve
+  // grammar uses), so the wash thins toward the top of the recess and pools
+  // deepest at its foot.
   const washGrad = ctx.createLinearGradient(x, y, x, y + h);
-  washGrad.addColorStop(0, rgba(palette.tar, Math.min(0.95, wash + 0.14)));
-  washGrad.addColorStop(0.55, rgba(palette.tar, wash));
-  washGrad.addColorStop(1, rgba(palette.oakDeep, Math.min(0.95, wash + 0.05)));
+  washGrad.addColorStop(0, rgba(palette.tar, wash));
+  washGrad.addColorStop(0.5, rgba(palette.tar, Math.min(0.95, wash + 0.07)));
+  washGrad.addColorStop(1, rgba(palette.oakDeep, Math.min(0.95, wash + 0.12)));
   ctx.fillStyle = washGrad;
   ctx.fillRect(x, y, w, h);
 
@@ -73,11 +75,20 @@ export function paintPanel(ctx, x, y, w, h, opts = {}) {
   ctx.stroke();
   ctx.restore();
 
-  // 4. hearth glow spilling onto the lower field, so the recess is lit, not dead
-  const lit = ctx.createRadialGradient(x + w / 2, y + h * 0.96, 0, x + w / 2, y + h * 0.96, Math.max(w, h) * 0.62);
-  lit.addColorStop(0, rgba(palette.ember, 0.11));
-  lit.addColorStop(1, rgba(palette.ember, 0));
+  // 4. hearth spill: the high key light enters over the top lip and washes a
+  // soft directional warmth down the upper field — the recess is lit from the
+  // same source as everything else, not dead and not glowing from below.
+  const spillCol = mix(palette.ember, palette.goldBright, 0.3);
+  const lit = ctx.createLinearGradient(x, y, x, y + h * 0.6);
+  lit.addColorStop(0, rgba(spillCol, 0.17));
+  lit.addColorStop(0.55, rgba(spillCol, 0.055));
+  lit.addColorStop(1, rgba(spillCol, 0));
   ctx.fillStyle = lit;
+  ctx.fillRect(x, y, w, h * 0.6);
+  const pool = ctx.createRadialGradient(x + w / 2, y, 0, x + w / 2, y, Math.max(w, h) * 0.55);
+  pool.addColorStop(0, rgba(spillCol, 0.12));
+  pool.addColorStop(1, rgba(spillCol, 0));
+  ctx.fillStyle = pool;
   ctx.fillRect(x, y, w, h);
   ctx.restore();
 

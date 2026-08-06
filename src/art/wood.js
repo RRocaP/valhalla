@@ -301,10 +301,13 @@ function renderWoodTexture(w, h, seed, opts) {
     ctx.fillStyle = g;
     ctx.fillRect(0, sy - sh, w, sh * 2);
   }
+  // The one key light (docs/ART.md hearth): warm from the upper-left front,
+  // falling to tar toward the lower-right — every board in the game carries
+  // this same directional statement.
   const key = ctx.createLinearGradient(0, 0, w * 0.9, h);
-  key.addColorStop(0, rgba(palette.ember, 0.035));
+  key.addColorStop(0, rgba(palette.ember, 0.055));
   key.addColorStop(0.45, rgba(palette.oakDeep, 0.06));
-  key.addColorStop(1, rgba(palette.tar, 0.2));
+  key.addColorStop(1, rgba(palette.tar, 0.24));
   ctx.fillStyle = key;
   ctx.fillRect(0, 0, w, h);
 

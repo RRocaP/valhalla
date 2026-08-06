@@ -1,6 +1,6 @@
 // Shared rendering + geometry helpers used across the art module.
 // segIntersect is pure (no ctx) so the knot interlace math is unit-testable.
-import { palette, rgba } from './palette.js';
+import { palette, rgba, mix, clamp01 } from './palette.js';
 
 // Three-pass "carved into the wood" line: a dark shadow lip offset against
 // the light direction, a warm catch-light lip offset with it, and a thin
@@ -64,6 +64,26 @@ export function glow(ctx, x, y, r, color, strength = 1) {
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+// The one hearth. Every screen's ambient warmth goes through this so the key
+// light is a single concept: a warm source high in front of the boards (the
+// same above-left key the carve grammar and the metal speculars already obey),
+// pooling on the upper field and falling away to tar at the edges. `progress`
+// (opened/15) warms and brightens the pool — the room heats as the chest
+// opens. Deterministic: no time term, so reduced-motion screens get the same
+// light, static but present.
+export function hearthPool(ctx, w, h, opts = {}) {
+  const p = clamp01(opts.progress || 0);
+  const strength = opts.strength ?? 1;
+  const fx = (opts.x ?? 0.5) * w;
+  const fy = (opts.y ?? 0.33) * h;
+  const reach = Math.max(w, h) * (opts.r ?? 0.55);
+  const warm = mix(palette.ember, palette.goldBright, 0.22 + p * 0.5);
+  // broad ember pool
+  glow(ctx, fx, fy, reach, warm, (0.2 + p * 0.16) * strength);
+  // tight bright heart of the source
+  glow(ctx, fx, fy, reach * 0.4, mix(palette.goldBright, palette.bone, 0.18), (0.11 + p * 0.13) * strength);
 }
 
 export function prefersReducedMotion() {
