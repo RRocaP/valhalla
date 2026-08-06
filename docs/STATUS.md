@@ -25,3 +25,15 @@ SHELL credits — added while they were paused).
 Deploy target: public repo `RRocaP/oathwood`, GitHub Pages from `main` root,
 built `index.html` + `music.mp3` + `credits.mp3` committed. All portraits +
 treasure + credits assets present under `assets/`.
+
+## Wave 2 (2026-08-06 afternoon)
+
+| Task | Model | Owner paths | State |
+|---|---|---|---|
+| OW-QA | sonnet | tests/e2e, artifacts/screens+reference | dispatched (early, tolerates 07/in-flight shell) |
+| OW-FABLE-A | fable max | src/locks/01–05 + its tests (lane handed over) | dispatched — feel/detail/prose/fairness notch |
+| OW-FABLE-B | fable max | src/audio + its tests (lane handed over) | dispatched — measured mix/musicality/loop-seam notch |
+
+Integrated so far: OW-LOCKS-A (db40935), OW-REV-1 fixes (db40935), OW-AUDIO (16bf2aa).
+Pending: LOCKS-B (07 red), LOCKS-C views/tests, ART iterations, SHELL screens, REV-1 gates.test re-home.
+Quality wave (Opus, per docs/QUALITY.md) fires after full assembly.
