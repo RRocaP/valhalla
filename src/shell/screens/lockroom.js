@@ -1,7 +1,7 @@
 // Lock room. docs/SHELL.md #3, docs/CONTRACT.md §4.1, docs/JARLS.md (dare card
 // + yield beat for duel locks 3/6/9/12/15).
 
-import { el, clear, playBeat } from '../dom.js';
+import { el, clear, playBeat, carvedHeading } from '../dom.js';
 import { rng } from '../../kernel/rng.js';
 import { hintsArmed, isComplete } from '../progress.js';
 import { pushJournal, hintTakenLine } from '../journal.js';
@@ -34,17 +34,32 @@ export function mountLockRoom(root, {
     fresh.canvas.className = 'lockroom-canvas';
     screen.replaceChild(fresh.canvas, bg.canvas);
     bg = fresh;
-    art.paintWood(bg.ctx, bg.w, bg.h, 793);
-    art.paintPanel(bg.ctx, 0, 0, bg.w, bg.h);
+    art.paintWood(bg.ctx, bg.w, bg.h, 793, { shade: 0.2 });
+    art.paintPanel(bg.ctx, 0, 0, bg.w, bg.h, { seed: `lock-${lock.id}` });
+    if (headerTitle) {
+      const freshTitle = carvedHeading('h2', {
+        art, text: lock.title, size: headerTitleSize(), className: 'lock-title', depth: 0.95,
+      });
+      header.replaceChild(freshTitle, headerTitle);
+      headerTitle = freshTitle;
+    }
   }
-  window.addEventListener('resize', resizeBg);
-  resizeBg();
 
+  // Lock header: one of docs/ART.md's three full-depth carveText call-outs.
+  // Declared BEFORE resizeBg is first called — resizeBg re-renders the carved
+  // title on resize and reads all three of these bindings.
+  const headerTitleSize = () => Math.round(Math.max(22, Math.min(40, screen.clientWidth * 0.028 + 12)));
+  let headerTitle = carvedHeading('h2', {
+    art, text: lock.title, size: headerTitleSize(), className: 'lock-title', depth: 0.95,
+  });
   const header = el('div', { class: 'lockroom-header' }, [
     el('div', { class: 'ledger-numeral' }, toRoman(lock.ordinal)),
-    el('h2', { class: 'lock-title carved-text-deep' }, lock.title),
+    headerTitle,
     el('p', { class: 'lock-epigraph' }, lock.epigraph),
   ]);
+
+  window.addEventListener('resize', resizeBg);
+  resizeBg();
 
   const nearLine = el('p', { class: 'near-line', 'aria-live': 'polite' });
   const attemptsDots = el('div', { class: 'attempts-dots' });
@@ -199,7 +214,12 @@ export function mountLockRoom(root, {
     const runeCanvas = art.makeCanvas(96, 96);
     runeCanvas.canvas.className = 'shard-rune';
     if (shard) art.drawRune(runeCanvas.ctx, shard.rune, runeCanvas.w * 0.22, runeCanvas.h * 0.08, runeCanvas.w * 0.56, { color: p.goldBright });
-    const line = el('p', { class: 'ceremony-line carved-text-deep' }, shard ? `Shard sealed: ${shard.value}` : 'Shard sealed.');
+    // Shard numerals: the third full-depth carveText call-out (docs/ART.md).
+    const line = carvedHeading('p', {
+      art,
+      text: shard ? `Shard sealed: ${shard.value}` : 'Shard sealed.',
+      size: 34, className: 'ceremony-line', depth: 1, color: p.goldBright, letterSpacing: 2,
+    });
     overlay.append(runeCanvas.canvas, line);
     clear(lockRootEl);
     lockRootEl.append(overlay);

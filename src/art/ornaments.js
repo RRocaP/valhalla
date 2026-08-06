@@ -32,10 +32,35 @@ function ringknot(ctx, x, y, size, opts) {
   });
 }
 
+// A driven rivet: seated shadow, domed gold head, single specular point. The
+// dome gradient is what makes it read as proud of the surface at 200% rather
+// than as a printed dot.
 function nailhead(ctx, x, y, size, opts = {}) {
-  const r = size * 0.5;
-  carveStroke(ctx, (c) => c.arc(x, y, r * 0.92, 0, Math.PI * 2), { width: Math.max(1, size * 0.045) });
-  fillGoldLayered(ctx, (c) => c.arc(x, y, r * 0.68, 0, Math.PI * 2), { x: x - r, y: y - r, w: 2 * r, h: 2 * r }, { ticks: 2 });
+  const r = Math.max(1.6, size * 0.5);
+  ctx.save();
+  ctx.fillStyle = rgba(palette.tar, 0.55);
+  ctx.beginPath();
+  ctx.arc(x + r * 0.16, y + r * 0.22, r * 0.98, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  carveStroke(ctx, (c) => c.arc(x, y, r * 0.9, 0, Math.PI * 2), { width: Math.max(0.8, size * 0.045) });
+  fillGoldLayered(ctx, (c) => c.arc(x, y, r * 0.7, 0, Math.PI * 2), { x: x - r, y: y - r, w: 2 * r, h: 2 * r }, { ticks: 0 });
+
+  const dome = ctx.createRadialGradient(x - r * 0.3, y - r * 0.34, 0, x, y, r * 0.72);
+  dome.addColorStop(0, rgba(palette.goldBright, 0.95));
+  dome.addColorStop(0.5, rgba(palette.gold, 0.5));
+  dome.addColorStop(1, rgba(mix(palette.gold, palette.tar, 0.6), 0.75));
+  ctx.save();
+  ctx.fillStyle = dome;
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = rgba(palette.bone, 0.75);
+  ctx.beginPath();
+  ctx.arc(x - r * 0.26, y - r * 0.3, Math.max(0.5, r * 0.15), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function shieldboss(ctx, x, y, size, opts) {
@@ -71,8 +96,10 @@ function wavebordPath(c, x, y, size, amp) {
 // gilded band between them, not a single thin line, so it reads as a border
 // with mass rather than a squiggle.
 function wavebord(ctx, x, y, size, opts) {
-  const amp = size * 0.14;
-  const bandW = size * 0.1;
+  // Shallow and narrow: at amp 0.14 / band 0.10 of size this read as a gold
+  // hose laid over the wood rather than a channel cut into it.
+  const amp = size * 0.07;
+  const bandW = size * 0.08;
   const topEdge = (c) => wavebordPath(c, x, y - bandW / 2, size, amp);
   const botEdge = (c) => wavebordPath(c, x, y + bandW / 2, size, amp);
 
@@ -94,72 +121,125 @@ function wavebord(ctx, x, y, size, opts) {
     ctx.lineTo(px, py);
   }
   ctx.closePath();
+  // Worn gilding sunk in a channel: mostly the tar of the incision with a
+  // little gold surviving in the groove, the way Oseberg pigment survives.
+  // A bright band read as a neon worm laid across the lid.
   const base = opts.color || palette.gold;
   const bandGrad = ctx.createLinearGradient(x, y - amp - bandW, x, y + amp + bandW);
-  bandGrad.addColorStop(0, mix(base, palette.tar, 0.3));
-  bandGrad.addColorStop(0.5, mix(base, palette.goldBright, 0.35));
-  bandGrad.addColorStop(1, mix(base, palette.tar, 0.4));
+  bandGrad.addColorStop(0, mix(base, palette.tar, 0.82));
+  bandGrad.addColorStop(0.5, mix(base, palette.oakDeep, 0.42));
+  bandGrad.addColorStop(1, mix(base, palette.tar, 0.86));
   ctx.fillStyle = bandGrad;
   ctx.fill();
   ctx.restore();
 
   ctx.save();
-  ctx.strokeStyle = rgba(palette.goldBright, 0.7);
-  ctx.lineWidth = Math.max(1, size * 0.014);
+  ctx.strokeStyle = rgba(palette.goldBright, 0.2);
+  ctx.lineWidth = Math.max(0.6, size * 0.006);
   ctx.beginPath();
   wavebordPath(ctx, x, y, size, amp);
   ctx.stroke();
   ctx.restore();
 }
 
-// Stylized prow-curl: a thick tapering hook rendered as a carved + gradient
-// stroke (not a thin fill blob, which read as invisible against the wood),
-// one gold trim line, one eye dot. Deliberately abstract — no teeth, no gore.
-function dragonheadSpine(c, size) {
-  c.moveTo(size * 0.06, size * 0.62);
-  c.bezierCurveTo(size * 0.02, size * 0.32, size * 0.16, size * 0.02, size * 0.5, -size * 0.06);
-  c.bezierCurveTo(size * 0.8, -size * 0.13, size * 0.99, size * 0.03, size * 0.93, size * 0.22);
-  c.bezierCurveTo(size * 0.89, size * 0.36, size * 0.72, size * 0.33, size * 0.64, size * 0.18);
+// Stylized prow-curl. A CLOSED silhouette (neck -> crown -> snout -> jaw)
+// filled with a gilded gradient, carved around its outline, with a mane of
+// three curls and a socketed eye. The previous version was a thin gradient
+// stroke whose tones sat within a few percent of the oak behind it, so it
+// vanished at game scale.
+function dragonheadSilhouette(c, s) {
+  c.moveTo(s * 0.02, s * 0.66);            // neck, back edge
+  c.bezierCurveTo(s * -0.04, s * 0.3, s * 0.12, s * -0.02, s * 0.46, s * -0.12);
+  c.bezierCurveTo(s * 0.82, s * -0.22, s * 1.06, s * 0.0, s * 0.99, s * 0.24);   // crown -> snout tip
+  c.bezierCurveTo(s * 0.94, s * 0.42, s * 0.74, s * 0.42, s * 0.66, s * 0.26);   // under-snout
+  c.bezierCurveTo(s * 0.6, s * 0.15, s * 0.5, s * 0.2, s * 0.46, s * 0.32);      // jaw notch
+  c.bezierCurveTo(s * 0.4, s * 0.5, s * 0.3, s * 0.62, s * 0.24, s * 0.72);      // throat
+  c.closePath();
 }
 
 function dragonhead(ctx, x, y, size, opts) {
   const mirror = opts.mirror ? -1 : 1;
+  const s = size;
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(mirror, 1);
-  const path = (c) => dragonheadSpine(c, size);
+  const path = (c) => dragonheadSilhouette(c, s);
 
-  carveStroke(ctx, path, { width: Math.max(3, size * 0.19) });
-
+  // drop shadow so the carving stands off the board
   ctx.save();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  const bodyGrad = ctx.createLinearGradient(0, -size * 0.13, size * 0.75, size * 0.5);
-  bodyGrad.addColorStop(0, mix(palette.oakLight, palette.gold, 0.15));
-  bodyGrad.addColorStop(0.55, palette.oak);
-  bodyGrad.addColorStop(1, mix(palette.oakDeep, palette.tar, 0.5));
-  ctx.strokeStyle = bodyGrad;
-  ctx.lineWidth = Math.max(4, size * 0.15);
+  ctx.translate(s * 0.035, s * 0.05);
+  ctx.fillStyle = rgba(palette.tar, 0.6);
   ctx.beginPath();
   path(ctx);
-  ctx.stroke();
+  ctx.fill();
   ctx.restore();
 
   ctx.save();
-  ctx.strokeStyle = rgba(opts.color || palette.gold, 0.85);
-  ctx.lineWidth = Math.max(1.2, size * 0.022);
-  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.moveTo(size * 0.09, size * 0.5);
-  ctx.bezierCurveTo(size * 0.07, size * 0.27, size * 0.19, size * 0.03, size * 0.5, -size * 0.03);
-  ctx.bezierCurveTo(size * 0.76, -size * 0.09, size * 0.93, size * 0.04, size * 0.88, size * 0.18);
-  ctx.stroke();
+  path(ctx);
+  ctx.clip();
+  // Carved OAK with a gilded crest — a solid-gold body read as a cartoon
+  // charm rather than a prow-beast cut from the same board as the chest.
+  const body = ctx.createLinearGradient(0, -s * 0.2, s * 0.9, s * 0.7);
+  body.addColorStop(0, mix(palette.oakLight, palette.gold, 0.3));
+  body.addColorStop(0.4, mix(palette.oak, palette.oakLight, 0.35));
+  body.addColorStop(0.75, mix(palette.oakDeep, palette.oak, 0.4));
+  body.addColorStop(1, mix(palette.tar, palette.oakDeep, 0.5));
+  ctx.fillStyle = body;
+  ctx.fillRect(-s * 0.2, -s * 0.4, s * 1.5, s * 1.3);
+  // scale ticks along the crown
+  ctx.strokeStyle = rgba(palette.tar, 0.4);
+  ctx.lineWidth = Math.max(0.8, s * 0.016);
+  for (let i = 0; i < 7; i++) {
+    const t = 0.12 + i * 0.11;
+    ctx.beginPath();
+    ctx.moveTo(s * t, -s * 0.1 + Math.sin(i) * s * 0.02);
+    ctx.lineTo(s * (t + 0.05), s * 0.14);
+    ctx.stroke();
+  }
   ctx.restore();
 
+  carveStroke(ctx, path, { width: Math.max(1.4, s * 0.028) });
+
+  // gold trim following the crown line
+  ctx.save();
+  ctx.strokeStyle = rgba(opts.color || palette.gold, 0.85);
+  ctx.lineWidth = Math.max(0.9, s * 0.018);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(s * 0.1, s * 0.5);
+  ctx.bezierCurveTo(s * 0.06, s * 0.22, s * 0.2, s * 0.02, s * 0.5, s * -0.05);
+  ctx.bezierCurveTo(s * 0.78, s * -0.12, s * 0.96, s * 0.04, s * 0.9, s * 0.2);
+  ctx.stroke();
+
+  // mane: three curls off the back of the neck
+  for (let i = 0; i < 3; i++) {
+    const o = i * s * 0.11;
+    ctx.strokeStyle = rgba(palette.gold, 0.55 - i * 0.1);
+    ctx.lineWidth = Math.max(0.9, s * 0.02);
+    ctx.beginPath();
+    ctx.moveTo(s * 0.06 + o * 0.4, s * 0.6 - o * 0.2);
+    ctx.quadraticCurveTo(s * -0.12 - o, s * 0.34 - o * 0.3, s * 0.1 - o * 0.5, s * 0.08 - o * 0.4);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // eye: dark socket, bright pupil, tiny highlight
+  ctx.save();
+  ctx.fillStyle = rgba(palette.tar, 0.95);
+  ctx.beginPath();
+  ctx.ellipse(s * 0.72, s * 0.09, Math.max(2.2, s * 0.062), Math.max(1.7, s * 0.046), -0.3, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = palette.goldBright;
   ctx.beginPath();
-  ctx.arc(size * 0.855, size * 0.19, Math.max(1.6, size * 0.03), 0, Math.PI * 2);
+  ctx.arc(s * 0.725, s * 0.088, Math.max(1.2, s * 0.03), 0, Math.PI * 2);
   ctx.fill();
+  ctx.fillStyle = palette.bone;
+  ctx.beginPath();
+  ctx.arc(s * 0.71, s * 0.075, Math.max(0.5, s * 0.011), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
   ctx.restore();
 }
 
@@ -191,47 +271,97 @@ function faceRune(ordinal) {
   return ORDER[(ordinal - 1 + ORDER.length) % ORDER.length];
 }
 
+// A raised bezel around the disc: a thick ring stroked with a light->shade
+// gradient so the top-left of the rim catches the hearth and the bottom-right
+// falls away. This is the difference between "a coloured circle" and "a struck
+// disc seated in a socket".
+function discRim(ctx, x, y, r, lightHex, shadeHex) {
+  const rimW = Math.max(1.6, r * 0.17);
+  const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+  g.addColorStop(0, lightHex);
+  g.addColorStop(0.45, mix(lightHex, shadeHex, 0.55));
+  g.addColorStop(1, shadeHex);
+  ctx.save();
+  ctx.strokeStyle = g;
+  ctx.lineWidth = rimW;
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.9, 0, Math.PI * 2);
+  ctx.stroke();
+  // thin bright crest along the upper-left arc
+  ctx.strokeStyle = rgba(lightHex, 0.7);
+  ctx.lineWidth = Math.max(0.7, rimW * 0.3);
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.9 - rimW * 0.28, Math.PI * 0.85, Math.PI * 1.75);
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function medallion(ctx, x, y, r, state, ordinal) {
   const reduced = prefersReducedMotion();
-  carveStroke(ctx, (c) => c.arc(x, y, r, 0, Math.PI * 2), { width: Math.max(1.5, r * 0.09) });
   const ch = faceRune(ordinal);
+  // seated shadow: the disc sits INSIDE a socket, so it casts down-right
+  ctx.save();
+  ctx.fillStyle = rgba(palette.tar, 0.6);
+  ctx.beginPath();
+  ctx.arc(x + r * 0.09, y + r * 0.12, r * 0.94, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
   if (state === 'open') {
-    fillGoldLayered(ctx, (c) => c.arc(x, y, r * 0.86, 0, Math.PI * 2), { x: x - r, y: y - r, w: 2 * r, h: 2 * r }, { ticks: 4 });
+    fillGoldLayered(ctx, (c) => c.arc(x, y, r * 0.88, 0, Math.PI * 2), { x: x - r, y: y - r, w: 2 * r, h: 2 * r }, { ticks: 4 });
+    // stamped field: slightly darker centre so the rune reads as struck INTO it
+    const field = ctx.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.05, x, y, r * 0.8);
+    field.addColorStop(0, rgba(palette.goldBright, 0.25));
+    field.addColorStop(1, rgba(mix(palette.gold, palette.tar, 0.45), 0.5));
+    ctx.save();
+    ctx.fillStyle = field;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.72, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    // rune: dark incision plus a lit lower lip
+    drawRune(ctx, ch, x - r * 0.55 + r * 0.05, y - r * 0.55 + r * 0.06, r * 1.1, {
+      color: rgba(palette.goldBright, 0.5), weight: r * 0.11,
+    });
     drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, { color: palette.tar, weight: r * 0.11 });
+    discRim(ctx, x, y, r, palette.goldBright, mix(palette.gold, palette.tar, 0.62));
     return;
   }
 
   if (state === 'next') {
     const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
     const pulse = reduced ? 0 : Math.sin(now / 480) * 0.5 + 0.5;
-    glowFx(ctx, x, y, r * (1.6 + pulse * 0.5), palette.ember, 0.5 + pulse * 0.4);
-    const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
-    g.addColorStop(0, mix(palette.ember, palette.oakDeep, 0.25));
-    g.addColorStop(1, mix(palette.tar, palette.ember, 0.2));
+    glowFx(ctx, x, y, r * (1.7 + pulse * 0.55), palette.ember, 0.5 + pulse * 0.4);
+    const g = ctx.createRadialGradient(x - r * 0.32, y - r * 0.36, r * 0.08, x, y, r);
+    g.addColorStop(0, mix(palette.ember, palette.goldBright, 0.25 + pulse * 0.15));
+    g.addColorStop(0.62, mix(palette.ember, palette.oakDeep, 0.4));
+    g.addColorStop(1, mix(palette.tar, palette.ember, 0.28));
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(x, y, r * 0.86, 0, Math.PI * 2);
+    ctx.arc(x, y, r * 0.88, 0, Math.PI * 2);
     ctx.fill();
     drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
-      color: mix(palette.ember, palette.goldBright, 0.4),
+      color: mix(palette.goldBright, palette.bone, 0.35),
       weight: r * 0.1,
       glow: reduced ? 0 : 0.3 + pulse * 0.3,
     });
+    discRim(ctx, x, y, r, mix(palette.ember, palette.goldBright, 0.5), mix(palette.ember, palette.tar, 0.7));
     return;
   }
 
   // sealed — dark and inert, but the carve + a ghost rune must still read as
-  // "something is here, unopened," not as nothing rendered.
-  const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
-  g.addColorStop(0, mix(palette.tar, palette.oakDeep, 0.55));
+  // "something is here, unopened," not as a flat black hole in the lid.
+  const g = ctx.createRadialGradient(x - r * 0.34, y - r * 0.38, r * 0.06, x, y, r);
+  g.addColorStop(0, mix(palette.oakDeep, palette.boneDim, 0.14));
+  g.addColorStop(0.55, mix(palette.tar, palette.oakDeep, 0.62));
   g.addColorStop(1, palette.tar);
   ctx.fillStyle = g;
   ctx.beginPath();
-  ctx.arc(x, y, r * 0.86, 0, Math.PI * 2);
+  ctx.arc(x, y, r * 0.88, 0, Math.PI * 2);
   ctx.fill();
   ctx.save();
-  ctx.globalAlpha = 0.32;
+  ctx.globalAlpha = 0.55;
   drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, { color: palette.boneDim, weight: r * 0.09 });
   ctx.restore();
+  discRim(ctx, x, y, r, mix(palette.oakLight, palette.boneDim, 0.35), palette.tar);
 }

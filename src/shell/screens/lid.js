@@ -7,6 +7,7 @@ import { ordinalWord } from '../numerals.js';
 import { duelFor, isDuelOrdinal } from '../duels.js';
 import { rng } from '../../kernel/rng.js';
 
+// Fallback layout, used only when the art module predates art.chestLayout.
 // Generic N-lock layout (not hardcoded to 15) so the same code serves the
 // small dev fixtures and the real 15-lock chest identically. 5 columns max,
 // wrapping into rows, with a slight per-row arc.
@@ -96,13 +97,22 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   const mountedAt = performance.now();
   let raf = null;
 
+  // chestScene carves the sockets AND seats the medallions in them. When the
+  // art module exposes chestLayout we take those exact positions for the hit
+  // targets and paint nothing more; the old code ran an independent layout and
+  // painted a second medallion set on top, which is what made the lid read as
+  // a scatter of overlapping circles.
+  const useChestLayout = typeof art.chestLayout === 'function';
+
   function paint(t) {
     art.chestScene(cur.ctx, cur.w, cur.h, t, progress);
-    locks.forEach((lock, i) => {
-      const pos = layout[i];
-      if (!pos) return;
-      art.medallion(cur.ctx, pos.x, pos.y, pos.r, lockState(locks, save, lock.id), lock.ordinal);
-    });
+    if (!useChestLayout) {
+      locks.forEach((lock, i) => {
+        const pos = layout[i];
+        if (!pos) return;
+        art.medallion(cur.ctx, pos.x, pos.y, pos.r, lockState(locks, save, lock.id), lock.ordinal);
+      });
+    }
     if (justOpenedId && !reducedMotion) {
       const idx = locks.findIndex((l) => l.id === justOpenedId);
       const pos = layout[idx];
@@ -135,7 +145,11 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   }
 
   function layoutMedallions() {
-    layout = medallionLayout(locks.length, screen.clientWidth, screen.clientHeight);
+    const w = screen.clientWidth;
+    const h = screen.clientHeight;
+    layout = useChestLayout
+      ? art.chestLayout(w, h, locks.length).sockets
+      : medallionLayout(locks.length, w, h);
     locks.forEach((lock, i) => {
       const pos = layout[i];
       const btn = buttons[i];
@@ -147,7 +161,11 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       const idx = locks.indexOf(nextLock);
       const pos = layout[idx];
       if (pos) {
-        duelBanner.style.left = `${pos.x}px`;
+        // Keep the (translate(-50%)) banner fully inside the viewport — anchored
+        // dead on a rightmost medallion it hung off the screen edge at 390px.
+        const halfW = duelBanner.offsetWidth / 2 || 80;
+        const clampedX = Math.max(halfW + 8, Math.min(w - halfW - 8, pos.x));
+        duelBanner.style.left = `${clampedX}px`;
         duelBanner.style.top = `${pos.y - pos.r - 14}px`;
       }
     }
@@ -160,7 +178,17 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     fresh.canvas.className = 'lid-canvas';
     screen.replaceChild(fresh.canvas, cur.canvas);
     cur = fresh;
-    const haspW = Math.min(w * 0.86, 640);
+    // Sit the shard tally on the carved hasp rail of the painted chest rather
+    // than at a fixed offset from the bottom of the viewport, where it floated
+    // on bare board below the chest.
+    let haspW = Math.min(w * 0.86, 640);
+    if (useChestLayout) {
+      const L = art.chestLayout(w, h, locks.length);
+      haspW = Math.min(L.chestW * 0.76, 640);
+      const railTop = L.top + L.chestH - L.railH + L.railH * 0.1;
+      haspWrap.style.bottom = 'auto';
+      haspWrap.style.top = `${Math.round(railTop + L.railH * 0.34 - 28)}px`;
+    }
     const freshHasp = art.makeCanvas(haspW, 56);
     freshHasp.canvas.className = 'hasp-canvas';
     haspWrap.replaceChild(freshHasp.canvas, hasp.canvas);

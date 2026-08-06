@@ -160,22 +160,45 @@ export function mountFinale(root, {
   }
 
   function paintBackdrop() {
-    art.paintWood(bg.ctx, bg.w, bg.h, 793);
+    art.paintWood(bg.ctx, bg.w, bg.h, 793, { shade: 0.2 });
     art.glow(bg.ctx, bg.w / 2, bg.h * 0.38, Math.max(bg.w, bg.h) * 0.4, p.goldBright, 0.32);
   }
 
+  // The opening lid is a real oak panel — painted wood, carved rim, gilded
+  // trim and a wavebord run — not the flat oakDeep fill it used to be. The
+  // panel is baked once into an offscreen canvas and rotated as a bitmap, so
+  // the 2.6s beat stays cheap despite carrying the full texture.
+  let lidPanel = null;
+  let lidPanelKey = '';
+  function lidPanelFor(w, lidH) {
+    const key = `${Math.round(w)}x${Math.round(lidH)}`;
+    if (lidPanel && lidPanelKey === key) return lidPanel;
+    const c = art.makeCanvas(w, lidH);
+    art.paintWood(c.ctx, w, lidH, 'finale-lid', { vignette: 0.42, planks: 5 });
+    // underside of a lid is darker than the board it lifts off
+    c.ctx.fillStyle = `rgba(12,9,6,.4)`;
+    c.ctx.fillRect(0, 0, w, lidH);
+    if (typeof art.paintPanel === 'function') {
+      art.paintPanel(c.ctx, w * 0.06, lidH * 0.1, w * 0.88, lidH * 0.8, { wash: 0.4, seed: 'finale-lid-inner' });
+    }
+    const wb = Math.max(24, w * 0.05);
+    for (let x = w * 0.08; x < w * 0.92 - wb * 0.2; x += wb) {
+      art.ornament(c.ctx, 'wavebord', x, lidH * 0.06, wb);
+    }
+    lidPanel = c.canvas;
+    lidPanelKey = key;
+    return lidPanel;
+  }
+
   function paintIntro(t) {
-    art.paintWood(bg.ctx, bg.w, bg.h, 793);
+    art.paintWood(bg.ctx, bg.w, bg.h, 793, { shade: 0.2 });
     art.glow(bg.ctx, bg.w / 2, bg.h / 2, Math.max(bg.w, bg.h) * 0.5 * t, p.goldBright, Math.min(1, t * 1.4));
     const lidH = bg.h * 0.55;
+    const panel = lidPanelFor(bg.w, lidH);
     bg.ctx.save();
     bg.ctx.translate(bg.w / 2, bg.h - lidH);
     bg.ctx.rotate(-(Math.PI / 2.1) * t);
-    bg.ctx.fillStyle = p.oakDeep;
-    bg.ctx.fillRect(-bg.w / 2, -2, bg.w, lidH);
-    bg.ctx.strokeStyle = p.gold;
-    bg.ctx.lineWidth = 3;
-    bg.ctx.strokeRect(-bg.w / 2, -2, bg.w, lidH);
+    bg.ctx.drawImage(panel, -bg.w / 2, -2, bg.w, lidH);
     bg.ctx.restore();
   }
 
@@ -186,6 +209,7 @@ export function mountFinale(root, {
     fresh.canvas.className = 'finale-canvas';
     screen.replaceChild(fresh.canvas, bg.canvas);
     bg = fresh;
+    lidPanel = null;
     if (phase === 'intro') paintIntro(introT);
     else paintBackdrop();
   }

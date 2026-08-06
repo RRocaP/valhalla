@@ -25,8 +25,10 @@ function buildSticker(img, w, h) {
   off.width = Math.max(1, Math.round(w));
   off.height = Math.max(1, Math.round(h));
   const ctx = off.getContext('2d');
-  const radius = Math.min(w, h) * 0.12;
-  const border = w * 0.04;
+  const radius = Math.min(w, h) * 0.1;
+  // ~4% of width is a hairline once the sticker is composited at credits size —
+  // it read as a plain rounded photo. A real die-cut leaves a visible margin.
+  const border = w * 0.075;
 
   ctx.save();
   roundedRectPath(ctx, 0, 0, w, h, radius);
@@ -43,6 +45,15 @@ function buildSticker(img, w, h) {
   const innerCtx = inner.getContext('2d');
   gradeInto(innerCtx, img, w, h, { desat: 0.16, multiplyStrength: 0.26, vignette: 0.22 });
   ctx.drawImage(inner, 0, 0, w, h);
+  ctx.restore();
+
+  // the photo sits slightly below the border's surface
+  ctx.save();
+  ctx.strokeStyle = rgba(palette.tar, 0.4);
+  ctx.lineWidth = Math.max(0.8, w * 0.012);
+  ctx.beginPath();
+  roundedRectPath(ctx, border, border, w - border * 2, h - border * 2, Math.max(1, radius - border));
+  ctx.stroke();
   ctx.restore();
 
   return off;

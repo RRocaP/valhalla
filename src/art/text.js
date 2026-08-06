@@ -14,9 +14,13 @@ export function carveText(ctx, text, x, y, sizePx, opts = {}) {
   const maxWidth = opts.maxWidth;
 
   ctx.save();
-  ctx.font = `600 ${sizePx}px ${FONT_STACK}`;
+  ctx.font = `${opts.weight || 600} ${sizePx}px ${FONT_STACK}`;
   ctx.textAlign = align;
   ctx.textBaseline = 'alphabetic';
+  // Display lettering in this world is widely tracked. Canvas letterSpacing is
+  // recent; where it is missing the text simply renders untracked rather than
+  // failing (Safari 15 is a build target).
+  if (opts.letterSpacing && 'letterSpacing' in ctx) ctx.letterSpacing = `${opts.letterSpacing}px`;
 
   const draw = (fillStyle, ox, oy) => {
     ctx.fillStyle = fillStyle;
@@ -24,21 +28,27 @@ export function carveText(ctx, text, x, y, sizePx, opts = {}) {
     else ctx.fillText(text, x + ox, y + oy);
   };
 
-  // Stepped "extrusion" instead of a single 1px offset: several stacked
-  // copies marching toward the shade/lip directions read as a real trench
-  // at depth, where a single-pixel double-pass would vanish under the core
-  // fill. depth=0 collapses every step to (0,0), i.e. flat.
-  const shadeSteps = 5;
-  const shadeReach = sizePx * 0.16 * depth;
-  for (let i = shadeSteps; i >= 1; i--) {
-    const f = i / shadeSteps;
-    draw(rgba(palette.tar, (0.18 + 0.5 * depth) * (0.55 + 0.45 * f)), -shadeReach * f, -shadeReach * 1.1 * f);
+  // A chisel cut is a TIGHT rim, not an extrusion. The previous version marched
+  // shade copies out to 16% of the font size, which at display sizes rendered a
+  // visible second ghost of the word up-left of the face. Here: a soft dark
+  // halo seated all round (the shadow the incision casts into the wood), then a
+  // close shade lip above-left and a close lit lip below-right, both inside 4%
+  // of the size, then the face. depth=0 collapses everything to flat.
+  const halo = sizePx * 0.05 * depth;
+  if (depth > 0.05) {
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      draw(rgba(palette.tar, 0.1 + 0.16 * depth), Math.cos(a) * halo, Math.sin(a) * halo);
+    }
   }
-  const lipSteps = 3;
-  const lipReach = sizePx * 0.1 * depth;
-  for (let i = lipSteps; i >= 1; i--) {
-    const f = i / lipSteps;
-    draw(rgba(palette.goldBright, (0.12 + 0.3 * depth) * f), lipReach * f, lipReach * 1.15 * f);
+  const reach = Math.max(0.6, sizePx * 0.028 * depth);
+  for (let i = 3; i >= 1; i--) {
+    const f = i / 3;
+    draw(rgba(palette.tar, (0.3 + 0.55 * depth) * f), -reach * f, -reach * 1.15 * f);
+  }
+  for (let i = 2; i >= 1; i--) {
+    const f = i / 2;
+    draw(rgba(palette.goldBright, (0.16 + 0.42 * depth) * f), reach * f * 0.85, reach * 1.2 * f);
   }
   draw(color, 0, 0);
 

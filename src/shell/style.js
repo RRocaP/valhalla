@@ -19,7 +19,8 @@ export function buildShellStyle(palette) {
 *{box-sizing:border-box}
 html,body{overflow-x:hidden}
 #app{overflow-x:hidden;position:relative;font-family:var(--font-body);color:var(--bone);width:100%}
-#app *{-webkit-tap-highlight-color:transparent;min-width:0}
+#app *{-webkit-tap-highlight-color:transparent}
+:where(#app *){min-width:0}
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 #app :focus{outline:none}
 #app :focus-visible{outline:3px solid var(--goldBright);outline-offset:2px;border-radius:4px}
@@ -28,9 +29,34 @@ button:disabled{cursor:default}
 p{margin:0}
 
 /* ---- primitives ---- */
-.btn-carved{display:inline-flex;align-items:center;justify-content:center;gap:.5em;background:var(--gold);color:var(--tar);font-weight:600;font-family:var(--font-display);letter-spacing:.04em;padding:12px 26px;min-height:44px;min-width:44px;border-radius:7px;box-shadow:0 2px 0 var(--oakDeep),inset 0 1px 0 var(--goldBright);font-size:clamp(1rem,1vw + .75rem,1.15rem)}
-.btn-carved:hover{filter:brightness(1.08)}
-.btn-carved:active{transform:translateY(1px);box-shadow:0 1px 0 var(--oakDeep),inset 0 1px 0 var(--goldBright)}
+/* A gilded plate pinned to the wood: layered gold (never a flat fill), a dark
+   seating shadow, a bright upper lip and a shaded lower one, plus the two rivet
+   heads that pin it. A flat --gold rectangle read as a web CTA. */
+.btn-carved{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+  background:linear-gradient(178deg,var(--goldBright) 0%,var(--gold) 38%,var(--gold) 62%,#8a6d18 100%);
+  color:#2a1d05;font-weight:600;font-family:var(--font-display);letter-spacing:.09em;
+  padding:13px 34px;min-height:46px;min-width:44px;border-radius:5px;
+  text-shadow:0 1px 0 rgba(238,207,109,.55);
+  box-shadow:0 3px 0 rgba(12,9,6,.85),0 5px 10px rgba(12,9,6,.6),
+    inset 0 1px 0 rgba(255,241,199,.85),inset 0 -2px 2px rgba(90,58,30,.55),
+    inset 0 0 0 1px rgba(42,29,5,.45);
+  font-size:clamp(1rem,1vw + .75rem,1.12rem)}
+.btn-carved::before,.btn-carved::after{content:"";position:absolute;top:50%;width:7px;height:7px;border-radius:50%;
+  transform:translateY(-50%);
+  background:radial-gradient(circle at 34% 30%,#fff1c7 0%,var(--goldBright) 40%,#7d6216 100%);
+  box-shadow:0 1px 1px rgba(12,9,6,.7)}
+.btn-carved::before{left:11px}
+.btn-carved::after{right:11px}
+.btn-carved:hover{filter:brightness(1.07)}
+.btn-carved:active{transform:translateY(2px);
+  box-shadow:0 1px 0 rgba(12,9,6,.85),0 2px 5px rgba(12,9,6,.6),
+    inset 0 1px 0 rgba(255,241,199,.6),inset 0 -1px 2px rgba(90,58,30,.55),
+    inset 0 0 0 1px rgba(42,29,5,.45)}
+
+/* Canvas-relief headings (docs/ART.md full-depth call-outs): the canvas is the
+   visual, the real text is visually-hidden inside for a11y and tests. */
+.carved-heading{display:block;margin:0;line-height:0}
+.carved-heading canvas{display:block;margin:0 auto;max-width:100%;height:auto}
 .btn-quiet{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;color:var(--boneDim);text-decoration:underline;text-underline-offset:3px;font-size:.95rem}
 .btn-quiet:hover{color:var(--bone)}
 .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--oakDeep);color:var(--gold);border:1px solid var(--oakLight)}
@@ -45,7 +71,10 @@ p{margin:0}
 .screen{min-height:100vh;min-height:100dvh;width:100%;position:relative;padding:max(16px,var(--safe-t)) max(16px,var(--safe-r)) max(16px,var(--safe-b)) max(16px,var(--safe-l));overflow:hidden}
 
 .screen-threshold{padding:0;display:block}
-.threshold-content{position:relative;z-index:1;min-height:100%;display:grid;place-content:center;justify-items:center;gap:clamp(14px,3vh,30px);text-align:center;padding:max(16px,var(--safe-t)) max(16px,var(--safe-r)) max(16px,var(--safe-b)) max(16px,var(--safe-l))}
+/* min-height:100% resolved against an auto-height parent, i.e. against
+   nothing — the title card sat pinned to the top of an otherwise empty
+   screen. Anchor it to the viewport so the card is actually centred. */
+.threshold-content{position:relative;z-index:1;min-height:100vh;min-height:100dvh;display:grid;place-content:center;justify-items:center;gap:clamp(14px,3vh,30px);text-align:center;padding:max(16px,var(--safe-t)) max(16px,var(--safe-r)) max(16px,var(--safe-b)) max(16px,var(--safe-l))}
 .title{font-family:var(--font-display);letter-spacing:.35em;color:var(--gold);font-weight:600;font-size:clamp(2rem,5vw + 1rem,3.6rem);margin:0}
 .subtitle{color:var(--boneDim);font-size:clamp(.95rem,1.5vw + .6rem,1.25rem);margin:0;letter-spacing:.03em;font-style:italic}
 .threshold-actions{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:8px}
@@ -84,7 +113,12 @@ p{margin:0}
 .hint-slot[data-state="locked"]{opacity:.4;pointer-events:none}
 .hint-text{max-width:52ch;text-align:center;color:var(--boneDim);font-size:.9rem}
 .back-latch{margin-top:4px}
-.ceremony-overlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:8px;background:radial-gradient(ellipse at center, rgba(201,162,39,.16), transparent 70%);pointer-events:none}
+/* pointer-events must stay AUTO: the shard ceremony and the duel yield beat
+   are documented tap-to-skip (docs/SHELL.md; src/shell/dom.js playBeat binds
+   the click on this element). Setting it to none silently swallowed every
+   skip tap. The overlay only ever covers an already-cleared .lock-root, so
+   nothing interactive sits beneath it. */
+.ceremony-overlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:8px;background:radial-gradient(ellipse at center, rgba(201,162,39,.16), transparent 70%);pointer-events:auto;cursor:pointer}
 .ceremony-overlay .shard-rune{display:block;margin:0 auto}
 .ceremony-line{font-family:var(--font-display);color:var(--goldBright);font-size:clamp(1.1rem,2vw + .8rem,1.6rem)}
 
@@ -137,7 +171,9 @@ p{margin:0}
 .carved-text-deep{text-shadow:-1.5px -1.5px 1px var(--tar),2px 2px 1.5px rgba(238,207,109,.3),0 0 18px rgba(238,207,109,.14)}
 
 /* ---- duels (docs/JARLS.md) ---- */
-.duel-banner{position:absolute;transform:translate(-50%,-100%);background:var(--blood);color:var(--bone);font-family:var(--font-display);font-size:.72rem;letter-spacing:.06em;padding:4px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 0 var(--oakDeep)}
+/* max-width + ellipsis: a nowrap banner anchored on the rightmost medallion
+   ran off the screen edge at 390px (Aerya's is the longest name in the cast). */
+.duel-banner{position:absolute;transform:translate(-50%,-100%);background:var(--blood);color:var(--bone);font-family:var(--font-display);font-size:.72rem;letter-spacing:.06em;padding:4px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 0 var(--oakDeep);max-width:min(88vw,300px);overflow:hidden;text-overflow:ellipsis}
 .dare-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:20px;max-width:420px;margin:0 auto}
 .dare-card canvas{display:block}
 .dare-name{font-family:var(--font-display);color:var(--goldBright);letter-spacing:.08em;font-size:clamp(1.2rem,2vw + .9rem,1.6rem);margin:0}
@@ -168,7 +204,7 @@ p{margin:0}
 .credits-portrait-white figcaption{color:var(--bone)}
 .credits-skip{position:fixed;top:max(14px,var(--safe-t));right:max(14px,var(--safe-r));z-index:3;background:rgba(12,9,6,.5);border-radius:6px}
 .sticker-scatter{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-.sticker-static{width:56px;height:56px;display:block}
+.sticker-static{width:60px;height:auto;display:block}
 
 @media (prefers-reduced-motion: reduce){
   .credits-scroll{scroll-behavior:auto}

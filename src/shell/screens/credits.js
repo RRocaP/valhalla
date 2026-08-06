@@ -20,15 +20,23 @@ export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSk
   stickerCanvas.canvas.className = 'sticker-canvas';
   screen.append(stickerCanvas.canvas);
 
+  // art.sticker derives its height from the source image's aspect ratio, so a
+  // portrait photo drawn at w=55 into a 64x64 sprite was cut off top and
+  // bottom. Size each sprite canvas from the image instead, and keep the drawn
+  // dimensions with it so the fall loop composites at the true aspect.
   const sprites = [];
   if (typeof art.sticker === 'function') {
     for (const key of STICKER_POOL) {
       const img = imageCache ? portraitImage(imageCache, key) : null;
       if (!img) continue;
-      const size = 64;
-      const c = art.makeCanvas(size, size);
-      art.sticker(c.ctx, img, size / 2, size / 2, size * 0.86, 0);
-      sprites.push(c.canvas);
+      const iw = img.naturalWidth || img.width || 1;
+      const ih = img.naturalHeight || img.height || 1;
+      const drawW = 76;
+      const drawH = drawW * (ih / iw);
+      const pad = 10;
+      const c = art.makeCanvas(Math.round(drawW + pad), Math.round(drawH + pad));
+      art.sticker(c.ctx, img, c.w / 2, c.h / 2, drawW, 0);
+      sprites.push({ canvas: c.canvas, w: c.w, h: c.h });
     }
   }
 
@@ -72,7 +80,7 @@ export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSk
     for (let i = 0; i < n; i++) {
       scatter.append(el('img', {
         class: 'sticker-static',
-        src: sprites[i].toDataURL('image/png'),
+        src: sprites[i].canvas.toDataURL('image/png'),
         alt: '',
         style: `transform:rotate(${(i % 2 ? 1 : -1) * (4 + i)}deg)`,
       }));
@@ -89,7 +97,7 @@ export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSk
   root.append(screen);
 
   function paintBg() {
-    art.paintWood(bg.ctx, bg.w, bg.h, 811);
+    art.paintWood(bg.ctx, bg.w, bg.h, 811, { shade: 0.22 });
   }
   function resize() {
     const w = screen.clientWidth;
@@ -143,7 +151,7 @@ export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSk
       stickerCanvas.ctx.save();
       stickerCanvas.ctx.translate(x, y);
       stickerCanvas.ctx.rotate(rotRad);
-      stickerCanvas.ctx.drawImage(pt.sprite, -32, -32, 64, 64);
+      stickerCanvas.ctx.drawImage(pt.sprite.canvas, -pt.sprite.w / 2, -pt.sprite.h / 2, pt.sprite.w, pt.sprite.h);
       stickerCanvas.ctx.restore();
       return y <= h + 80;
     });

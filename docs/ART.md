@@ -55,6 +55,9 @@ export function createArt() => {
   glow(ctx, x, y, r, color, strength),      // radial ember/gold glow
   chestScene(ctx, w, h, t, progress),       // the lid: chest + 15 medallion sockets; t for idle drift
   treasureFrame(ctx, w, h, t),              // finale frame around the Tebi image / placeholder
+  chestLayout(w, h),                        // ratified 2026-08-06: medallion socket
+                                            // centers/radii for the lid — the shell's hit
+                                            // targets MUST align to chestScene's sockets
   portrait(ctx, img, x, y, w, h, opts?),    // challenger/credits portrait — see below
   sticker(ctx, img, x, y, w, rot),          // die-cut sticker: white ~4% border, rounded
                                             // corners, soft drop shadow, light palette grade;

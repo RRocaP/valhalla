@@ -62,6 +62,40 @@ export function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
 }
 
+// A display heading rendered through art.carveText() onto a canvas — the
+// "full depth" material-type mandate (docs/ART.md): the title card, lock
+// headers and shard numerals must carry real chisel relief, not the CSS
+// text-shadow approximation used for ordinary headings.
+//
+// The real text stays in the DOM inside the heading element (visually hidden,
+// still read by assistive tech and still matched by tests/selectors); the
+// canvas is aria-hidden decoration on top. Falls back to plain text if the art
+// module predates carveText.
+export function carvedHeading(tag, {
+  art, text, size, className = '', depth = 0.8, color, weight = 600, letterSpacing = 0,
+}) {
+  const node = el(tag, { class: `carved-heading ${className}`.trim() });
+  node.append(el('span', { class: 'visually-hidden' }, text));
+  if (typeof art.carveText !== 'function') {
+    node.append(el('span', {}, text));
+    return node;
+  }
+
+  const pad = Math.ceil(size * 0.5);
+  const probe = document.createElement('canvas').getContext('2d');
+  probe.font = `${weight} ${size}px 'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif`;
+  if (letterSpacing && 'letterSpacing' in probe) probe.letterSpacing = `${letterSpacing}px`;
+  const w = Math.ceil(probe.measureText(text).width) + pad * 2;
+  const h = Math.ceil(size * 1.6);
+  const c = art.makeCanvas(w, h);
+  c.canvas.setAttribute('aria-hidden', 'true');
+  art.carveText(c.ctx, text, w / 2, size * 1.14, size, {
+    align: 'center', depth, color: color || art.palette.bone, weight, letterSpacing,
+  });
+  node.append(c.canvas);
+  return node;
+}
+
 // A timed, tap/Enter/Esc-skippable "beat": renders progress 0..1 via
 // requestAnimationFrame over `duration` ms, then calls onDone. Under
 // reduced motion, renders once at t=1 (no animated motion) and holds

@@ -8,7 +8,7 @@ import { drawRune } from './runes.js';
 import { drawKnot } from './knot.js';
 import { ornament, medallion } from './ornaments.js';
 import { glow } from './util.js';
-import { chestScene, treasureFrame } from './chest.js';
+import { chestScene, treasureFrame, chestLayout } from './chest.js';
 import { portrait } from './portrait.js';
 import { sticker } from './sticker.js';
 import { carveText } from './text.js';
@@ -41,6 +41,11 @@ export function createArt() {
     medallion,
     glow,
     chestScene,
+    // Additive helper (not a change to any frozen signature): exposes the exact
+    // socket geometry chestScene carves, so the shell can align its medallion
+    // hit-targets to the recesses instead of running a second, divergent layout
+    // and painting a duplicate set of medallions over them.
+    chestLayout,
     treasureFrame,
     portrait,
     sticker,
