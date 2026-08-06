@@ -8,7 +8,6 @@ import { pushJournal, hintTakenLine } from '../journal.js';
 import { toRoman, ordinalWord } from '../numerals.js';
 import { duelFor } from '../duels.js';
 import { portraitImage, drawPortraitPlaceholder } from '../portraits.js';
-import { SHARDS } from '../../kernel/shards.js';
 
 export function mountLockRoom(root, {
   lock, locks, save, art, audio, reducedMotion, portraitsCache,
@@ -35,6 +34,7 @@ export function mountLockRoom(root, {
     fresh.canvas.className = 'lockroom-canvas';
     screen.replaceChild(fresh.canvas, bg.canvas);
     bg = fresh;
+    art.paintWood(bg.ctx, bg.w, bg.h, 793);
     art.paintPanel(bg.ctx, 0, 0, bg.w, bg.h);
   }
   window.addEventListener('resize', resizeBg);
@@ -42,7 +42,7 @@ export function mountLockRoom(root, {
 
   const header = el('div', { class: 'lockroom-header' }, [
     el('div', { class: 'ledger-numeral' }, toRoman(lock.ordinal)),
-    el('h2', { class: 'lock-title' }, lock.title),
+    el('h2', { class: 'lock-title carved-text-deep' }, lock.title),
     el('p', { class: 'lock-epigraph' }, lock.epigraph),
   ]);
 
@@ -189,13 +189,17 @@ export function mountLockRoom(root, {
       setTimeout(() => onSolved(lock.id), reducedMotion ? 0 : 400);
       return;
     }
-    const shard = SHARDS[lock.id];
+    // shard(instance) is part of the Lock interface (CONTRACT §4) and its
+    // value is documented as instance-independent — calling it directly
+    // works for every lock, real or fixture, unlike keying into the frozen
+    // kernel SHARDS table (which only knows the real 01..14 ids).
+    const shard = lock.shard(instance);
     audio.motif('shard');
     const overlay = el('div', { class: 'ceremony-overlay', tabindex: '-1' });
     const runeCanvas = art.makeCanvas(96, 96);
     runeCanvas.canvas.className = 'shard-rune';
     if (shard) art.drawRune(runeCanvas.ctx, shard.rune, runeCanvas.w * 0.22, runeCanvas.h * 0.08, runeCanvas.w * 0.56, { color: p.goldBright });
-    const line = el('p', { class: 'ceremony-line' }, shard ? `Shard sealed: ${shard.value}` : 'Shard sealed.');
+    const line = el('p', { class: 'ceremony-line carved-text-deep' }, shard ? `Shard sealed: ${shard.value}` : 'Shard sealed.');
     overlay.append(runeCanvas.canvas, line);
     clear(lockRootEl);
     lockRootEl.append(overlay);

@@ -1,12 +1,14 @@
-// Portrait image loading + fallback. docs/ART.md `portrait()`, docs/JARLS.md.
-// art.portrait(ctx, img, x, y, w, h, opts?) expects a decoded image; the
-// caller (shell) owns decoding the data URI and the missing/undecoded
-// fallback, since ART's frozen signature documents no "no image" mode.
+// Image loading + fallback for every data-URI image the shell draws:
+// portraits, the treasure image, and the credits sticker pool (docs/ART.md
+// `portrait()`/`sticker()`, docs/JARLS.md). Those APIs expect a decoded
+// image; the caller (shell) owns decoding the data URI and the
+// missing/undecoded fallback, since neither frozen signature documents a
+// "no image" mode.
 
-export function loadPortraits(portraits) {
+export function loadImageCache(images) {
   const cache = {};
-  for (const key of Object.keys(portraits || {})) {
-    const src = portraits[key];
+  for (const key of Object.keys(images || {})) {
+    const src = images[key];
     if (!src) { cache[key] = { img: null, ready: false }; continue; }
     const img = new Image();
     const entry = { img, ready: false };

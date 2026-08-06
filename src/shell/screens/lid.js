@@ -5,7 +5,7 @@ import { lockState, isAccessible, nextLockId, progressFraction } from '../progre
 import { pushJournal } from '../journal.js';
 import { ordinalWord } from '../numerals.js';
 import { duelFor, isDuelOrdinal } from '../duels.js';
-import { SHARDS } from '../../kernel/shards.js';
+import { rng } from '../../kernel/rng.js';
 
 // Generic N-lock layout (not hardcoded to 15) so the same code serves the
 // small dev fixtures and the real 15-lock chest identically. 5 columns max,
@@ -118,7 +118,11 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     const n = opened.length;
     const cell = n ? Math.min(40, hasp.w / n) : 0;
     opened.forEach((lock, i) => {
-      const shard = SHARDS[lock.id];
+      // shard(instance) is part of the Lock interface (CONTRACT §4) and is
+      // documented instance-independent — calling it directly (rather than
+      // keying into the frozen kernel SHARDS table, which only knows the
+      // real 01..14 ids) works for every lock, real or fixture.
+      const shard = lock.shard(lock.makePuzzle(rng('lindisfarne-793:' + lock.id)));
       if (!shard) return;
       const cx = hasp.w / 2 - (n * cell) / 2 + cell * i + cell / 2;
       const cy = hasp.h / 2;

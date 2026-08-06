@@ -1,0 +1,166 @@
+// Credits. docs/SHELL.md #5, docs/JARLS.md "Credits stickers".
+
+import { el } from '../dom.js';
+import { DUEL_CAST } from '../duels.js';
+import { portraitImage, drawPortraitPlaceholder } from '../portraits.js';
+
+const STICKER_POOL = ['bourj', 'rois', 'andreas', 'folklore', 'arya', 'ramon', 'alano', 'alanof', 'tebi'];
+
+export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSkip }) {
+  const p = art.palette;
+  const screen = el('div', { class: 'screen screen-credits' });
+
+  let bg = art.makeCanvas(1, 1);
+  bg.canvas.className = 'finale-canvas';
+  screen.append(bg.canvas);
+
+  // Falling stickers live on their own transparent overlay canvas, composited
+  // from sprites pre-rendered once (no per-frame regrade, docs/JARLS.md).
+  let stickerCanvas = art.makeCanvas(1, 1);
+  stickerCanvas.canvas.className = 'sticker-canvas';
+  screen.append(stickerCanvas.canvas);
+
+  const sprites = [];
+  if (typeof art.sticker === 'function') {
+    for (const key of STICKER_POOL) {
+      const img = imageCache ? portraitImage(imageCache, key) : null;
+      if (!img) continue;
+      const size = 64;
+      const c = art.makeCanvas(size, size);
+      art.sticker(c.ctx, img, size / 2, size / 2, size * 0.86, 0);
+      sprites.push(c.canvas);
+    }
+  }
+
+  function portraitFig(key, name, opts = {}) {
+    const size = opts.size || 120;
+    const c = art.makeCanvas(size, Math.round(size * (opts.white ? 1.1 : 1.2)));
+    const img = imageCache ? portraitImage(imageCache, key) : null;
+    if (typeof art.portrait === 'function' && img) art.portrait(c.ctx, img, 0, 0, c.w, c.h, opts.white ? { white: true } : {});
+    else drawPortraitPlaceholder(c.ctx, p, 0, 0, c.w, c.h, name);
+    return el('figure', { class: opts.white ? 'credits-portrait credits-portrait-white' : 'credits-portrait' }, [c.canvas, el('figcaption', {}, name)]);
+  }
+
+  const challengers = el('div', { class: 'credits-challengers' }, DUEL_CAST.map(({ key, name }) => portraitFig(key, name)));
+
+  const scroll = el('div', { class: 'credits-scroll', tabindex: '0' });
+  if (reducedMotion) scroll.style.scrollBehavior = 'auto';
+
+  scroll.append(
+    el('section', { class: 'credits-section' }, [el('h1', { class: 'credits-title carved-text' }, 'VALHALLA')]),
+    el('section', { class: 'credits-section' }, [el('h2', { class: 'carved-text' }, 'THE CHALLENGERS'), challengers]),
+    el('section', { class: 'credits-section' }, [
+      el('h2', { class: 'carved-text' }, 'THE HOARD'),
+      el('p', {}, 'TEBI THE OSTEOPATH · Snake-in-the-Eye'),
+      el('p', {}, 'JARL ÅLANØ — the Troll-Burster · Friend of the Children'),
+    ]),
+    el('section', { class: 'credits-section' }, [
+      el('h2', { class: 'carved-text' }, 'THE SCORE'),
+      el('p', {}, '"Frostbound Lullaby"'),
+      el('p', {}, '"Hjá Vindi"'),
+    ]),
+    el('section', { class: 'credits-section' }, [portraitFig('ramon', 'JARL RAMON', { white: true, size: 88 })]),
+    el('section', { class: 'credits-section credits-colophon' }, [el('p', { class: 'carved-text' }, 'carved by machine hands · MMXXVI')]),
+  );
+
+  // Reduced motion: a static scatter as real DOM content at the foot of the
+  // scrollable list (not the falling overlay, which is viewport-fixed and
+  // wouldn't sit "at the foot" in any scroll-stable sense).
+  if (sprites.length && reducedMotion) {
+    const n = Math.min(8, sprites.length);
+    const scatter = el('div', { class: 'sticker-scatter' });
+    for (let i = 0; i < n; i++) {
+      scatter.append(el('img', {
+        class: 'sticker-static',
+        src: sprites[i].toDataURL('image/png'),
+        alt: '',
+        style: `transform:rotate(${(i % 2 ? 1 : -1) * (4 + i)}deg)`,
+      }));
+    }
+    scroll.append(el('section', { class: 'credits-section' }, [scatter]));
+  }
+
+  const skipBtn = el('button', {
+    type: 'button', class: 'btn-quiet credits-skip',
+    onClick: () => { audio.ui('slide'); onSkip(); },
+  }, 'Skip');
+
+  screen.append(scroll, skipBtn);
+  root.append(screen);
+
+  function paintBg() {
+    art.paintWood(bg.ctx, bg.w, bg.h, 811);
+  }
+  function resize() {
+    const w = screen.clientWidth;
+    const h = screen.clientHeight;
+    const freshBg = art.makeCanvas(w, h);
+    freshBg.canvas.className = 'finale-canvas';
+    screen.replaceChild(freshBg.canvas, bg.canvas);
+    bg = freshBg;
+    paintBg();
+    const freshSticker = art.makeCanvas(w, h);
+    freshSticker.canvas.className = 'sticker-canvas';
+    screen.replaceChild(freshSticker.canvas, stickerCanvas.canvas);
+    stickerCanvas = freshSticker;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  audio.music?.credits?.();
+  scroll.focus();
+
+  function onKey(e) { if (e.key === 'Escape') { audio.ui('slide'); onSkip(); } }
+  scroll.addEventListener('keydown', onKey);
+
+  // ---- falling stickers (skipped entirely under reduced motion) ----
+  let raf = null;
+  let spawnTimer = null;
+  let particles = [];
+
+  function spawnOne() {
+    if (!sprites.length || particles.length >= 8) return;
+    particles.push({
+      sprite: sprites[Math.floor(Math.random() * sprites.length)],
+      x: 20 + Math.random() * Math.max(1, (screen.clientWidth || 360) - 60),
+      vy: 16 + Math.random() * 12,
+      sway: 8 + Math.random() * 10,
+      swayFreq: 0.4 + Math.random() * 0.4,
+      rot: (Math.random() - 0.5) * 40,
+      rotSpeed: (Math.random() - 0.5) * 8,
+      born: performance.now(),
+    });
+  }
+
+  function loop(now) {
+    stickerCanvas.ctx.clearRect(0, 0, stickerCanvas.w, stickerCanvas.h);
+    const h = stickerCanvas.h || 600;
+    particles = particles.filter((pt) => {
+      const t = (now - pt.born) / 1000;
+      const y = -80 + pt.vy * t * 10;
+      const x = pt.x + Math.sin(t * pt.swayFreq) * pt.sway;
+      const rotRad = ((pt.rot + pt.rotSpeed * t * 10) * Math.PI) / 180;
+      stickerCanvas.ctx.save();
+      stickerCanvas.ctx.translate(x, y);
+      stickerCanvas.ctx.rotate(rotRad);
+      stickerCanvas.ctx.drawImage(pt.sprite, -32, -32, 64, 64);
+      stickerCanvas.ctx.restore();
+      return y <= h + 80;
+    });
+    raf = requestAnimationFrame(loop);
+  }
+
+  if (sprites.length && !reducedMotion) {
+    spawnOne();
+    spawnTimer = setInterval(spawnOne, 900);
+    raf = requestAnimationFrame(loop);
+  }
+
+  return function unmount() {
+    window.removeEventListener('resize', resize);
+    scroll.removeEventListener('keydown', onKey);
+    if (raf) cancelAnimationFrame(raf);
+    if (spawnTimer) clearInterval(spawnTimer);
+    screen.remove();
+  };
+}

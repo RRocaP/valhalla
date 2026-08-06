@@ -44,7 +44,8 @@ p{margin:0}
 /* ---- screens ---- */
 .screen{min-height:100vh;min-height:100dvh;width:100%;position:relative;padding:max(16px,var(--safe-t)) max(16px,var(--safe-r)) max(16px,var(--safe-b)) max(16px,var(--safe-l));overflow:hidden}
 
-.screen-threshold{display:grid;place-content:center;justify-items:center;gap:clamp(14px,3vh,30px);text-align:center;background:var(--oakDeep)}
+.screen-threshold{padding:0;display:block}
+.threshold-content{position:relative;z-index:1;min-height:100%;display:grid;place-content:center;justify-items:center;gap:clamp(14px,3vh,30px);text-align:center;padding:max(16px,var(--safe-t)) max(16px,var(--safe-r)) max(16px,var(--safe-b)) max(16px,var(--safe-l))}
 .title{font-family:var(--font-display);letter-spacing:.35em;color:var(--gold);font-weight:600;font-size:clamp(2rem,5vw + 1rem,3.6rem);margin:0}
 .subtitle{color:var(--boneDim);font-size:clamp(.95rem,1.5vw + .6rem,1.25rem);margin:0;letter-spacing:.03em;font-style:italic}
 .threshold-actions{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:8px}
@@ -70,7 +71,7 @@ p{margin:0}
 .ledger-numeral{font-family:var(--font-mono);color:var(--goldBright);letter-spacing:.15em;font-size:clamp(.85rem,1vw + .5rem,1.05rem)}
 .lock-title{font-family:var(--font-display);color:var(--bone);font-size:clamp(1.3rem,2vw + 1rem,2rem);margin:.2em 0}
 .lock-epigraph{font-family:var(--font-body);font-style:italic;color:var(--boneDim);font-size:clamp(.9rem,.8vw + .7rem,1.05rem);max-width:52ch;margin:0 auto}
-.lock-root{position:relative;min-height:0;padding:12px}
+.lock-root{position:relative;min-height:0;padding:12px;display:flex;flex-direction:column;justify-content:center;align-items:stretch}
 .lockroom-footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 10px 18px}
 .near-line{color:var(--goldBright);font-style:italic;min-height:1.4em;text-align:center;font-size:.95rem}
 .attempts-row{display:flex;align-items:center;gap:10px}
@@ -91,12 +92,12 @@ p{margin:0}
 .finale-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .finale-chrome{position:relative;min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:1fr auto;pointer-events:none}
 .finale-chrome > *{pointer-events:auto}
-.finale-titles{align-self:end;text-align:center;padding-bottom:6px}
 .finale-title{font-family:var(--font-display);letter-spacing:.12em;color:var(--goldBright);font-size:clamp(1.4rem,3vw + 1rem,2.4rem);margin:0}
 .finale-sub{color:var(--boneDim);font-style:italic;margin:.3em 0 0}
 .finale-footer{text-align:center;padding:14px max(16px,var(--safe-r)) max(18px,var(--safe-b));display:flex;flex-direction:column;align-items:center;gap:10px}
 .finale-colophon{color:var(--boneDim);font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;opacity:.8}
 .skip-hint{position:absolute;bottom:max(18px,var(--safe-b));left:50%;transform:translateX(-50%);color:var(--boneDim);font-size:.85rem;opacity:.75}
+.continue-hint{color:var(--boneDim);font-size:.85rem;opacity:.75;margin-top:6px}
 
 /* ---- overlays ---- */
 .overlay-scrim{position:fixed;inset:0;background:rgba(12,9,6,.6);z-index:20}
@@ -126,6 +127,51 @@ p{margin:0}
 @media (prefers-reduced-motion: reduce){
   .lockroom-frame.shudder{animation:none}
   .drawer,.panel-overlay,.toggle::after{transition:none}
+}
+
+/* ---- material-type mandate: DOM-text relief recipe (ART.md) ---- */
+/* Paired 1px shadows: tar above-left, goldBright ~18% below-right. */
+.carved-text{text-shadow:-1px -1px 0 var(--tar),1px 1px 0 rgba(238,207,109,.18)}
+/* Stronger relief (depth >=0.7 equivalent) for the title card, lock headers,
+   and shard numerals — the "at times even volume" call-outs. */
+.carved-text-deep{text-shadow:-1.5px -1.5px 1px var(--tar),2px 2px 1.5px rgba(238,207,109,.3),0 0 18px rgba(238,207,109,.14)}
+
+/* ---- duels (docs/JARLS.md) ---- */
+.duel-banner{position:absolute;transform:translate(-50%,-100%);background:var(--blood);color:var(--bone);font-family:var(--font-display);font-size:.72rem;letter-spacing:.06em;padding:4px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 0 var(--oakDeep)}
+.dare-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:20px;max-width:420px;margin:0 auto}
+.dare-card canvas{display:block}
+.dare-name{font-family:var(--font-display);color:var(--goldBright);letter-spacing:.08em;font-size:clamp(1.2rem,2vw + .9rem,1.6rem);margin:0}
+.dare-taunt{color:var(--boneDim);font-style:italic;max-width:46ch;margin:0}
+.dot-overflow{font-family:var(--font-mono);font-size:.7rem;color:var(--boneDim);align-self:center}
+
+/* ---- finale (docs/JARLS.md "The treasures") ---- */
+.finale-reveal{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:16px;justify-self:center;align-self:center}
+.finale-reveal canvas{display:block;margin:0 auto}
+.finale-epithet{color:var(--boneDim);font-style:italic;max-width:44ch;margin:.2em auto 0}
+.finale-tableau{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:8px}
+.finale-tableau-item{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;font-size:.8rem;color:var(--boneDim);margin:0}
+.finale-tableau-item figcaption{max-width:20ch}
+
+/* ---- credits (docs/SHELL.md #5) ---- */
+.screen-credits{padding:0;display:block}
+.sticker-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.credits-scroll{position:relative;z-index:2;height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;padding:12vh max(20px,var(--safe-r)) 14vh max(20px,var(--safe-l));display:flex;flex-direction:column;gap:14vh}
+.credits-section{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.credits-section h2{font-family:var(--font-display);color:var(--goldBright);letter-spacing:.1em;font-size:clamp(1.1rem,1.5vw + .8rem,1.4rem);margin:0}
+.credits-section p{color:var(--boneDim);margin:0}
+.credits-title{font-family:var(--font-display);letter-spacing:.3em;color:var(--gold);font-size:clamp(1.8rem,4vw + 1rem,3rem);margin:0}
+.credits-colophon{opacity:.85}
+.credits-challengers{display:flex;flex-wrap:wrap;justify-content:center;gap:22px}
+.credits-portrait{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.78rem;color:var(--boneDim);margin:0}
+.credits-portrait canvas{display:block}
+.credits-portrait figcaption{font-family:var(--font-mono);letter-spacing:.03em}
+.credits-portrait-white figcaption{color:var(--bone)}
+.credits-skip{position:fixed;top:max(14px,var(--safe-t));right:max(14px,var(--safe-r));z-index:3;background:rgba(12,9,6,.5);border-radius:6px}
+.sticker-scatter{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.sticker-static{width:56px;height:56px;display:block}
+
+@media (prefers-reduced-motion: reduce){
+  .credits-scroll{scroll-behavior:auto}
 }
 `;
 }

@@ -8,8 +8,9 @@ report to the lead rather than widening the contract.
 `VALHALLA — Fifteen Locks of the Northmen` (project codename "oathwood" —
 internal ids, paths, and the save key keep the codename; every player-visible
 surface says VALHALLA). A carved oak sea-chest with fifteen locks. The player opens them in order. Viking Age (793–1066). There is **no**
-travel framing, no itinerary, no boarding, no named real person, no dedication,
-no story about anybody. The only fiction is the chest and the locks.
+travel framing, no itinerary, no boarding, no dedication. The only fiction is
+the chest, the locks, and Ramon's cast: the supplied challenger/treasure/credit
+portraits with their joke titles (JARLS.md) — no other real-person content.
 
 Ship target: **one self-contained `index.html`** at the repo root, deployed by
 GitHub Pages. No network requests at runtime. No external fonts, images, audio

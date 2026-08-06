@@ -10,6 +10,7 @@ import {
 } from '../../src/shell/progress.js';
 import { formatTimestamp, journalLine, pushJournal, hintTakenLine } from '../../src/shell/journal.js';
 import { toRoman, ordinalWord } from '../../src/shell/numerals.js';
+import { DUELS, DUEL_ORDER, DUEL_CAST, duelFor, isDuelOrdinal } from '../../src/shell/duels.js';
 
 // In-memory localStorage-shaped mock.
 function mockStorage(initial = {}) {
@@ -191,6 +192,35 @@ describe('progress: lock gating (sealed/next/open)', () => {
     assert.equal(progressFraction([], save), 0);
     assert.equal(isComplete([], save), false);
     assert.equal(nextLockId([], save), null);
+  });
+});
+
+describe('duels (docs/JARLS.md, frozen mapping)', () => {
+  test('exactly locks 3/6/9/12/15 are duels; everything else is not', () => {
+    for (let ord = 1; ord <= 15; ord++) {
+      assert.equal(isDuelOrdinal(ord), [3, 6, 9, 12, 15].includes(ord));
+    }
+  });
+
+  test('duelFor returns the frozen challenger for a duel ordinal, null otherwise', () => {
+    assert.equal(duelFor(3).name, 'JARL BOURJ');
+    assert.equal(duelFor(15).key, 'arya');
+    assert.equal(duelFor(1), null);
+    assert.equal(duelFor(7), null);
+  });
+
+  test('every duel entry has a key, name, taunt, and yield line', () => {
+    for (const ord of DUEL_ORDER) {
+      const d = DUELS[ord];
+      assert.equal(typeof d.key, 'string');
+      assert.equal(typeof d.name, 'string');
+      assert.ok(d.taunt.length > 0);
+      assert.ok(d.yield.length > 0);
+    }
+  });
+
+  test('DUEL_CAST is in duel order (matches the credits "THE CHALLENGERS" order)', () => {
+    assert.deepEqual(DUEL_CAST.map((c) => c.key), ['bourj', 'rois', 'andreas', 'folklore', 'arya']);
   });
 });
 

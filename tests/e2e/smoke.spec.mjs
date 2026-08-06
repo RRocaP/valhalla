@@ -5,7 +5,7 @@ test('page boots clean and offline-capable', async ({ page, context }) => {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto('/#autotest');
-  await expect(page).toHaveTitle(/OATHWOOD/);
+  await expect(page).toHaveTitle(/VALHALLA/);
   await expect(page.locator('#app')).not.toBeEmpty();
   // no network after load (single-file contract)
   await context.setOffline(true);

@@ -4,8 +4,13 @@
 
 import { el, confirmButton } from '../dom.js';
 
-export function mountThreshold(root, { hasSave, onBegin, onBeginAnew }) {
-  const title = el('h1', { class: 'title' }, 'OATHWOOD');
+export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew }) {
+  const screen = el('div', { class: 'screen screen-threshold' });
+  let bg = art.makeCanvas(1, 1);
+  bg.canvas.className = 'finale-canvas'; // full-bleed wood backdrop, shared styling
+  screen.append(bg.canvas);
+
+  const title = el('h1', { class: 'title carved-text-deep' }, 'VALHALLA');
   const subtitle = el('p', { class: 'subtitle' }, 'Fifteen Locks of the Northmen');
 
   const actions = el('div', { class: 'threshold-actions' });
@@ -23,10 +28,24 @@ export function mountThreshold(root, { hasSave, onBegin, onBeginAnew }) {
     actions.append(begin);
   }
 
-  const wrap = el('div', { class: 'screen screen-threshold' }, [title, subtitle, actions]);
-  root.append(wrap);
+  const content = el('div', { class: 'threshold-content' }, [title, subtitle, actions]);
+  screen.append(content);
+  root.append(screen);
+
+  function resize() {
+    const w = screen.clientWidth;
+    const h = screen.clientHeight;
+    const fresh = art.makeCanvas(w, h);
+    fresh.canvas.className = 'finale-canvas';
+    screen.replaceChild(fresh.canvas, bg.canvas);
+    bg = fresh;
+    art.paintWood(bg.ctx, bg.w, bg.h, 793);
+  }
+  window.addEventListener('resize', resize);
+  resize();
 
   return function unmount() {
-    wrap.remove();
+    window.removeEventListener('resize', resize);
+    screen.remove();
   };
 }

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>OW-SHELL dev harness</title>
+<style>html,body{margin:0;padding:0;background:#221507;height:100%}#app{min-height:100%}</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+  import { createShell } from '../../src/shell/index.js';
+  import { createArt } from '../../src/art/index.js';
+  import { createAudio } from '../../src/audio/index.js';
+  import { FIXTURE_LOCKS } from './fixtures.js';
+
+  // Empty strings deliberately exercise the shell's OWN placeholder paths
+  // (drawPortraitPlaceholder, the hand-drawn treasure placeholder) rather
+  // than art.portrait()/treasureFrame()'s real-image rendering, which is
+  // ART's concern to verify, not this dev harness's.
+  const locks = FIXTURE_LOCKS.slice().sort((a, b) => a.ordinal - b.ordinal);
+  const shell = createShell({
+    locks,
+    art: createArt(),
+    audio: createAudio(),
+    treasureDataUri: '',
+    portraits: { bourj: '', rois: '', andreas: '', folklore: '', arya: '', ramon: '', alano: '', alanof: '' },
+  });
+  shell.start();
+</script>
+</body>
+</html>

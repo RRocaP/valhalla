@@ -113,3 +113,31 @@ export function playBeat({ el: target, duration, reducedMotion, render, onDone }
     cleanupListeners();
   };
 }
+
+// Player-paced "tap/Enter to advance" — unlike playBeat, this never
+// auto-fires (reduced motion must not skip content the player hasn't chosen
+// to advance past yet). Used by the finale's two tap-advanced treasure
+// reveals. Returns cancel() — tears down without firing onAdvance.
+export function waitForAdvance(target, onAdvance) {
+  let settled = false;
+  function trigger() {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    onAdvance();
+  }
+  function onKey(e) {
+    if (e.key === 'Enter' || e.key === ' ') trigger();
+  }
+  function cleanup() {
+    target.removeEventListener('click', trigger);
+    target.removeEventListener('keydown', onKey);
+  }
+  target.addEventListener('click', trigger);
+  target.addEventListener('keydown', onKey);
+  return function cancel() {
+    if (settled) return;
+    settled = true;
+    cleanup();
+  };
+}
