@@ -1,0 +1,21 @@
+{
+  "name": "oathwood",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "OATHWOOD - Fifteen Locks of the Northmen",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch --serve",
+    "serve": "node scripts/serve.mjs",
+    "test": "node --test tests/unit/",
+    "verify": "node scripts/verify.mjs",
+    "verify:partial": "node scripts/verify.mjs --partial --seeds 50",
+    "e2e": "playwright test",
+    "gates": "npm run test && npm run build && npm run verify"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "esbuild": "^0.21.5"
+  }
+}
