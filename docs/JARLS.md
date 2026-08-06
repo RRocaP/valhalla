@@ -1,18 +1,61 @@
-# THE CHALLENGERS — frozen duel spec
+# THE CHALLENGERS — frozen duel spec (v2, 2026-08-06)
 
-Five chieftains bar the way. Every third lock is a **duel**: the challenger
-dares you as you enter it, and yields when you open it. Presentation only —
-no Lock interface change, no new save fields (defeated ≡ that lock is open).
+Five chieftains bar the way, **from the very first lock** (Ramon directive).
+A duel lock: the challenger dares you as you enter, and yields when you open
+it. Presentation only — no Lock interface change, no new save fields
+(defeated ≡ that lock is open).
 
-## Cast (FROZEN — mapping, orthography, portrait ids)
+## The wager (framing card, shown once after the threshold gesture)
 
-| Lock | Challenger (exact in-game text) | Portrait id |
-|---|---|---|
-| 03 Beacon Nights | JARL BOURJ | `bourj` |
-| 06 Jötunvillur | GUDJA RØIS | `rois` |
-| 09 Sunstone | JARL ÅNDREAS | `andreas` |
-| 12 Feast Benches | JARL FOLKLORE | `folklore` |
-| 15 Oath-Ring | QUEEN ÄRYÄ STÖRK — the last | `arya` |
+EN: "Queen Ärya Störk's sea-chest stands in the hall: fifteen locks, five
+sworn jarls to bar the way, and the hoard for whoever opens them all before
+the spring sailing. The first lock waits — and Jarl Bourj already stands
+over it."
+ES: «El cofre de la reina Ärya Störk se alza en el salón: quince cerraduras,
+cinco jarls juramentados cerrando el paso, y el tesoro para quien las abra
+todas antes de la partida de primavera. La primera cerradura aguarda — y el
+jarl Bourj ya está plantado sobre ella.»
+CA: «El cofre de la reina Ärya Störk s'alça a la sala: quinze panys, cinc
+jarls jurats barrant el pas, i el tresor per a qui els obri tots abans de la
+sortida de primavera. El primer pany espera — i el jarl Bourj ja hi és
+plantat al damunt.»
+
+## Chapters (FROZEN v3 — Ramon: "one jarl, a few puzzles, then next jarl")
+
+Fifteen locks in FIVE GAUNTLETS of three. Each jarl OWNS their gauntlet: the
+**dare card** fires on entering its first lock; the jarl's banner hangs over
+all three of their medallions on the lid; a **heckle line** lands on their
+middle locks; the **yield beat** fires when their last lock opens. Ärya's
+yield is the last bow → finale.
+
+| Gauntlet | Locks | Challenger | Portrait | Dare at | Yield at |
+|---|---|---|---|---|---|
+| I | 01–03 | JARL BOURJ | `bourj` | 01 | 03 |
+| II | 04–06 | GUDJA RØIS | `rois` | 04 | 06 |
+| III | 07–09 | JARL ÅNDREAS | `andreas` | 07 | 09 |
+| IV | 10–12 | JARL FOLKLORE | `folklore` | 10 | 12 |
+| V | 13–15 | QUEEN ÄRYÄ STÖRK — the last | `arya` | 13 | 15 |
+
+## Chapter-opening taunts (FROZEN v3, verbatim; yields in the table further
+down are UNCHANGED and still land on 03/06/09/12/15 where they always fit)
+
+| id | EN | ES | CA |
+|---|---|---|---|
+| bourj | "I have watched a thousand hands at this row. Every one left humbler. Three locks are mine — begin." | «He visto mil manos en esta hilera. Todas se marcharon más humildes. Tres cerraduras son mías — empieza.» | «He vist mil mans en aquesta filera. Totes van marxar més humils. Tres panys són meus — comença.» |
+| rois | "Nine planks and one lie — I saw it before the shipwright spoke. My three locks will read you like weather." | «Nueve tablones y una mentira — la vi antes de que hablara el carpintero. Mis tres cerraduras te leerán como al tiempo.» | «Nou taulons i una mentida — la vaig veure abans que parlés el mestre d'aixa. Els meus tres panys et llegiran com el temps.» |
+| andreas | "The hound-jarl sets the board and says nothing. Three locks — and he smells your first mistake already." | «El jarl-sabueso dispone el tablero y no dice nada. Tres cerraduras — y ya huele tu primer error.» | «El jarl-gos para el tauler i no diu res. Tres panys — i ja ensuma el teu primer error.» |
+| folklore | "Verse, benches, and quarrelsome kin — my three locks. Fill your cup first; you will need the courage." | «Versos, bancos y parentela pendenciera — mis tres cerraduras. Llena antes tu copa; te hará falta el valor.» | «Versos, bancs i parentela busca-raons — els meus tres panys. Omple't abans la copa; et caldrà el coratge.» |
+| arya | "The last three are mine. No one has stood where you stand and left this hall with the hoard." | «Las tres últimas son mías. Nadie ha estado donde tú estás y ha salido de este salón con el tesoro.» | «Els tres últims són meus. Ningú no ha estat on ets tu i ha sortit d'aquesta sala amb el tresor.» |
+
+## Heckles (the gauntlet's OWN jarl, on their middle locks; FROZEN verbatim)
+
+| Locks | EN | ES | CA |
+|---|---|---|---|
+| 02 | "Bourj counts your wrong turns aloud. He is enjoying this." | «Bourj cuenta en voz alta tus pasos en falso. Está disfrutando.» | «En Bourj compta en veu alta els teus passos en fals. S'ho està passant bé.» |
+| 05 | "Røis turns a cold coin, unsurprised by anything you do." | «Røis hace girar una moneda fría, sin sorprenderse de nada de lo que haces.» | «En Røis fa girar una moneda freda, sense sorprendre's de res del que fas.» |
+| 08 | "The hound-jarl's eyes follow your hands. He does not blink." | «Los ojos del jarl-sabueso siguen tus manos. No parpadea.» | «Els ulls del jarl-gos segueixen les teves mans. No parpelleja.» |
+| 11 | "Folklore refills his cup. 'Take your time. The mead won't.'" | «Folklore rellena su copa. “Tómate tu tiempo. El hidromiel no lo hará.”» | «En Folklore s'omple la copa. “Pren-t'ho amb calma. La mel fermentada no ho farà.”» |
+| 14 | "The Queen has not looked away since her gauntlet began." | «La Reina no ha apartado la mirada desde que empezó su desafío.» | «La Reina no ha apartat la mirada des que va començar el seu repte.» |
 
 Portraits arrive in `createShell({ portraits })` as data URIs (may be `''` →
 carved placeholder silhouette + name). `portraits.ramon` is reserved for the

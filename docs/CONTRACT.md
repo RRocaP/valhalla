@@ -26,10 +26,12 @@ revealed with *Jarl Ålanø* when all fifteen locks open. Any absent file
 degrades to a carved placeholder; the build never breaks on a missing
 portrait.
 
-**Sound track exception (the roca-airways pattern):** two committed sibling
-files, `music.mp3` (gameplay loop — Frostbound Lullaby) and `credits.mp3`
-(Hjá Vindi), are the ONLY permitted runtime fetches, same-origin relative
-paths only. If either fetch or decode fails (offline `file://`, blocked
+**Sound track exception (the roca-airways pattern, v2 progression score):**
+four committed sibling files are the ONLY permitted runtime fetches, all
+same-origin relative paths: `music.mp3` (Act I, gauntlets I–II — Frostbound
+Lullaby), `act2.mp3` (Act II, gauntlets III–IV — Frost on the Nyckelharpa),
+`act3.mp3` (Act III, gauntlet V — Windswept Silence), `credits.mp3`
+(Hjá Vindi). Act switches crossfade at the yield beats of locks 06 and 12. If either fetch or decode fails (offline `file://`, blocked
 autoplay), the game remains fully playable and the synthesized drone carries
 the score. Everything else stays inlined in `index.html`.
 

@@ -33,7 +33,15 @@ export function createAudio() => {
                        // 'dare'   – low horn challenge, two notes, held (a challenger steps up)
                        // 'yield'  – drum hit + falling third, resolving (the challenger bows)
   drone: { start(), stop(), intensity(x) },  // x∈[0,1]: brightness/level with progress
-  music: { start(), credits(), stop(), ready },  // streamed score — see below
+  music: { start(), credits(), stop(), ready,
+           act(n) },  // v2 (additive, 2026-08-06): n∈{1,2,3} selects the
+                      // progression track (music.mp3/act2.mp3/act3.mp3);
+                      // equal-power crossfade ~2.5s between acts; idempotent;
+                      // lazy-fetches the target, keeps current playing until
+                      // the new buffer is ready; same body-loop + baked-seam
+                      // discipline per track as v1. Shell calls it from the
+                      // yield beats of locks 06 and 12 (and on load by save
+                      // progress). Failure of any fetch degrades per v1 rules.
 }
 ```
 

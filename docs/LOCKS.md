@@ -42,13 +42,17 @@ Futhark order of the fourteen: ᚠ ᚢ ᚦ ᚱ ᚴ ᚼ ᚾ ᛁ ᛅ ᛋ ᛏ ᛒ �
 
 ---
 
-## 01 — `01-runerow` · The Rune Row · tier 1 · LOCKS-A
-Sixteen carved tiles of the Younger Futhark, jumbled; 3–4 of them mirrored
-(wend-runes). Restore the row: drag to reorder, tap to flip. **Answer:**
-`{ order: [16 indices], flips: [bools] }` — unique. Teaches: runes have one
-order; carvings can lie by mirror. Floors: minSteps 6, estMinutes 2.
-searchSpace note: instance jumbles 8 tiles. Near-diagnostics by region
-("the elder third is right").
+## 01 — `01-runerow` · The First Ætt · tier 1 · LOCKS-A
+REVISED 2026-08-06 (Ramon: opener was too complex; entry must be gentle and
+the ramp felt). The full sixteen-rune row is carved as the target, but only
+the FIRST ÆTT — ᚠᚢᚦᚬᚱᚴ, the six runes that name the fuþark — hangs loose:
+six tiles, 4–5 displaced, EXACTLY ONE mirrored (wend-rune). Restore the six:
+drag to reorder, tap to flip. **Answer:** `{ order: [6 indices], flips:
+[6 bools] }` — unique. Teaches in one minute: runes have one order; a carving
+can lie by mirror; the journal remembers. The remaining ten runes stand fixed
+and carved on the row (foreshadowing, not workload). Floors unchanged:
+minSteps 6, estMinutes 2. Near-diagnostics name positions ("the third stave
+stands true; its neighbour is turned").
 
 ## 02 — `02-bismer` · The Bismer Scales · tier 1 · LOCKS-A
 Nine sealed pouches of hacksilver, one light (clipped). Two balance weighings
