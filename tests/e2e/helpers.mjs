@@ -197,14 +197,15 @@ async function clickButton(root, name) {
 
 export const drivers = {
   async '01-runerow'(page, root, answer) {
+    // First Ætt revision: six loose tiles, one mirrored (docs/LOCKS.md §01)
     const tiles = root.locator('.ow1-tile');
-    const order = Array.from({ length: 16 }, (_, i) => i);
+    const order = Array.from({ length: 6 }, (_, i) => i);
     await reorderByDrag(page, tiles, order, answer.order);
     for (let k = 0; k < answer.flips.length; k++) {
       if (!answer.flips[k]) continue;
       await tiles.nth(k).click(); // a stationary tap (no movement) flips it
     }
-    await clickButton(root, 'Set the row');
+    await clickButton(root, 'Set the ætt');
   },
 
   async '02-bismer'(page, root, answer) {

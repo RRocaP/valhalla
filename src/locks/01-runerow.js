@@ -223,7 +223,7 @@ const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  railLaw: 'The rail above is the law — the whole row, as it was cut',
+  railLaw: 'The rail is the law',
   looseLaw: 'These six hang loose. Lay them under the rail’s first six.',
   help: 'Drag a stave into its place. Tap a stave to turn it over. By key: arrows walk the six, space lifts and sets down, F turns a stave over.',
   submit: 'Set the ætt',
@@ -500,18 +500,21 @@ function mount(ctx) {
     art.ornament(c, 'nailhead', bx0, by + 8.5, 7);
     art.ornament(c, 'nailhead', bx1, by + 8.5, 7);
 
-    // a chisel chevron pointing down at the bench: the stretch belongs below
-    const cx = (bx0 + bx1) / 2;
-    const cy = H - 9;
-    c.save();
-    c.strokeStyle = p.tar;
-    c.lineWidth = 4;
-    c.lineCap = 'round';
-    c.beginPath(); c.moveTo(cx - 9, cy - 7.4); c.lineTo(cx, cy + 0.6); c.lineTo(cx + 9, cy - 7.4); c.stroke();
-    c.strokeStyle = p.goldBright;
-    c.lineWidth = 2.2;
-    c.beginPath(); c.moveTo(cx - 9, cy - 8.4); c.lineTo(cx, cy - 0.4); c.lineTo(cx + 9, cy - 8.4); c.stroke();
-    c.restore();
+    // six chisel chevrons, one under each loose stave: this stretch drops below
+    const cy = H - 8;
+    const cw = Math.max(4.5, Math.min(9, pitch * 0.22));
+    for (let i = 0; i < N; i++) {
+      const cx = railRuneAt(i).x + pitch / 2;
+      c.save();
+      c.strokeStyle = p.tar;
+      c.lineWidth = cw * 0.44;
+      c.lineCap = 'round';
+      c.beginPath(); c.moveTo(cx - cw, cy - cw * 0.82); c.lineTo(cx, cy + 0.6); c.lineTo(cx + cw, cy - cw * 0.82); c.stroke();
+      c.strokeStyle = p.goldBright;
+      c.lineWidth = cw * 0.26;
+      c.beginPath(); c.moveTo(cx - cw, cy - cw * 0.94); c.lineTo(cx, cy - 0.5); c.lineTo(cx + cw, cy - cw * 0.94); c.stroke();
+      c.restore();
+    }
 
     // after a wrong setting: gold ticks under the stretch that stood true,
     // one ember tick under the first place that did not
@@ -550,9 +553,9 @@ function mount(ctx) {
 
     // the plank
     const g = c.createLinearGradient(0, top, 0, H - 8);
-    g.addColorStop(0, mixHex(p.oak, p.oakLight, 0.5));
-    g.addColorStop(0.55, p.oak);
-    g.addColorStop(1, mixHex(p.oak, p.oakDeep, 0.7));
+    g.addColorStop(0, mixHex(p.oak, p.oakLight, 0.72));
+    g.addColorStop(0.5, mixHex(p.oak, p.oakLight, 0.24));
+    g.addColorStop(1, mixHex(p.oak, p.oakDeep, 0.55));
     c.save();
     c.fillStyle = g;
     c.fillRect(4, top, W - 8, H - top - 8);
@@ -1087,13 +1090,15 @@ function mount(ctx) {
     }));
 
     rowWrap.style.gap = `${gap}px`;
-    rowWrap.style.padding = `${Math.round(tileH * 0.16)}px 6px 14px`;
+    // the bench canvas is out of flow; the row's own bottom padding is what
+    // reserves its apron, so nothing below the board is ever overlapped
+    rowWrap.style.padding = `${Math.round(tileH * 0.16)}px 6px 48px`;
     for (const tile of tiles) {
       fitCanvas(tile.btn, tile.gfx, tileW, tileH, null);
       tile.key = '';
     }
     const bedW = Math.min(avail, Math.round(tileW * N + gap * (N - 1) + 40));
-    fitCanvas(bedHost, bedWood, bedW, Math.round(tileH * 0.42) + 26, null);
+    fitCanvas(bedHost, bedWood, bedW, Math.round(tileH * 0.42) + 42, null);
     bedHost.style.top = `${Math.round(tileH * 0.74)}px`;
     paintRail();
     paintBed();
@@ -1164,7 +1169,7 @@ const I18N = {
       [NEAR.run[3]]: 'Las cuatro primeras astas se sostienen; la quinta no.',
     },
     board: {
-      railLaw: 'El listón de arriba es la ley — la hilera entera, tal como fue tallada',
+      railLaw: 'El listón es la ley',
       looseLaw: 'Estas seis penden sueltas. Tiéndelas bajo las seis primeras del listón.',
       help: 'Arrastra un asta a su sitio. Tócala para volverla. Con el teclado: flechas para recorrer las seis, espacio para alzarla y posarla, F para volverla.',
       submit: 'Asentar la ætt',
@@ -1211,7 +1216,7 @@ const I18N = {
       [NEAR.run[3]]: 'Les quatre primeres astes s’aguanten; la cinquena no.',
     },
     board: {
-      railLaw: 'El llistó de dalt és la llei — la filera sencera, tal com va ser tallada',
+      railLaw: 'El llistó és la llei',
       looseLaw: 'Aquestes sis pengen soltes. Estén-les sota les sis primeres del llistó.',
       help: 'Arrossega una asta al seu lloc. Toca-la per girar-la. Amb el teclat: fletxes per recórrer les sis, espai per alçar-la i posar-la, F per girar-la.',
       submit: 'Assentar l’ætt',

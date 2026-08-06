@@ -1,0 +1,4 @@
+01-runerow: solver 200/200 wrongs 1800 mutants 548/548 (80ms)
+
+GATES GREEN — 1 lock(s), 200 seeds (partial)
+EXIT=0

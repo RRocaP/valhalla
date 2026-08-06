@@ -1,0 +1,10 @@
+key presses to solve      : 14
+tally before the setting  : "All six staves stand true. Set the ætt."
+focus stayed on a stave   : true
+opened by Enter on submit : true
+journal has the key note  : true
+journal has the law note  : true
+tiles left after unmount  : 0
+console errors            : none
+RAMP KEYBOARD + UNMOUNT GREEN
+EXIT=0

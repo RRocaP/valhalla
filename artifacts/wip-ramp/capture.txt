@@ -1,0 +1,36 @@
+
+== desktop ==
+  demo beat visible on entry : true
+  tile box (min)             : 84.0 x 114.0 px
+  horizontal scroll          : false
+  first drag round trip      : 20 ms (place 1)
+  tap-to-turn round trip     : 19 ms
+  tally on entry             : "0 of six staves stand true"
+  tally after one drag       : "1 of six staves stand true"
+  status after one drag      : "úr settles into its place under the rail. 1 of six staves stand true"
+  tally, ordered, unturned   : "5 of six staves stand true"
+  near line at that setting  : "The row stands in order — one stave is still turned against the rail."
+  tally after the turn       : "All six staves stand true. Set the ætt."
+  lock opened                : true
+  rail aria-label            : "The carved rail, sixteen staves: fé, úr, þurs, óss, reið, kaun, hagall, nauðr, íss, ár, sól, týr, bjarkan, maðr, lǫgr, ýr. Its first six — fé, úr, þurs, óss, reið, kaun — are the stretch that hangs loose below."
+  console errors             : none
+
+== iphone ==
+  demo beat visible on entry : true
+  tile box (min)             : 54.0 x 73.0 px
+  horizontal scroll          : false
+  first drag round trip      : 15 ms (place 1)
+  tap-to-turn round trip     : 22 ms
+  tally on entry             : "0 of six staves stand true"
+  tally after one drag       : "1 of six staves stand true"
+  status after one drag      : "úr settles into its place under the rail. 1 of six staves stand true"
+  tally, ordered, unturned   : "5 of six staves stand true"
+  near line at that setting  : "The row stands in order — one stave is still turned against the rail."
+  tally after the turn       : "All six staves stand true. Set the ætt."
+  lock opened                : true
+  rail aria-label            : "The carved rail, sixteen staves: fé, úr, þurs, óss, reið, kaun, hagall, nauðr, íss, ár, sól, týr, bjarkan, maðr, lǫgr, ýr. Its first six — fé, úr, þurs, óss, reið, kaun — are the stretch that hangs loose below."
+  console errors             : none
+
+shots in artifacts/wip-ramp/shots
+RAMP CAPTURE GREEN
+EXIT=0
