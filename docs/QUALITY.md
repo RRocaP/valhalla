@@ -35,6 +35,18 @@ play 3+ minutes in a real browser and judge fatigue, seam, and duck behavior);
 micro-detail everywhere the eye rests: nailheads, worn paint in grooves,
 rivet shadows, journal ink texture.
 
+## Progression-feel law (Ramon 2026-08-06: BotW shrines + Pokémon league)
+
+Challenging but always doable, intuitive, and the player must FEEL themselves
+improving: (1) the first obvious interaction on every board teaches the rule
+by doing — text is the safety net, never the teacher; (2) each gauntlet's
+first lock leans on a verb the player already owns before its new idea lands;
+skills return and combine (runes → mirrored runes → bind-runes; counting →
+cycles → the ring law); (3) no walls — the jarl-counsel ladder always offers
+a next step without solving it; (4) yields are badges: the beat + verse must
+feel EARNED; (5) both form factors first-class — thumb-reachable, ≥44px, no
+hover-only cues, verified at 390×844 touch and 1280×800.
+
 ## Density rubric (Ramon 2026-08-06: "white space, texture detail… the level
 is not there" — these are pass/fail numbers, measured on dSF2 captures)
 
