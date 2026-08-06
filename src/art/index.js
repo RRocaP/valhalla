@@ -13,6 +13,7 @@ import { portrait } from './portrait.js';
 import { sticker } from './sticker.js';
 import { carveText } from './text.js';
 import { wordmark } from './wordmark.js';
+import { tray, chipBorder, ribbonRail, rosette, wear, insetFace } from './carpentry.js';
 
 function dpr() {
   const d = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
@@ -58,5 +59,15 @@ export function createArt() {
     // threshold and echoed on the lid.
     hearth: hearthPool,
     wordmark,
+    // Additive carpentry kit (same footing): boards sit on furniture, and the
+    // furniture carries tool history — carved architrave trays, chip-carved
+    // borders, true-interlace ribbon rails, joint rosettes, quiet wear, and
+    // struck tile faces. No frozen signature changed.
+    tray,
+    chipBorder,
+    ribbonRail,
+    rosette,
+    wear,
+    insetFace,
   };
 }

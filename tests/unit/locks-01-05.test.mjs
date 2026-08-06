@@ -10,7 +10,7 @@ import { rng } from '../../src/kernel/rng.js';
 import { SHARDS } from '../../src/kernel/shards.js';
 import { ORDER } from '../../src/kernel/futhark.js';
 
-import lock01, { WENDABLE } from '../../src/locks/01-runerow.js';
+import lock01, { WENDABLE, NEAR_LINES } from '../../src/locks/01-runerow.js';
 import lock02 from '../../src/locks/02-bismer.js';
 import lock03 from '../../src/locks/03-beacons.js';
 import lock04 from '../../src/locks/04-strakes.js';
@@ -136,42 +136,118 @@ test('pure halves run with the world taken away', () => {
 
 // ------------------------------------------------------------------- 01 staves
 
-test('01 — sixteen distinct staves, eight displaced, faces only where the mirror shows', () => {
+const AETT = ORDER.slice(0, 6); // ᚠ ᚢ ᚦ ᚬ ᚱ ᚴ — the first ætt hangs loose
+
+test('01 — six loose staves, four or five displaced, exactly one struck backwards', () => {
   for (let s = 0; s < SEEDS; s++) {
     const i = inst(lock01, s);
-    assert.equal(i.tiles.length, 16);
-    assert.equal(new Set(i.tiles.map((t) => t.ch)).size, 16);
+    assert.equal(i.tiles.length, 6);
+    assert.deepEqual([...i.tiles.map((t) => t.ch)].sort(), [...AETT].sort(),
+      `seed ${s}: the loose six are not the first ætt`);
 
-    const displaced = i.tiles.filter((t, p) => t.ch !== ORDER[p]).length;
-    assert.equal(displaced, 8, `seed ${s}: ${displaced} displaced, want 8`);
+    const displaced = i.tiles.filter((t, p) => t.ch !== AETT[p]).length;
+    assert.ok(displaced >= 4 && displaced <= 5, `seed ${s}: ${displaced} displaced, want 4 or 5`);
 
     const wend = i.tiles.filter((t) => t.wend);
-    assert.ok(wend.length >= 3 && wend.length <= 4, `seed ${s}: ${wend.length} wend-runes`);
-    for (const t of wend) {
-      assert.ok(WENDABLE.includes(t.ch), `seed ${s}: ${t.ch} cannot be told apart when mirrored`);
-    }
+    assert.equal(wend.length, 1, `seed ${s}: ${wend.length} wend-runes, want exactly one`);
+    assert.ok(WENDABLE.includes(wend[0].ch), `seed ${s}: ${wend[0].ch} cannot be told apart when mirrored`);
   }
 });
 
-test('01 — the row is the futhark and the faces are the carved ones', () => {
+test('01 — exactly one answer over the whole 6! x 2^6 space', () => {
+  for (let s = 0; s < 12; s++) {
+    const i = inst(lock01, s);
+    const found = [];
+    eachPermutation(6, (order) => {
+      for (let mask = 0; mask < 64; mask++) {
+        const flips = [];
+        for (let b = 0; b < 6; b++) flips.push(((mask >> b) & 1) === 1);
+        if (lock01.verify(i, { order: order.slice(), flips }).ok) found.push({ flips, order: order.slice() });
+      }
+    });
+    assert.equal(found.length, 1, `seed ${s}: ${found.length} answers`);
+    assert.deepEqual(found[0], lock01.solve(i));
+  }
+});
+
+test('01 — the answer is the ætt in futhark order with the carved faces', () => {
   for (let s = 0; s < 12; s++) {
     const i = inst(lock01, s);
     const { order, flips } = lock01.solve(i);
     order.forEach((tile, p) => {
-      assert.equal(i.tiles[tile].ch, ORDER[p]);
+      assert.equal(i.tiles[tile].ch, AETT[p]);
       assert.equal(flips[p], i.tiles[tile].wend);
     });
     // every single perturbation is refused
-    for (let p = 0; p < 16; p++) {
+    for (let p = 0; p < 6; p++) {
       const bentFlips = flips.slice();
       bentFlips[p] = !bentFlips[p];
       assert.notEqual(lock01.verify(i, { order, flips: bentFlips }).ok, true);
     }
-    for (let p = 0; p < 15; p++) {
+    for (let p = 0; p < 5; p++) {
       const bent = order.slice();
       const t = bent[p]; bent[p] = bent[p + 1]; bent[p + 1] = t;
       assert.notEqual(lock01.verify(i, { order: bent, flips }).ok, true);
     }
+  }
+});
+
+test('01 — near-lines name a position and come from the frozen set', () => {
+  for (let s = 0; s < SEEDS; s++) {
+    const i = inst(lock01, s);
+    const right = lock01.solve(i);
+    const seen = new Set();
+    const probe = (a) => {
+      const v = lock01.verify(i, a);
+      assert.equal(v.ok, false);
+      assert.ok(NEAR_LINES.includes(v.near), `seed ${s}: off-map near "${v.near}"`);
+      seen.add(v.near);
+    };
+    // the row right, the mirror missed — the face branch
+    probe({ order: right.order.slice(), flips: right.flips.map(() => false) });
+    // the row right, two faces turned — the same branch, plural
+    probe({ order: right.order.slice(), flips: right.flips.map(() => true) });
+    // every wrongAnswer must also land on the map
+    for (const w of lock01.wrongAnswers(i)) probe(w);
+    assert.ok(seen.size >= 3, `seed ${s}: near-lines barely vary (${seen.size})`);
+  }
+});
+
+test('01 — the wrong answers cover the ways a first-timer misses', () => {
+  for (let s = 0; s < SEEDS; s++) {
+    const i = inst(lock01, s);
+    const right = lock01.solve(i);
+    const wrongs = lock01.wrongAnswers(i);
+    assert.ok(wrongs.length >= 6, `seed ${s}: only ${wrongs.length} wrong answers`);
+    assert.equal(new Set(wrongs.map((w) => JSON.stringify(w))).size, wrongs.length,
+      `seed ${s}: duplicate wrong answers`);
+    const sameOrder = (w) => JSON.stringify(w.order) === JSON.stringify(right.order);
+    // the row set right and only the face missed — the lesson of this lock
+    assert.ok(wrongs.some((w) => sameOrder(w) && w.flips.every((f) => !f)), `seed ${s}: no missing-flip decoy`);
+    assert.ok(wrongs.some((w) => sameOrder(w) && w.flips.filter(Boolean).length === 2),
+      `seed ${s}: no extra-flip decoy`);
+    // and the row left as it was found
+    assert.ok(wrongs.some((w) => JSON.stringify(w.order) === JSON.stringify([0, 1, 2, 3, 4, 5])),
+      `seed ${s}: no untouched-row decoy`);
+  }
+});
+
+test('01 — every player-facing string ships in es and ca', () => {
+  const block = lock01.i18n;
+  for (const lang of ['es', 'ca']) {
+    const L = block[lang];
+    assert.ok(L, `no ${lang} block`);
+    assert.ok(L.title && L.title !== lock01.title, `${lang}: title untranslated`);
+    assert.ok(L.epigraph && L.epigraph !== lock01.epigraph, `${lang}: epigraph untranslated`);
+    assert.equal(L.hints.length, 3);
+    for (const h of L.hints) assert.ok(typeof h === 'string' && h.trim().length > 12);
+    for (const line of NEAR_LINES) {
+      assert.ok(L.nearMap[line], `${lang}: near-line unmapped — ${line}`);
+    }
+    // the board's own copy, key for key against English
+    const en = Object.keys(block.es.board);
+    for (const k of en) assert.ok(k in L.board, `${lang}: board key ${k} missing`);
+    assert.equal(L.board.places.length, 6);
   }
 });
 

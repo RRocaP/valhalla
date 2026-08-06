@@ -179,14 +179,59 @@ function wrongAnswers(instance) {
 
 // ---- view ------------------------------------------------------------------
 
+// A rune-stick (rúnakefli): the carved word rides a real birch lath — pale
+// scraped face, grain ticks, chamfered lit top edge, end-grain caps — and the
+// runes are CUT into it at chisel weight, blood pigment surviving in the
+// groove under the tar core. (loop-2: interactive runes never hairline.)
 function runeStrip(art, chars, size, opts = {}) {
+  const P = art.palette;
   const gap = Math.round(size * 0.32);
-  const { canvas, ctx } = art.makeCanvas(chars.length * (size + gap) + gap, size * 1.25);
+  const w = chars.length * (size + gap) + gap;
+  const h = Math.round(size * 1.25);
+  const { canvas, ctx } = art.makeCanvas(w, h);
+  // lath face: pale birch over oak
+  const face = ctx.createLinearGradient(0, 0, 0, h);
+  face.addColorStop(0, 'rgba(233,220,195,.5)');
+  face.addColorStop(0.45, 'rgba(233,220,195,.34)');
+  face.addColorStop(1, 'rgba(183,169,140,.26)');
+  ctx.fillStyle = P.oakLight;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = face;
+  ctx.fillRect(0, 0, w, h);
+  // grain ticks + lenticel flecks
+  for (let i = 0; i < Math.round(w / 9); i++) {
+    const gx = ((i * 73) % (w - 6)) + 3;
+    const gy = ((i * 37) % (h - 8)) + 4;
+    ctx.strokeStyle = i % 3 ? 'rgba(12,9,6,.14)' : 'rgba(90,58,30,.3)';
+    ctx.lineWidth = i % 3 ? 0.7 : 1.1;
+    ctx.beginPath();
+    ctx.moveTo(gx, gy);
+    ctx.lineTo(gx + 4 + (i % 5), gy + ((i % 2) ? 0.6 : -0.5));
+    ctx.stroke();
+  }
+  // chamfer: lit top arris, tar under-edge, end-grain caps
+  ctx.strokeStyle = 'rgba(233,220,195,.55)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(1, 1.4); ctx.lineTo(w - 1, 1.4); ctx.stroke();
+  ctx.strokeStyle = 'rgba(12,9,6,.7)';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(0, h - 1); ctx.lineTo(w, h - 1); ctx.stroke();
+  ctx.strokeStyle = 'rgba(12,9,6,.55)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+  for (const ex of [0, w - Math.max(3, size * 0.14)]) {
+    ctx.fillStyle = 'rgba(90,58,30,.5)';
+    ctx.fillRect(ex, 1, Math.max(3, size * 0.14), h - 2);
+  }
+  // the cut: blood pigment in the groove, tar core over it
   chars.forEach((ch, i) => {
-    art.drawRune(ctx, ch, gap + i * (size + gap), size * 0.12, size, {
-      // drawRune's `weight` is a ribbon width in pixels; the string 'heavy' fed
-      // NaN into the ribbon fill and every rune on this lock drew nothing.
-      color: opts.color || art.palette.bone, weight: size / 7,
+    const x = gap + i * (size + gap);
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    art.drawRune(ctx, ch, x - size * 0.02, size * 0.1, size, { color: P.blood, weight: size / 4.6 });
+    ctx.restore();
+    art.drawRune(ctx, ch, x, size * 0.12, size, {
+      color: opts.color || P.tar, weight: size / 5.5,
     });
   });
   canvas.setAttribute('aria-hidden', 'true');
@@ -212,14 +257,21 @@ function mount(ctx) {
   .ow-jotun .row .slot{margin-left:auto;font-family:ui-monospace,Menlo,monospace;color:${P.goldBright};min-width:7ch;text-align:right}
   .ow-jotun .row .n{color:${P.boneDim};font-size:.78rem}
   .ow-jotun .keys,.ow-jotun .slate{display:flex;flex-wrap:wrap;gap:.3rem}
-  .ow-jotun button{background:${P.oak};color:${P.bone};border:1px solid ${P.oakLight};border-radius:3px;
-    min-height:44px;min-width:44px;padding:.2rem .5rem;font:inherit;cursor:pointer}
+  /* the lid's lexicon is a slate: cold stone under chalk-dusted words */
+  .ow-jotun .slate{padding:.55rem;border-radius:5px;border:1px solid ${P.tar};
+    background:
+      radial-gradient(120% 90% at 30% 0%,rgba(63,109,158,.08),rgba(63,109,158,0) 60%),
+      repeating-linear-gradient(101deg,rgba(233,220,195,.028) 0 2px,rgba(12,9,6,0) 2px 7px),
+      linear-gradient(173deg,#181a1c 0%,#101112 55%,#0b0c0d 100%);
+    box-shadow:inset 0 2px 5px rgba(12,9,6,.85),inset 0 -1px 0 rgba(238,207,109,.08),0 1px 0 rgba(233,220,195,.05)}
+  .ow-jotun button:not(.btn-carved){background:${P.oak};color:${P.bone};border:1px solid ${P.oakLight};border-radius:3px;
+    min-height:44px;min-width:44px;padding:.2rem .5rem;font:inherit;cursor:pointer;
+    box-shadow:inset 0 2px 3px rgba(12,9,6,.5),inset 0 -1px 0 rgba(238,207,109,.12),0 2px 3px rgba(12,9,6,.45)}
   .ow-jotun button:focus-visible{outline:2px solid ${P.goldBright};outline-offset:2px}
-  .ow-jotun button[disabled]{opacity:.4;cursor:default}
-  .ow-jotun .slate button{min-width:0;font-size:.85rem}
+  .ow-jotun button[disabled]:not(.btn-carved){opacity:.4;cursor:default}
+  .ow-jotun .slate button{min-width:0;font-size:.85rem;background:rgba(58,36,18,.82)}
   .ow-jotun .slate button.hit{border-color:${P.gold};color:${P.goldBright}}
   .ow-jotun .draft{font-family:ui-monospace,Menlo,monospace;color:${P.boneDim};min-height:1.4em}
-  .ow-jotun .send{background:${P.gold};color:${P.tar};font-weight:600}
   .ow-jotun h4{margin:.2rem 0 0;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}
   .ow-jotun .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch}
   .ow-jotun .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
@@ -254,7 +306,7 @@ function mount(ctx) {
     row.className = 'row';
     row.setAttribute('role', 'option');
     row.tabIndex = 0;
-    row.appendChild(runeStrip(art, instance.runes[i], 26, { color: P.goldBright }));
+    row.appendChild(runeStrip(art, instance.runes[i], 26));
     const n = document.createElement('span');
     n.className = 'n';
     n.textContent = `${instance.collisions[i]} readings`;
@@ -289,7 +341,8 @@ function mount(ctx) {
   wrap.appendChild(slate);
 
   const send = document.createElement('button');
-  send.className = 'send';
+  send.className = 'btn-carved'; // one primary-action language: the carved gold plate
+  send.type = 'button';
   send.textContent = 'Read the manifest';
   send.disabled = true;
   wrap.appendChild(send);
@@ -305,7 +358,7 @@ function mount(ctx) {
     const b = document.createElement('button');
     b.type = 'button';
     b.setAttribute('aria-label', `letter ${letter}, carved as ${RUNE_NAME[letter]}`);
-    b.appendChild(runeStrip(art, [RUNE_OF[CIPHER[letter]]], 20));
+    b.appendChild(runeStrip(art, [RUNE_OF[CIPHER[letter]]], 22));
     const cap = document.createElement('div');
     cap.style.cssText = `font-size:.7rem;color:${P.boneDim}`;
     cap.textContent = letter;

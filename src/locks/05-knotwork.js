@@ -321,8 +321,9 @@ function mount(ctx) {
       cursor:pointer;border-radius:3px}
     .ow5-cell:focus-visible{outline:2px solid ${p.goldBright};outline-offset:-3px}
     .ow5-cell[data-carved="1"]{cursor:default}
-    .ow5-act{font-family:${SERIF};font-size:16px;color:${p.bone};background:${p.oakDeep};
-      border:1px solid ${p.gold};border-radius:3px;padding:12px 20px;min-height:44px;cursor:pointer}
+    .ow5-act{font-family:${SERIF};font-size:15px;color:${p.boneDim};background:transparent;
+      border:1px solid rgba(90,58,30,.9);border-radius:3px;padding:11px 18px;min-height:44px;cursor:pointer}
+    .ow5-act:hover{color:${p.bone};border-color:${p.oakLight}}
     .ow5-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
     .ow5-act[disabled]{opacity:.5;cursor:default}
   `;
@@ -366,7 +367,7 @@ function mount(ctx) {
   traceBtn.className = 'ow5-act';
   traceBtn.type = 'button';
   const submitBtn = node('button', null, 'Bind the knot');
-  submitBtn.className = 'ow5-act';
+  submitBtn.className = 'btn-carved'; // one primary-action language: the carved gold plate
   submitBtn.type = 'button';
   actions.append(traceBtn, submitBtn);
 

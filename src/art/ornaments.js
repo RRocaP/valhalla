@@ -352,11 +352,13 @@ export function medallion(ctx, x, y, r, state, ordinal) {
     ctx.arc(x, y, r * 0.72, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    // Chisel weight: the struck rune carries a real ribbon (~size/7), not a
+    // hairline — the same fix the interactive tiles got (loop-2 escalation).
     drawRune(ctx, ch, x - r * 0.55 + r * 0.07, y - r * 0.55 + r * 0.09, r * 1.1, {
-      color: rgba(palette.tar, 0.55), weight: r * 0.13,
+      color: rgba(palette.tar, 0.55), weight: r * 0.19,
     });
     drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
-      color: mix(palette.bone, palette.goldBright, 0.3), weight: r * 0.1,
+      color: mix(palette.bone, palette.goldBright, 0.3), weight: r * 0.15,
     });
     discRim(ctx, x, y, r, palette.goldBright, mix(palette.gold, palette.tar, 0.62));
     if (DUEL_ORDINALS.has(ordinal)) duelMark(ctx, x, y, r, state);
@@ -399,7 +401,7 @@ export function medallion(ctx, x, y, r, state, ordinal) {
     ctx.restore();
     drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
       color: mix(palette.goldBright, palette.bone, 0.35),
-      weight: r * 0.1,
+      weight: r * 0.15,
       glow: reduced ? 0.3 : 0.3 + pulse * 0.3,
     });
     discRim(ctx, x, y, r, mix(palette.ember, palette.goldBright, 0.5), mix(palette.ember, palette.tar, 0.7));
@@ -421,7 +423,7 @@ export function medallion(ctx, x, y, r, state, ordinal) {
   ctx.save();
   ctx.globalAlpha = 0.48;
   drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, {
-    color: mix(palette.boneDim, palette.fjordLight, 0.22), weight: r * 0.09,
+    color: mix(palette.boneDim, palette.fjordLight, 0.22), weight: r * 0.13,
   });
   ctx.restore();
   discRim(ctx, x, y, r, mix(palette.oakLight, palette.tar, 0.3), palette.tar, 0.22);

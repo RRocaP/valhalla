@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>OW-DRAGON preview</title>
+<style>
+  body { margin:0; background:#0a0806; color:#e9dcc3; font: 12px/1.4 ui-monospace, 'SF Mono', Menlo, monospace; padding-bottom: 40px; }
+  h2 { font: 600 14px 'Iowan Old Style', Georgia, serif; color:#eecf6d; margin: 20px 12px 6px; border-bottom: 1px solid #3a2412; padding-bottom: 3px; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; padding: 0 12px; align-items:flex-end; }
+  .cell { background:#000; padding:3px; }
+  .cell canvas { display:block; }
+  .label { font-size:10px; color:#b7a98c; margin-top:2px; }
+  pre { white-space:pre; padding:8px 12px; background:#150e07; border:1px solid #3a2412; margin:6px 12px; font-size:11px; }
+</style>
+</head>
+<body>
+
+<h2>candidates — 48 / 120 / 280 / 480 on oak, facing right, proud</h2>
+<div class="row" id="sec-candidates"></div>
+
+<h2>silhouette test — 48px, both facings, oak + tar</h2>
+<div class="row" id="sec-silhouette"></div>
+
+<h2>ink box (units of size, relative to the neck-base anchor)</h2>
+<pre id="measure">measuring…</pre>
+
+<h2>FINAL — phone scale (390px-wide lid): 40 / 48 / 64px, both facings, both styles</h2>
+<div class="row" id="sec-phone"></div>
+
+<h2>FINAL src/art/dragon.js — 48 / 120 / 280 / 480, both facings, proud + ember, oak + tar</h2>
+<div class="row" id="sec-final"></div>
+<div class="row" id="sec-final-big"></div>
+
+<script type="module">
+import { paintWood } from '../../src/art/wood.js';
+import { palette } from '../../src/art/palette.js';
+import { drawCandidate, CANDIDATES, CANDIDATE_NAMES } from './candidates.js';
+
+const D = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+
+function cell(parent, size, label, ground, paint) {
+  const w = Math.round(size * 1.12);
+  const h = Math.round(size * 1.2);
+  const box = document.createElement('div');
+  box.className = 'cell';
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(w * D);
+  cv.height = Math.round(h * D);
+  cv.style.width = w + 'px';
+  cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(D, D);
+  if (ground === 'oak') paintWood(ctx, w, h, 'dragon', { shade: 0.18 });
+  else { ctx.fillStyle = palette.tar; ctx.fillRect(0, 0, w, h); }
+  paint(ctx, w / 2, Math.round(size * 1.06), size);
+  box.appendChild(cv);
+  const lab = document.createElement('div');
+  lab.className = 'label';
+  lab.textContent = label;
+  box.appendChild(lab);
+  parent.appendChild(box);
+}
+
+const cands = document.getElementById('sec-candidates');
+for (const k of CANDIDATES) {
+  for (const size of [48, 120, 280, 480]) {
+    cell(cands, size, `${CANDIDATE_NAMES[k]} ${size}`, 'oak',
+      (ctx, x, y, s) => drawCandidate(ctx, k, x, y, s, { facing: 1, style: 'proud' }));
+  }
+}
+
+const sil = document.getElementById('sec-silhouette');
+for (const k of CANDIDATES) {
+  for (const ground of ['oak', 'tar']) {
+    for (const facing of [1, -1]) {
+      cell(sil, 48, `${k} ${ground} ${facing > 0 ? 'R' : 'L'}`, ground,
+        (ctx, x, y, s) => drawCandidate(ctx, k, x, y, s, { facing, style: 'proud' }));
+    }
+  }
+}
+
+// ---- ink-box measurement: does the drawing honour the size x size contract?
+function measure(paint, size) {
+  const pad = size;
+  const cv = document.createElement('canvas');
+  cv.width = size * 3;
+  cv.height = size * 3;
+  const ctx = cv.getContext('2d');
+  const ax = size * 1.5;
+  const ay = size * 2;
+  paint(ctx, ax, ay, size);
+  const d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (let y = 0; y < cv.height; y++) {
+    for (let x = 0; x < cv.width; x++) {
+      if (d[(y * cv.width + x) * 4 + 3] > 12) {
+        if (x < x0) x0 = x; if (x > x1) x1 = x;
+        if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+  }
+  void pad;
+  return {
+    x0: (x0 - ax) / size, x1: (x1 - ax) / size,
+    y0: (y0 - ay) / size, y1: (y1 - ay) / size,
+  };
+}
+
+const lines = [];
+for (const k of CANDIDATES) {
+  const b = measure((ctx, x, y, s) => drawCandidate(ctx, k, x, y, s, { facing: 1, style: 'proud' }), 240);
+  const ok = b.x0 >= -0.52 && b.x1 <= 0.52 && b.y0 >= -1.02 && b.y1 <= 0.06;
+  lines.push(`${k}  x [${b.x0.toFixed(3)}, ${b.x1.toFixed(3)}]  y [${b.y0.toFixed(3)}, ${b.y1.toFixed(3)}]  ${ok ? 'FITS' : 'OVERFLOW'}`);
+}
+
+// ---- final module (present only after the winner is implemented)
+let finalErr = '';
+try {
+  const mod = await import('../../src/art/dragon.js');
+  const draw = mod.drawDragonHead;
+  const phone = document.getElementById('sec-phone');
+  for (const size of [40, 48, 64]) {
+    for (const style of ['proud', 'ember']) {
+      for (const facing of [1, -1]) {
+        cell(phone, size, `${size} ${style} ${facing > 0 ? 'R' : 'L'}`, 'oak',
+          (ctx, x, y, s) => draw(ctx, x, y, s, { facing, style }));
+      }
+    }
+  }
+  const fin = document.getElementById('sec-final');
+  for (const style of ['proud', 'ember']) {
+    for (const size of [48, 120]) {
+      for (const facing of [1, -1]) {
+        for (const ground of ['oak', 'tar']) {
+          cell(fin, size, `${style} ${size} ${facing > 0 ? 'R' : 'L'} ${ground}`, ground,
+            (ctx, x, y, s) => draw(ctx, x, y, s, { facing, style }));
+        }
+      }
+    }
+  }
+  const big = document.getElementById('sec-final-big');
+  for (const style of ['proud', 'ember']) {
+    for (const size of [280, 480]) {
+      for (const facing of [1, -1]) {
+        cell(big, size, `${style} ${size} ${facing > 0 ? 'R' : 'L'}`, 'oak',
+          (ctx, x, y, s) => draw(ctx, x, y, s, { facing, style }));
+      }
+    }
+  }
+  const b = measure((ctx, x, y, s) => draw(ctx, x, y, s, { facing: 1, style: 'proud' }), 240);
+  const bl = measure((ctx, x, y, s) => draw(ctx, x, y, s, { facing: -1, style: 'proud' }), 240);
+  const ok = b.x0 >= -0.52 && b.x1 <= 0.52 && b.y0 >= -1.02 && b.y1 <= 0.06;
+  lines.push(`FINAL R  x [${b.x0.toFixed(3)}, ${b.x1.toFixed(3)}]  y [${b.y0.toFixed(3)}, ${b.y1.toFixed(3)}]  ${ok ? 'FITS' : 'OVERFLOW'}`);
+  lines.push(`FINAL L  x [${bl.x0.toFixed(3)}, ${bl.x1.toFixed(3)}]  y [${bl.y0.toFixed(3)}, ${bl.y1.toFixed(3)}]`);
+} catch (e) {
+  finalErr = String(e && e.message ? e.message : e);
+  lines.push(`FINAL  not yet implemented (${finalErr})`);
+}
+
+document.getElementById('measure').textContent = lines.join('\n');
+document.body.dataset.ready = '1';
+</script>
+</body>
+</html>

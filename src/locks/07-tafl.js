@@ -540,14 +540,20 @@ function mount(ctx) {
   style.textContent = `
   .ow-tafl{display:flex;flex-direction:column;gap:.55rem;color:${P.bone};
     font-family:'Iowan Old Style',Palatino,Georgia,serif;align-items:stretch}
-  .ow-tafl .board{align-self:center;position:relative;touch-action:manipulation}
+  .ow-tafl .board{align-self:center;position:relative;touch-action:manipulation;
+    padding:10px;border-radius:6px;
+    background:linear-gradient(168deg,rgba(90,58,30,.85),rgba(58,36,18,.9) 55%,rgba(34,21,7,.95));
+    border:1px solid rgba(12,9,6,.9);
+    box-shadow:0 10px 22px rgba(12,9,6,.6),0 3px 6px rgba(12,9,6,.55),
+      inset 0 1px 0 rgba(233,220,195,.16),inset 0 -2px 3px rgba(12,9,6,.7)}
+  .ow-tafl .board canvas{display:block;border-radius:3px}
   .ow-tafl .board:focus-visible{outline:2px solid ${P.goldBright};outline-offset:3px}
-  .ow-tafl .bar{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
-  .ow-tafl button{background:${P.oak};color:${P.bone};border:1px solid ${P.oakLight};border-radius:3px;
+  .ow-tafl .bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+  .ow-tafl button:not(.btn-carved){background:transparent;color:${P.boneDim};border:1px solid rgba(90,58,30,.9);border-radius:3px;
     min-height:44px;padding:.2rem .6rem;font:inherit;cursor:pointer}
+  .ow-tafl button:not(.btn-carved):hover{color:${P.bone};border-color:${P.oakLight}}
   .ow-tafl button:focus-visible{outline:2px solid ${P.goldBright};outline-offset:2px}
-  .ow-tafl button[disabled]{opacity:.45;cursor:default}
-  .ow-tafl .send{background:${P.gold};color:${P.tar};font-weight:600;border:none}
+  .ow-tafl button[disabled]:not(.btn-carved){opacity:.45;cursor:default}
   .ow-tafl .say{font-size:.85rem;color:${P.boneDim};min-height:2.4em}
   .ow-tafl .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch;align-self:center}
   .ow-tafl .law b{color:${P.bone};font-weight:600}
@@ -594,7 +600,7 @@ function mount(ctx) {
   undo.textContent = 'Take back';
   const send = document.createElement('button');
   send.type = 'button';
-  send.className = 'send';
+  send.className = 'btn-carved'; // one primary-action language: the carved gold plate
   send.textContent = 'Swear the road';
   bar.appendChild(undo);
   bar.appendChild(send);
@@ -625,54 +631,153 @@ function mount(ctx) {
     return legalMoves(state, 'king').filter((m) => m[0] === selected).map((m) => m[1]);
   }
 
+  // The board is a carved gaming TABLE (loop-2 escalation): a single slab
+  // with two-tone inlaid squares parted by tar grooves, a polished wear pool
+  // around the throne, the five restricted squares cut DEEP (rosette marks),
+  // and the men turned from tar, bone and gold — each seated on its own cast
+  // shadow. The slab is baked once and cached; per-interaction redraws blit
+  // it and repaint only pieces and marks (state-keyed, latency law).
+  let slab = null;
+  function slabFor() {
+    if (slab) return slab;
+    const off = art.makeCanvas(dim, dim);
+    const g = off.ctx;
+    art.paintWood(g, dim, dim, 1066);
+    // playing field: alternating inlay, cut by grooves
+    for (let i = 0; i < CELLS; i++) {
+      const [r, c] = rc(i);
+      const x = PAD + c * SQ;
+      const y = PAD + r * SQ;
+      const pale = (r + c) % 2 === 0;
+      g.fillStyle = pale ? 'rgba(233,220,195,.09)' : 'rgba(12,9,6,.22)';
+      g.fillRect(x + 1, y + 1, SQ - 2, SQ - 2);
+      // inlay edge: lit upper arris, tar seat below
+      g.strokeStyle = 'rgba(233,220,195,.1)';
+      g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x + 2, y + 1.5); g.lineTo(x + SQ - 2, y + 1.5); g.stroke();
+    }
+    // tar grooves between the inlays
+    g.strokeStyle = 'rgba(12,9,6,.78)';
+    g.lineWidth = 1.6;
+    for (let k = 0; k <= SIZE; k++) {
+      g.beginPath(); g.moveTo(PAD + k * SQ, PAD); g.lineTo(PAD + k * SQ, PAD + SIZE * SQ); g.stroke();
+      g.beginPath(); g.moveTo(PAD, PAD + k * SQ); g.lineTo(PAD + SIZE * SQ, PAD + k * SQ); g.stroke();
+    }
+    g.strokeStyle = 'rgba(233,220,195,.12)';
+    g.lineWidth = 0.8;
+    for (let k = 0; k <= SIZE; k++) {
+      g.beginPath(); g.moveTo(PAD + k * SQ + 1.2, PAD); g.lineTo(PAD + k * SQ + 1.2, PAD + SIZE * SQ); g.stroke();
+    }
+    // polish pool: generations of play wore the center bright
+    const cx = PAD + SIZE * SQ / 2;
+    const pol = g.createRadialGradient(cx, cx, SQ * 0.3, cx, cx, SQ * 2.6);
+    pol.addColorStop(0, 'rgba(233,220,195,.1)');
+    pol.addColorStop(1, 'rgba(233,220,195,0)');
+    g.fillStyle = pol;
+    g.fillRect(PAD, PAD, SIZE * SQ, SIZE * SQ);
+    // restricted squares: cut deep, chip-carved marks
+    const deep = (i, big) => {
+      const [r, c] = rc(i);
+      const x = PAD + c * SQ + SQ / 2;
+      const y = PAD + r * SQ + SQ / 2;
+      g.save();
+      g.fillStyle = 'rgba(12,9,6,.4)';
+      g.fillRect(x - SQ / 2 + 2, y - SQ / 2 + 2, SQ - 4, SQ - 4);
+      g.restore();
+      if (typeof art.rosette === 'function') art.rosette(g, x, y, big ? SQ * 0.32 : SQ * 0.26);
+      g.save();
+      g.strokeStyle = 'rgba(201,162,39,.55)';
+      g.lineWidth = 1.1;
+      g.strokeRect(x - SQ / 2 + 4.5, y - SQ / 2 + 4.5, SQ - 9, SQ - 9);
+      g.restore();
+    };
+    for (const i of CORNERS) deep(i, false);
+    deep(THRONE, true);
+    // carved arris marrying the slab to its stand
+    g.strokeStyle = 'rgba(12,9,6,.85)';
+    g.lineWidth = 2;
+    g.strokeRect(1.5, 1.5, dim - 3, dim - 3);
+    g.strokeStyle = 'rgba(233,220,195,.14)';
+    g.lineWidth = 1;
+    g.strokeRect(3, 3, dim - 6, dim - 6);
+    slab = off.canvas;
+    return slab;
+  }
+
+  // a turned gaming man: seated cast shadow, lathe body, ring cuts, crown light
+  function man(g, i, kind) {
+    const [r, c] = rc(i);
+    const x = PAD + c * SQ + SQ / 2;
+    const y = PAD + r * SQ + SQ / 2;
+    const R = SQ * (kind === 'king' ? 0.34 : kind === 'defender' ? 0.28 : 0.3);
+    g.save();
+    // cast shadow, thrown down-right by the hearth key
+    g.fillStyle = 'rgba(12,9,6,.55)';
+    g.beginPath();
+    g.ellipse(x + R * 0.22, y + R * 0.42, R * 1.02, R * 0.62, 0, 0, Math.PI * 2);
+    g.fill();
+    // lathe-turned body
+    const base = kind === 'attacker' ? P.tar : kind === 'defender' ? P.bone : P.gold;
+    const hi = kind === 'attacker' ? 'rgba(183,169,140,.4)' : kind === 'defender' ? 'rgba(255,248,232,.9)' : 'rgba(238,207,109,.95)';
+    const lo = kind === 'attacker' ? '#000' : kind === 'defender' ? 'rgba(90,58,30,.9)' : 'rgba(76,58,14,.95)';
+    const body = g.createRadialGradient(x - R * 0.38, y - R * 0.42, R * 0.12, x, y, R * 1.05);
+    body.addColorStop(0, hi);
+    body.addColorStop(0.32, base);
+    body.addColorStop(1, lo);
+    g.fillStyle = body;
+    g.beginPath();
+    g.arc(x, y, R, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = 'rgba(12,9,6,.85)';
+    g.lineWidth = 1.4;
+    g.stroke();
+    // ring cuts from the lathe
+    g.strokeStyle = kind === 'attacker' ? 'rgba(183,169,140,.28)' : 'rgba(12,9,6,.4)';
+    g.lineWidth = 1;
+    g.beginPath(); g.arc(x, y, R * 0.68, Math.PI * 0.15, Math.PI * 0.9); g.stroke();
+    g.beginPath(); g.arc(x, y, R * 0.5, Math.PI * 0.2, Math.PI * 0.85); g.stroke();
+    // crown light on the head
+    g.fillStyle = kind === 'attacker' ? 'rgba(233,220,195,.35)' : 'rgba(255,248,232,.75)';
+    g.beginPath();
+    g.arc(x - R * 0.32, y - R * 0.36, Math.max(1.2, R * 0.14), 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+  }
+
   function draw() {
     if (canvasEl) canvasEl.remove();
     const { canvas, ctx: g } = art.makeCanvas(dim, dim);
     canvasEl = canvas;
     canvas.setAttribute('aria-hidden', 'true');
-    art.paintWood(g, dim, dim, 1066);
+    g.drawImage(slabFor(), 0, 0, dim, dim);
     const hits = targets();
-    for (let i = 0; i < CELLS; i++) {
-      const [r, c] = rc(i);
-      const x = PAD + c * SQ;
-      const y = PAD + r * SQ;
-      art.paintPanel(g, x + 1, y + 1, SQ - 2, SQ - 2, {});
-      if (isCorner(i) || i === THRONE) {
-        g.strokeStyle = P.gold;
-        g.lineWidth = 1;
-        g.strokeRect(x + 5, y + 5, SQ - 10, SQ - 10);
-      }
-      if (hits.indexOf(i) >= 0) {
-        g.beginPath();
-        g.arc(x + SQ / 2, y + SQ / 2, 5, 0, Math.PI * 2);
-        g.fillStyle = P.pineLight;
-        g.fill();
-      }
-      if (i === cursor) {
-        g.strokeStyle = P.goldBright;
-        g.lineWidth = 2;
-        g.strokeRect(x + 2, y + 2, SQ - 4, SQ - 4);
-      }
-    }
-    const dot = (i, colour, r0) => {
+    for (const i of hits) {
       const [r, c] = rc(i);
       const x = PAD + c * SQ + SQ / 2;
       const y = PAD + r * SQ + SQ / 2;
-      art.glow(g, x, y, r0 * 1.8, colour, 0.5);
+      art.glow(g, x, y, 9, P.pineLight, 0.5);
       g.beginPath();
-      g.arc(x, y, r0, 0, Math.PI * 2);
-      g.fillStyle = colour;
+      g.arc(x, y, 5, 0, Math.PI * 2);
+      g.fillStyle = P.pineLight;
       g.fill();
-      g.strokeStyle = P.tar;
-      g.lineWidth = 1.5;
+      g.strokeStyle = 'rgba(12,9,6,.7)';
+      g.lineWidth = 1.2;
       g.stroke();
-    };
-    for (const a of state.attackers) dot(a, P.tar, SQ * 0.3);
-    for (const d of state.defenders) dot(d, P.bone, SQ * 0.28);
+    }
+    if (cursor >= 0) {
+      const [r, c] = rc(cursor);
+      g.strokeStyle = P.goldBright;
+      g.lineWidth = 2;
+      g.strokeRect(PAD + c * SQ + 2, PAD + r * SQ + 2, SQ - 4, SQ - 4);
+    }
+    for (const a of state.attackers) man(g, a, 'attacker');
+    for (const d of state.defenders) man(g, d, 'defender');
     if (state.king >= 0) {
-      dot(state.king, P.gold, SQ * 0.34);
+      man(g, state.king, 'king');
       const [r, c] = rc(state.king);
-      art.drawRune(g, 'ᛏ', PAD + c * SQ + SQ * 0.32, PAD + r * SQ + SQ * 0.22, SQ * 0.5, { color: P.tar });
+      art.drawRune(g, 'ᛏ', PAD + c * SQ + SQ * 0.32, PAD + r * SQ + SQ * 0.2, SQ * 0.5, {
+        color: P.tar, weight: SQ * 0.5 / 6.5,
+      });
     }
     if (selected >= 0) {
       const [r, c] = rc(selected);

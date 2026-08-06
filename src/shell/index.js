@@ -1,5 +1,7 @@
 // OATHWOOD shell — entry point (docs/SHELL.md, frozen signature).
 import { rng } from '../kernel/rng.js';
+import { resolveLang, t } from '../kernel/i18n.js';
+import { SHELL_STRINGS } from './strings.js';
 import { freshSave, loadSave, writeSave, hasSave } from './save.js';
 import { nextLockId, progressFraction, isComplete } from './progress.js';
 import { pushJournal } from './journal.js';
@@ -39,7 +41,19 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
     overlaySlot.id = 'overlay-slot';
     appRoot.append(screenSlot, overlaySlot);
 
-    let save = loadSave(storage);
+    // Localization (CONTRACT §4.1 amendment 2026-08-06): the additive
+    // save.settings.lang is defaulted from navigator.language inside loadSave;
+    // #autotest forces effective 'en' so the e2e drivers' label contracts hold
+    // (the stored preference is preserved, only the effective language pins).
+    const navLang = (typeof navigator !== 'undefined' && navigator.language) || '';
+    const autotest = location.hash === '#autotest';
+    let save = loadSave(storage, new Date(), navLang);
+    function lang() {
+      return autotest ? 'en' : resolveLang(save.settings.lang, navLang);
+    }
+    function tr(key, params) {
+      return t(SHELL_STRINGS, lang(), key, params);
+    }
     audio.setMuted(save.settings.muted);
 
     let systemReducedMotion = false;
@@ -70,8 +84,11 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
     }
 
     function resetChest() {
+      const keptLang = save.settings.lang;
       save = freshSave();
-      pushJournal(save, 'The chest is sealed anew.');
+      // language is a device preference, not chest progress — survives a reset
+      save.settings.lang = resolveLang(keptLang, navLang);
+      pushJournal(save, tr('journal.sealedAnew'));
       writeSave(storage, save);
       if (audio.enabled) audio.drone.intensity(0);
     }
@@ -84,7 +101,7 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
         audio.drone.intensity(progressFraction(locks, save));
       }
       audio.ui('knock');
-      if (save.journal.length === 0) pushJournal(save, 'The chest is laid before you.');
+      if (save.journal.length === 0) pushJournal(save, tr('journal.laid'));
       persist();
       after();
     }
@@ -103,20 +120,36 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
     function openJournal() {
       closeOverlay();
       overlay = 'journal';
-      overlayUnmount = mountJournalDrawer(overlaySlot, { save, onClose: closeOverlay });
+      overlayUnmount = mountJournalDrawer(overlaySlot, { save, tr, onClose: closeOverlay });
     }
 
-    function openSettings() {
+    function openSettings(opts = {}) {
       closeOverlay();
       overlay = 'settings';
       overlayUnmount = mountSettingsPanel(overlaySlot, {
         save,
         audio,
+        tr,
+        lang: lang(),
+        focusLang: !!opts.focusLang,
         onChanged: () => { persist(); applyMotionClass(); },
         onMotionOverrideChanged: () => { persist(); applyMotionClass(); rerenderForMotionChange(); },
+        onLangChanged: setLang,
         onReset: () => { closeOverlay(); resetChest(); goTo('threshold'); },
         onClose: closeOverlay,
       });
+    }
+
+    // Language switch applies LIVE: persist, journal echo in the NEW language,
+    // re-render the current screen, and re-open settings on the fresh render.
+    // (Settings is only reachable from the lid, so no puzzle state can be lost.)
+    function setLang(next) {
+      if (save.settings.lang === next) return;
+      save.settings.lang = next;
+      pushJournal(save, tr('journal.hallSpeaks'));
+      persist();
+      goTo(screen);
+      openSettings({ focusLang: true });
     }
 
     function rerenderForMotionChange() {
@@ -131,18 +164,24 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
       screen = next;
       clear(screenSlot);
       applyMotionClass();
+      appRoot.dataset.lang = lang(); // stable driver hook (tests/e2e/locale.spec.mjs)
       const reducedMotion = effectiveReducedMotion();
 
       if (next === 'threshold') {
         screenUnmount = mountThreshold(screenSlot, {
-          art,
+          art, lang: lang(), tr,
           hasSave: hasSave(storage),
           onBegin: () => beginGesture(() => goTo(isComplete(locks, save) ? 'finale' : 'lid', { animate: false })),
           onBeginAnew: () => { resetChest(); beginGesture(() => goTo('lid')); },
         });
+        // Interim wiring (lead removes at integration once screens/threshold.js
+        // consumes strings.js itself): the subtitle is the one localized line
+        // the locale gate pins on the threshold. Same-text no-op in en.
+        const sub = screenSlot.querySelector('.subtitle');
+        if (sub) sub.textContent = tr('threshold.subtitle');
       } else if (next === 'lid') {
         screenUnmount = mountLid(screenSlot, {
-          locks, save, art, audio, reducedMotion,
+          locks, save, art, audio, reducedMotion, lang: lang(), tr,
           justOpenedId: opts.justOpenedId || null,
           onOpenLock: (id) => { currentLockId = id; goTo('lockroom'); },
           onOpenJournal: openJournal,
@@ -152,6 +191,7 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
         const lock = locks.find((l) => l.id === currentLockId);
         screenUnmount = mountLockRoom(screenSlot, {
           lock, locks, save, art, audio, reducedMotion, portraitsCache: imageCache,
+          lang: lang(), tr,
           onPersist: persist,
           onBack: () => goTo('lid'),
           onSolved: (id) => {
@@ -162,6 +202,7 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
       } else if (next === 'finale') {
         screenUnmount = mountFinale(screenSlot, {
           locks, save, art, audio, treasureDataUri, imageCache, reducedMotion,
+          lang: lang(), tr,
           animate: !!opts.animate,
           onReset: () => { resetChest(); goTo('threshold'); },
           onReturnToLid: () => goTo('lid'),
@@ -169,7 +210,7 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
         });
       } else if (next === 'credits') {
         screenUnmount = mountCredits(screenSlot, {
-          art, audio, reducedMotion, imageCache,
+          art, audio, reducedMotion, imageCache, lang: lang(), tr,
           onSkip: () => { audio.music?.start?.(); goTo('finale', { animate: false }); },
         });
       }

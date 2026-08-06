@@ -1,7 +1,8 @@
 // OATHWOOD synthesized sound world (docs/AUDIO.md — frozen API). WebAudio
-// synthesis only, plus the two committed music/credits mp3 streams (the
-// "roca-airways" exception, docs/CONTRACT.md). No AudioContext exists until
-// enable() runs from a user gesture; nothing plays before that.
+// synthesis only, plus the four committed mp3 streams — the three-act
+// progression score and credits (the "roca-airways" exception, docs/
+// CONTRACT.md v2). No AudioContext exists until enable() runs from a user
+// gesture; nothing plays before that.
 import * as V from './voices.js';
 import { createMusic } from './music.js';
 
@@ -187,6 +188,7 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
       start() { if (musicImpl) musicImpl.start(); },
       credits() { if (musicImpl) musicImpl.credits(); },
       stop() { if (musicImpl) musicImpl.stop(); },
+      act(n) { if (musicImpl) musicImpl.act(n); }, // v2: progression track select
       get ready() { return musicImpl ? musicImpl.ready : false; },
     },
   };

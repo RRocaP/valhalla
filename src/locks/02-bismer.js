@@ -163,8 +163,9 @@ function mount(ctx) {
     .ow2-pouch[aria-checked="true"]{border-color:${p.gold};background:${p.oak};
       transform:translateY(-2px);box-shadow:0 4px 8px rgba(12,9,6,.6)}
     .ow2-pouch[data-struck="1"]{opacity:.45;text-decoration:line-through}
-    .ow2-act{font-family:${SERIF};font-size:16px;color:${p.bone};background:${p.oakDeep};
-      border:1px solid ${p.gold};border-radius:3px;padding:12px 20px;min-height:44px;cursor:pointer}
+    .ow2-act{font-family:${SERIF};font-size:15px;color:${p.boneDim};background:transparent;
+      border:1px solid rgba(90,58,30,.9);border-radius:3px;padding:11px 18px;min-height:44px;cursor:pointer}
+    .ow2-act:hover{color:${p.bone};border-color:${p.oakLight}}
     .ow2-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
     .ow2-act[disabled]{opacity:.5;cursor:default}
     @media (prefers-reduced-motion: reduce){
@@ -210,7 +211,7 @@ function mount(ctx) {
   status.setAttribute('aria-live', 'polite');
 
   const submitBtn = node('button', null, 'Name the pouch');
-  submitBtn.className = 'ow2-act';
+  submitBtn.className = 'btn-carved'; // one primary-action language: the carved gold plate
   submitBtn.type = 'button';
   submitBtn.disabled = true;
 

@@ -316,7 +316,7 @@ function mount(ctx) {
   status.setAttribute('aria-live', 'polite');
 
   const submitBtn = node('button', null, 'Raise the stack');
-  submitBtn.className = 'ow4-act';
+  submitBtn.className = 'btn-carved'; // one primary-action language: the carved gold plate
   submitBtn.type = 'button';
   submitBtn.disabled = true;
 

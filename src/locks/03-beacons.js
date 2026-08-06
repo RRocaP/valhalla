@@ -213,7 +213,7 @@ function mount(ctx) {
   status.setAttribute('aria-live', 'polite');
 
   const submitBtn = node('button', null, 'Set the dial');
-  submitBtn.className = 'ow3-act';
+  submitBtn.className = 'btn-carved'; // one primary-action language: the carved gold plate
   submitBtn.type = 'button';
 
   wrap.append(law, gfx.canvas, ledger, help, submitBtn, status);

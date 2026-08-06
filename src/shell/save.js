@@ -3,6 +3,8 @@
 // caller passes window.localStorage (itself accessed defensively — see index.js).
 // docs/SHELL.md "Save (FROZEN key oathwood.v1)".
 
+import { LANGS, resolveLang } from '../kernel/i18n.js';
+
 export const SAVE_KEY = 'oathwood.v1';
 
 export function freshSave(now = new Date()) {
@@ -36,26 +38,36 @@ function normalizeSave(parsed, now) {
       reducedMotion: [true, false, null].includes(settingsIn.reducedMotion)
         ? settingsIn.reducedMotion
         : fresh.settings.reducedMotion,
+      // settings.lang is ADDITIVE (CONTRACT §4.1 amendment 2026-08-06): kept
+      // only when a valid 'en'|'es'|'ca' was stored, so pre-amendment saves
+      // (and their exact round-trip shape) are untouched.
+      ...(LANGS.includes(settingsIn.lang) ? { lang: settingsIn.lang } : {}),
     },
     startedAt: typeof parsed.startedAt === 'string' ? parsed.startedAt : fresh.startedAt,
   };
 }
 
 // Never throws: missing key, unparsable JSON, or a throwing storage all fall
-// back to a fresh save.
-export function loadSave(storage, now = new Date()) {
-  if (!storage) return freshSave(now);
+// back to a fresh save. When `nav` (navigator.language) is supplied, the
+// additive settings.lang field is defaulted via resolveLang(saved, nav) —
+// callers that omit it (pure Node tests) get the untouched legacy shape.
+export function loadSave(storage, now = new Date(), nav) {
+  const withLang = (save) => {
+    if (nav !== undefined) save.settings.lang = resolveLang(save.settings.lang, nav);
+    return save;
+  };
+  if (!storage) return withLang(freshSave(now));
   let raw;
   try {
     raw = storage.getItem(SAVE_KEY);
   } catch {
-    return freshSave(now);
+    return withLang(freshSave(now));
   }
-  if (!raw) return freshSave(now);
+  if (!raw) return withLang(freshSave(now));
   try {
-    return normalizeSave(JSON.parse(raw), now);
+    return withLang(normalizeSave(JSON.parse(raw), now));
   } catch {
-    return freshSave(now);
+    return withLang(freshSave(now));
   }
 }
 
