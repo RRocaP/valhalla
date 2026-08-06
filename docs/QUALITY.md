@@ -35,6 +35,22 @@ play 3+ minutes in a real browser and judge fatigue, seam, and duck behavior);
 micro-detail everywhere the eye rests: nailheads, worn paint in grooves,
 rivet shadows, journal ink texture.
 
+## Density rubric (Ramon 2026-08-06: "white space, texture detail… the level
+is not there" — these are pass/fail numbers, measured on dSF2 captures)
+
+- **Field occupancy**: puzzle furniture + intentional detail ≥55% of the
+  panel's visual field at 1280×800; no contiguous featureless region larger
+  than ~18% of the panel; vertical gap between board and controls ≤48px.
+- **Dead-zone law**: every empty stretch carries quiet incidental carving
+  (tool marks, scribe lines, chip-rosettes, wear) at low contrast — visible
+  (≥1.5:1 vs field) but subordinate (≤2.5:1), never competing with the puzzle.
+- **Texture layers**: ≥3 distinguishable material layers on every surface at
+  200% zoom (base grain → wear/patina → carve/tool history); flat fills of
+  any size fail.
+- **Carve standard**: Vikings-Valhalla ship-prow density on ornaments and
+  rails — interlace runs with ribbon over/under, chip-carved borders, stepped
+  architrave frames. Squint test at 25% must still show one focal hierarchy.
+
 ## Protocol
 
 1. QUALITY agents (Opus) produce `docs/reviews/QUALITY_GAP_01.md`: per axis —
