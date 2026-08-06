@@ -104,6 +104,17 @@ function wrongAnswers(instance) {
 const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
 const MONO = "ui-monospace,'SF Mono',Menlo,monospace";
 
+// View-side hex mixer (the frozen art API exposes palette tokens, not colour math).
+function mixHex(a, b, t) {
+  const pa = parseInt(a.slice(1), 16);
+  const pb = parseInt(b.slice(1), 16);
+  const ch = (sa, sb) => Math.round(sa + (sb - sa) * t);
+  const r = ch(pa >> 16, pb >> 16);
+  const g = ch((pa >> 8) & 255, (pb >> 8) & 255);
+  const bl = ch(pa & 255, pb & 255);
+  return `#${((r << 16) | (g << 8) | bl).toString(16).padStart(6, '0')}`;
+}
+
 function labelOf(pouch) {
   const parts = [];
   if (pouch.mark) parts.push(`${pouch.mark} mark`);
@@ -136,6 +147,8 @@ function mount(ctx) {
   // ---- state -------------------------------------------------------------
   let accused = ctx.solved ? solve(instance).pouch : -1;
   let inErtog = false;
+  let keysSaid = false;
+  let nearWeighing = -1; // the weighing that already clears a wrongly named pouch
   const struck = instance.pouches.map(() => false);
 
   // ---- frame -------------------------------------------------------------
@@ -144,20 +157,26 @@ function mount(ctx) {
   style.textContent = `
     .ow2-pouch{display:grid;gap:4px;justify-items:center;background:${p.oakDeep};border:1px solid ${p.oakLight};
       border-radius:4px;padding:8px 6px;min-width:88px;min-height:96px;cursor:pointer;font-family:${SERIF};
-      color:${p.bone};font-size:13px}
+      color:${p.bone};font-size:13px;
+      transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease}
     .ow2-pouch:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
-    .ow2-pouch[aria-checked="true"]{border-color:${p.gold};background:${p.oak}}
+    .ow2-pouch[aria-checked="true"]{border-color:${p.gold};background:${p.oak};
+      transform:translateY(-2px);box-shadow:0 4px 8px rgba(12,9,6,.6)}
     .ow2-pouch[data-struck="1"]{opacity:.45;text-decoration:line-through}
     .ow2-act{font-family:${SERIF};font-size:16px;color:${p.bone};background:${p.oakDeep};
       border:1px solid ${p.gold};border-radius:3px;padding:12px 20px;min-height:44px;cursor:pointer}
     .ow2-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
     .ow2-act[disabled]{opacity:.5;cursor:default}
+    @media (prefers-reduced-motion: reduce){
+      .ow2-pouch{transition:none}
+      .ow2-pouch[aria-checked="true"]{transform:none}
+    }
   `;
   wrap.append(style);
 
   const law = node('p', `margin:0;font-size:13px;color:${p.boneDim};line-height:1.5`,
-    `Every pouch is sworn to the same weight: ${instance.swornErtog} ertog. `
-    + 'One mark is eight øre; one øre is three ertog. The pan that sinks holds the heavier silver.');
+    `Every pouch is sworn to the same weight: ${instance.swornErtog} ertog — one mark is eight øre, one øre three ertog. `
+    + 'One pouch was clipped, and runs light. The pan that sinks holds the heavier silver.');
 
   const beams = node('div', 'display:flex;flex-wrap:wrap;gap:12px;justify-content:center');
   const beamViews = instance.weighings.map((w, k) => {
@@ -174,7 +193,7 @@ function mount(ctx) {
       `${k === 0 ? 'First' : 'Second'} weighing — ${sink}`);
     box.append(gfx.canvas, cap);
     beams.append(box);
-    return { gfx, w };
+    return { gfx, w, k };
   });
 
   const reckon = node('button', null, 'Reckon the labels in ertog');
@@ -208,54 +227,115 @@ function mount(ctx) {
     const cx = W / 2, cy = 44, arm = 92;
     const drop = w.tilt === 'level' ? 0 : (w.tilt === 'left' ? 16 : -16);
 
+    // the post, carved and footed
     c.save();
+    c.strokeStyle = p.tar;
+    c.lineWidth = 5;
+    c.lineCap = 'round';
+    c.beginPath(); c.moveTo(cx + 1, cy + 1); c.lineTo(cx + 1, H - 15); c.stroke();
     c.strokeStyle = p.oakLight;
     c.lineWidth = 3;
-    c.lineCap = 'round';
-    c.beginPath();
-    c.moveTo(cx, cy);
-    c.lineTo(cx, H - 16);
-    c.stroke();
-
-    c.strokeStyle = p.gold;
-    c.lineWidth = 4;
-    c.beginPath();
-    c.moveTo(cx - arm, cy + drop);
-    c.lineTo(cx + arm, cy - drop);
-    c.stroke();
+    c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx, H - 16); c.stroke();
+    c.lineWidth = 2.5;
+    c.beginPath(); c.moveTo(cx - 12, H - 15); c.lineTo(cx + 12, H - 15); c.stroke();
     c.restore();
 
-    const pan = (px, py, ids) => {
+    // the beam: dark under-stroke, gold over, bright streak — then the pivot nail
+    c.save();
+    c.lineCap = 'round';
+    c.strokeStyle = p.tar;
+    c.lineWidth = 6;
+    c.beginPath(); c.moveTo(cx - arm + 1, cy + drop + 1.4); c.lineTo(cx + arm + 1, cy - drop + 1.4); c.stroke();
+    const bg = c.createLinearGradient(cx - arm, cy + drop, cx + arm, cy - drop);
+    bg.addColorStop(0, p.gold);
+    bg.addColorStop(0.5, p.goldBright);
+    bg.addColorStop(1, p.gold);
+    c.strokeStyle = bg;
+    c.lineWidth = 4;
+    c.beginPath(); c.moveTo(cx - arm, cy + drop); c.lineTo(cx + arm, cy - drop); c.stroke();
+    c.restore();
+    art.ornament(c, 'nailhead', cx, cy, 11);
+
+    // a hanging chain of four links, bronze gone green where the sea got at it
+    const chain = (px, py0, py1, side) => {
+      const links = 4;
+      const step = (py1 - py0) / links;
+      for (let i = 0; i < links; i++) {
+        const ly = py0 + step * (i + 0.5);
+        const worn = (i + side + view.k) % 3 === 0;
+        c.save();
+        c.strokeStyle = worn ? p.pineLight : p.gold;
+        c.globalAlpha = worn ? 0.9 : 0.85;
+        c.lineWidth = 1.6;
+        c.beginPath();
+        if (typeof c.ellipse === 'function') c.ellipse(px, ly, 2.2, Math.abs(step) * 0.42, 0, 0, Math.PI * 2);
+        else c.arc(px, ly, 2.6, 0, Math.PI * 2);
+        c.stroke();
+        if (worn) {
+          c.fillStyle = p.pine;
+          c.globalAlpha = 0.5;
+          c.beginPath(); c.arc(px + 1.1, ly + 1, 1.1, 0, Math.PI * 2); c.fill();
+        }
+        c.restore();
+      }
+    };
+
+    const pan = (px, py, ids, side) => {
+      chain(px, py, py + 20, side);
+      // the pan: a shallow lit bowl
       c.save();
-      c.strokeStyle = p.oakLight;
-      c.lineWidth = 2;
-      c.beginPath();
-      c.moveTo(px, py);
-      c.lineTo(px, py + 20);
-      c.stroke();
       c.beginPath();
       c.arc(px, py + 26, 16, Math.PI, 0, true);
-      c.strokeStyle = p.gold;
+      c.closePath();
+      const pg = c.createLinearGradient(px, py + 26, px, py + 42);
+      pg.addColorStop(0, mixHex(p.gold, p.goldBright, 0.3));
+      pg.addColorStop(1, mixHex(p.gold, p.tar, 0.55));
+      c.fillStyle = pg;
+      c.fill();
+      c.strokeStyle = p.tar;
+      c.globalAlpha = 0.7;
+      c.lineWidth = 1.2;
       c.stroke();
+      c.globalAlpha = 1;
+      c.strokeStyle = p.goldBright;
+      c.lineWidth = 1.4;
+      c.beginPath(); c.moveTo(px - 16, py + 26); c.lineTo(px + 16, py + 26); c.stroke();
       c.restore();
       ids.forEach((id, k) => {
-        art.drawRune(c, instance.pouches[id].seal, px - 24 + k * 17, py + 26, 16,
+        art.drawRune(c, instance.pouches[id].seal, px - 21 + k * 15, py + 27, 13,
           { color: id === accused ? p.goldBright : p.bone });
       });
     };
-    pan(cx - arm, cy + drop, w.left);
-    pan(cx + arm, cy - drop, w.right);
+    pan(cx - arm, cy + drop, w.left, 0);
+    pan(cx + arm, cy - drop, w.right, 1);
 
+    // the aside shelf
     c.save();
     c.fillStyle = p.boneDim;
     c.font = `12px ${SERIF}`;
     c.textAlign = 'center';
-    c.fillText('set aside', cx, H - 26);
+    c.fillText('set aside', cx, H - 30);
+    c.strokeStyle = p.tar;
+    c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(cx - 30, H - 8); c.lineTo(cx + 30, H - 8); c.stroke();
+    c.strokeStyle = p.oakLight;
+    c.globalAlpha = 0.5;
+    c.lineWidth = 1;
+    c.beginPath(); c.moveTo(cx - 30, H - 6.6); c.lineTo(cx + 30, H - 6.6); c.stroke();
     c.restore();
     w.aside.forEach((id, k) => {
-      art.drawRune(c, instance.pouches[id].seal, cx - 24 + k * 17, H - 22, 15,
+      art.drawRune(c, instance.pouches[id].seal, cx - 22 + k * 16, H - 24, 14,
         { color: id === accused ? p.goldBright : p.boneDim });
     });
+
+    // near-miss: this weighing already cleared the named pouch
+    if (view.k === nearWeighing) {
+      c.save();
+      c.strokeStyle = p.ember;
+      c.lineWidth = 2;
+      c.strokeRect(5.5, 5.5, W - 11, H - 11);
+      c.restore();
+    }
   }
 
   const pouchViews = instance.pouches.map((pouch, i) => {
@@ -272,9 +352,54 @@ function mount(ctx) {
 
   function paintPouch(v) {
     const c = v.gfx.ctx;
-    c.clearRect(0, 0, v.gfx.w, v.gfx.h);
-    art.drawRune(c, instance.pouches[v.i].seal, 6, 2, 36,
-      { color: v.i === accused ? p.goldBright : p.bone });
+    const { w, h } = v.gfx;
+    const named = v.i === accused;
+    c.clearRect(0, 0, w, h);
+
+    // the leather sack, gathered at the neck
+    const bx = w / 2, neck = 9;
+    c.save();
+    c.beginPath();
+    c.moveTo(bx - 6, neck);
+    c.bezierCurveTo(bx - 17, neck + 8, bx - 16, h - 3, bx, h - 3);
+    c.bezierCurveTo(bx + 16, h - 3, bx + 17, neck + 8, bx + 6, neck);
+    c.closePath();
+    const g = c.createLinearGradient(0, neck, 0, h);
+    g.addColorStop(0, p.oakLight);
+    g.addColorStop(1, p.oakDeep);
+    c.fillStyle = g;
+    c.fill();
+    c.strokeStyle = p.tar;
+    c.lineWidth = 1.2;
+    c.stroke();
+    // gathered folds above the tie
+    c.strokeStyle = p.oakLight;
+    c.globalAlpha = 0.8;
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(bx - 4, 3); c.lineTo(bx - 2, neck - 1);
+    c.moveTo(bx + 1, 2); c.lineTo(bx + 1, neck - 1);
+    c.moveTo(bx + 5, 4); c.lineTo(bx + 3, neck - 1);
+    c.stroke();
+    // the tie
+    c.globalAlpha = 1;
+    c.strokeStyle = named ? p.goldBright : p.gold;
+    c.lineWidth = 2;
+    c.beginPath(); c.moveTo(bx - 7, neck); c.lineTo(bx + 7, neck); c.stroke();
+    c.restore();
+
+    // the wax seal, stamped with the pouch's rune
+    const sy = neck + (h - 3 - neck) / 2 + 1;
+    c.save();
+    c.fillStyle = p.blood;
+    c.beginPath(); c.arc(bx, sy, 10, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = named ? p.goldBright : p.tar;
+    c.globalAlpha = named ? 0.9 : 0.5;
+    c.lineWidth = 1.2;
+    c.stroke();
+    c.restore();
+    art.drawRune(c, instance.pouches[v.i].seal, bx - 7, sy - 7, 14,
+      { color: named ? p.goldBright : p.bone });
   }
 
   function render() {
@@ -294,6 +419,7 @@ function mount(ctx) {
 
   function accuse(i) {
     accused = i;
+    nearWeighing = -1;
     pouchViews.forEach((v) => v.btn.setAttribute('tabindex', v.i === i ? '0' : '-1'));
     sfx('tick');
     render();
@@ -304,6 +430,7 @@ function mount(ctx) {
 
   function strike(i) {
     struck[i] = !struck[i];
+    nearWeighing = -1;
     sfx(struck[i] ? 'knock' : 'tick');
     render();
     const line = struck[i]
@@ -331,10 +458,16 @@ function mount(ctx) {
         ev.preventDefault(); strike(v.i);
       }
     });
+    on(v.btn, 'focus', () => {
+      if (keysSaid) return;
+      keysSaid = true;
+      say('By key: arrows walk the pouches; space or Enter names one; X strikes one from the reckoning.');
+    });
   });
 
   on(reckon, 'click', () => {
     inErtog = !inErtog;
+    nearWeighing = -1;
     reckon.textContent = inErtog ? 'Read the labels as carved' : 'Reckon the labels in ertog';
     sfx('slide');
     render();
@@ -345,23 +478,31 @@ function mount(ctx) {
     say(line);
   });
 
-  function handle(res) {
+  // The shell owns the shudder and the deny voice. The board's part is to show
+  // WHERE: the weighing whose tilt already speaks against the named pouch.
+  function handle(res, sent) {
     if (!res || res.ok) return;
     if (res.near) { status.textContent = res.near; say(res.near); }
+    if (Number.isInteger(sent)) {
+      nearWeighing = instance.weighings.findIndex((w) => tiltUnder(w, sent) !== w.tilt);
+      if (nearWeighing >= 0) beamViews.forEach(paintBeam);
+    }
   }
 
   on(submitBtn, 'click', () => {
     if (ctx.solved || accused < 0) return;
     sfx('confirm');
+    const sent = accused;
     let res;
-    try { res = ctx.submit({ pouch: accused }); } catch (e) { return; }
-    if (res && typeof res.then === 'function') res.then(handle, () => {});
-    else handle(res);
+    try { res = ctx.submit({ pouch: sent }); } catch (e) { return; }
+    if (res && typeof res.then === 'function') res.then((r) => handle(r, sent), () => {});
+    else handle(res, sent);
   });
 
   // ---- open the lock -----------------------------------------------------
   render();
   say(`Nine pouches, each sworn at ${instance.swornErtog} ertog — one mark is eight øre, one øre three ertog.`);
+  say('One pouch was clipped and runs light. The pan that sinks holds the heavier silver.');
   instance.weighings.forEach((w, k) => {
     const sink = w.tilt === 'level' ? 'the beam hung level' : `the ${w.tilt} pan sank`;
     say(`${k === 0 ? 'First' : 'Second'} weighing — left: ${w.left.map((i) => sealName(i)).join(', ')}; `
@@ -388,7 +529,7 @@ export default {
   ordinal: 2,
   tier: 1,
   title: 'The Bismer Scales',
-  epigraph: 'Nine pouches, one sworn weight. The beam has already spoken twice.',
+  epigraph: 'Nine pouches, one sworn weight — and one runs light. The beam has already spoken twice.',
 
   makePuzzle,
   solve,

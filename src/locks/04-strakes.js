@@ -231,6 +231,9 @@ function mount(ctx) {
   };
   const sfx = (k) => { try { ctx.audio && ctx.audio.ui && ctx.audio.ui(k); } catch (e) { /* silent hall */ } };
   const say = (text) => { try { ctx.note && ctx.note(text); } catch (e) { /* no journal */ } };
+  const reduced = () => {
+    try { return !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
+  };
   const node = (tag, css, text) => {
     const n = document.createElement(tag);
     if (css) n.style.cssText = css;
@@ -238,11 +241,22 @@ function mount(ctx) {
     return n;
   };
 
+  // Deterministic per-plank micro-noise (view-only).
+  const h32 = (n) => {
+    let x = (n | 0) + 0x9e3779b9;
+    x = Math.imul(x ^ (x >>> 16), 0x21f0aaad);
+    x = Math.imul(x ^ (x >>> 15), 0x735a2d97);
+    return ((x ^ (x >>> 15)) >>> 0) / 4294967296;
+  };
+
   // ---- state (visual stack runs sheer at the top, keel at the foot) -------
   const truth = ctx.solved ? solve(instance) : null;
   const stack = truth ? truth.order.slice().reverse() : instance.planks.map((_, i) => i);
   let accused = truth ? truth.liar : -1;
   let held = -1;
+  let keysSaid = false;
+  let nearTest = -1;            // a testimony wrongly accused (it keeps the law)
+  const nearPlank = new Map();  // plank id -> { tick, brk, tieT, tieB }
 
   const wrap = node('div', `display:grid;gap:14px;font-family:${SERIF};color:${p.bone}`);
   const style = node('style');
@@ -251,13 +265,21 @@ function mount(ctx) {
     @media (min-width:760px){.ow4-cols{grid-template-columns:1fr 1fr}}
     .ow4-say{display:block;width:100%;text-align:left;font-family:${SERIF};font-size:14px;line-height:1.45;
       color:${p.bone};background:${p.oakDeep};border:1px solid ${p.oakLight};border-radius:3px;
-      padding:10px 12px;min-height:44px;cursor:pointer}
+      padding:10px 12px;min-height:44px;cursor:pointer;transition:border-color .12s ease}
     .ow4-say:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
     .ow4-say[aria-checked="true"]{border-color:${p.blood};color:${p.boneDim};text-decoration:line-through}
+    .ow4-say[data-near="1"]{border-color:${p.ember}}
     .ow4-plank{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;
-      padding:2px;cursor:grab;touch-action:none;border-radius:3px;font-family:${SERIF};color:${p.bone}}
+      padding:2px;cursor:grab;touch-action:none;border-radius:3px;font-family:${SERIF};color:${p.bone};
+      filter:drop-shadow(0 2px 2px rgba(12,9,6,.5));
+      transition:transform .12s ease,filter .12s ease}
     .ow4-plank:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
-    .ow4-plank[data-held="1"]{cursor:grabbing}
+    .ow4-plank[data-held="1"]{cursor:grabbing;transform:translateY(-2px);
+      filter:drop-shadow(0 6px 6px rgba(12,9,6,.65))}
+    @media (prefers-reduced-motion: reduce){
+      .ow4-say,.ow4-plank{transition:none}
+      .ow4-plank[data-held="1"]{transform:none}
+    }
     .ow4-act{font-family:${SERIF};font-size:16px;color:${p.bone};background:${p.oakDeep};
       border:1px solid ${p.gold};border-radius:3px;padding:12px 20px;min-height:44px;cursor:pointer}
     .ow4-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
@@ -317,6 +339,7 @@ function mount(ctx) {
 
   function accuse(k) {
     accused = k;
+    clearNear();
     sayViews.forEach((v) => {
       v.btn.setAttribute('aria-checked', v.k === k ? 'true' : 'false');
       v.btn.setAttribute('tabindex', v.k === k ? '0' : '-1');
@@ -340,6 +363,12 @@ function mount(ctx) {
         ev.preventDefault(); const x = sayViews[(v.k - 1 + n) % n]; x.btn.focus(); accuse(x.k);
       }
     });
+    on(v.btn, 'focus', () => {
+      if (keysSaid) return;
+      keysSaid = true;
+      say('By key: on the testimonies, arrows walk and the walked one is accused; on the planks, '
+        + 'space lifts, up and down move what is lifted, space sets it down.');
+    });
   });
 
   // ---- the stack ---------------------------------------------------------
@@ -352,29 +381,204 @@ function mount(ctx) {
     gfx.canvas.style.maxWidth = '100%';
     const text = node('span', 'font-size:13px;line-height:1.2');
     btn.append(gfx.canvas, text);
-    return { id, btn, gfx, text };
+    return { id, btn, gfx, text, key: '' };
   });
 
+  function clearNear() {
+    if (nearTest < 0 && !nearPlank.size) return;
+    nearTest = -1;
+    nearPlank.clear();
+    sayViews.forEach((sv) => { sv.btn.dataset.near = '0'; });
+    render();
+  }
+
+  // a set-down plank slides home along its own grain
+  function settle(btn) {
+    if (reduced() || typeof btn.animate !== 'function') return;
+    btn.animate(
+      [{ transform: 'translateX(-6px)' }, { transform: 'translateX(1.5px)' }, { transform: 'translateX(0)' }],
+      { duration: 150, easing: 'ease-out' },
+    );
+  }
+
+  // hex mixer for plank washes (the frozen art API exposes tokens, not colour math)
+  const mixHex = (a, b, t) => {
+    const pa = parseInt(a.slice(1), 16);
+    const pb = parseInt(b.slice(1), 16);
+    const chn = (sa, sb) => Math.round(sa + (sb - sa) * t);
+    const r = chn(pa >> 16, pb >> 16);
+    const g = chn((pa >> 8) & 255, (pb >> 8) & 255);
+    const bl = chn(pa & 255, pb & 255);
+    return `#${((r << 16) | (g << 8) | bl).toString(16).padStart(6, '0')}`;
+  };
+
+  // each mark wears its name: tar wash, salt bloom, a knot, a scarf joint …
+  function markFeature(c, v, x0, y0, x1, y1) {
+    const kind = instance.planks[v.id].mark.split(' ')[1];
+    const mw = x1 - x0, mh = y1 - y0, midY = (y0 + y1) / 2;
+    c.save();
+    if (kind === 'tarred') {
+      c.fillStyle = p.tar; c.globalAlpha = 0.34; c.fillRect(x0, y0, mw, mh);
+      c.globalAlpha = 0.5; c.lineWidth = 1; c.strokeStyle = p.tar;
+      for (let k = 0; k < 4; k++) {
+        const sx = x0 + h32(v.id * 17 + k) * mw;
+        c.beginPath(); c.moveTo(sx, y0); c.lineTo(sx - 3, y1); c.stroke();
+      }
+    } else if (kind === 'pale') {
+      c.fillStyle = p.bone; c.globalAlpha = 0.13; c.fillRect(x0, y0, mw, mh);
+    } else if (kind === 'knotted') {
+      const kx = x0 + mw * (0.3 + h32(v.id) * 0.4);
+      c.strokeStyle = p.oakDeep; c.globalAlpha = 0.85; c.lineWidth = 1.2;
+      for (const rr of [3.4, 5.6]) {
+        c.beginPath();
+        if (typeof c.ellipse === 'function') c.ellipse(kx, midY, rr + 1.4, rr, 0.3, 0, Math.PI * 2);
+        else c.arc(kx, midY, rr, 0, Math.PI * 2);
+        c.stroke();
+      }
+      c.fillStyle = p.tar; c.beginPath(); c.arc(kx, midY, 2.1, 0, Math.PI * 2); c.fill();
+    } else if (kind === 'scarfed') {
+      const sx = x0 + mw * 0.34;
+      c.strokeStyle = p.tar; c.globalAlpha = 0.8; c.lineWidth = 1.4;
+      c.beginPath(); c.moveTo(sx, y0); c.lineTo(sx + 14, y1); c.stroke();
+      c.strokeStyle = p.oakLight; c.globalAlpha = 0.5; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(sx + 1.6, y0); c.lineTo(sx + 15.6, y1); c.stroke();
+    } else if (kind === 'salt-white') {
+      c.fillStyle = p.bone;
+      for (let k = 0; k < 26; k++) {
+        c.globalAlpha = 0.1 + h32(v.id * 29 + k) * 0.22;
+        const sx = x0 + h32(v.id * 31 + k) * mw;
+        const sy = y0 + h32(v.id * 37 + k) * mh;
+        c.beginPath(); c.arc(sx, sy, 0.7 + h32(v.id * 41 + k) * 0.8, 0, Math.PI * 2); c.fill();
+      }
+    } else if (kind === 'resined') {
+      const rx = x0 + mw * 0.6;
+      const g = c.createRadialGradient(rx, midY, 1, rx, midY, mw * 0.3);
+      g.addColorStop(0, p.ember); g.addColorStop(1, 'rgba(0,0,0,0)');
+      c.globalAlpha = 0.2; c.fillStyle = g; c.fillRect(x0, y0, mw, mh);
+      c.globalAlpha = 0.28; c.strokeStyle = p.goldBright; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(x0 + mw * 0.45, y0 + 2); c.lineTo(x0 + mw * 0.78, y0 + 2); c.stroke();
+    } else if (kind === 'green') {
+      c.fillStyle = p.pine; c.globalAlpha = 0.26; c.fillRect(x0, y0, mw, mh);
+      c.fillStyle = p.pineLight; c.globalAlpha = 0.14; c.fillRect(x0, y0, mw, mh / 2);
+    } else if (kind === 'split') {
+      c.strokeStyle = p.tar; c.globalAlpha = 0.9; c.lineWidth = 1.3;
+      c.beginPath();
+      c.moveTo(x0, midY - 1);
+      for (let k = 1; k <= 5; k++) {
+        c.lineTo(x0 + (mw * 0.52 * k) / 5, midY - 1 + (h32(v.id * 43 + k) - 0.5) * 4);
+      }
+      c.stroke();
+    } else if (kind === 'burnt') {
+      const g = c.createLinearGradient(x1 - mw * 0.3, 0, x1, 0);
+      g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, p.tar);
+      c.globalAlpha = 0.78; c.fillStyle = g; c.fillRect(x1 - mw * 0.3, y0, mw * 0.3, mh);
+      c.fillStyle = p.ember;
+      for (let k = 0; k < 3; k++) {
+        c.globalAlpha = 0.4 + h32(v.id * 47 + k) * 0.3;
+        c.beginPath();
+        c.arc(x1 - mw * (0.22 + h32(v.id * 53 + k) * 0.08), y0 + 2 + h32(v.id * 59 + k) * (mh - 4), 0.9, 0, Math.PI * 2);
+        c.fill();
+      }
+    }
+    c.restore();
+  }
+
   function paintPlank(v) {
+    const flags = nearPlank.get(v.id);
+    const key = `${held === v.id}|${flags ? `${flags.tick}${flags.brk}${flags.tieT}${flags.tieB}` : ''}`;
+    if (v.key === key) return; // repaint only on a real state change
+    v.key = key;
+
     const c = v.gfx.ctx;
     const { w, h } = v.gfx;
     const plank = instance.planks[v.id];
+    const lifted = held === v.id;
+    const x0 = 0, y0 = 4, x1 = w, y1 = h - 4;
     c.clearRect(0, 0, w, h);
+
+    // the plank body, lit from above
     c.save();
-    c.fillStyle = held === v.id ? p.oakLight : p.oak;
-    c.fillRect(0, 6, w, h - 12);
-    c.strokeStyle = p.tar;
+    const g = c.createLinearGradient(0, y0, 0, y1);
+    g.addColorStop(0, lifted ? mixHex(p.oakLight, p.goldBright, 0.12) : p.oakLight);
+    g.addColorStop(0.45, lifted ? p.oakLight : p.oak);
+    g.addColorStop(1, p.oakDeep);
+    c.fillStyle = g;
+    c.fillRect(x0, y0, x1 - x0, y1 - y0);
+
+    // grain running the plank's length
     c.lineWidth = 1;
-    c.strokeRect(0.5, 6.5, w - 1, h - 13);
-    c.fillStyle = held === v.id ? p.goldBright : p.gold;
+    for (let k = 0; k < 3; k++) {
+      const gy = y0 + 4 + h32(v.id * 11 + k) * (y1 - y0 - 8);
+      const sway = (h32(v.id * 19 + k) - 0.5) * 4;
+      c.strokeStyle = k % 2 ? p.oakDeep : p.oakLight;
+      c.globalAlpha = 0.16 + h32(v.id * 23 + k) * 0.1;
+      c.beginPath();
+      c.moveTo(x0 + 2, gy);
+      c.bezierCurveTo(w * 0.33, gy + sway, w * 0.66, gy - sway, x1 - 2, gy);
+      c.stroke();
+    }
+    c.globalAlpha = 1;
+    c.restore();
+
+    markFeature(c, v, x0, y0, x1, y1);
+
+    // clinker shading: the lap shadow above, the catch light below
+    c.save();
+    const lap = c.createLinearGradient(0, y0, 0, y0 + 6);
+    lap.addColorStop(0, p.tar); lap.addColorStop(1, 'rgba(0,0,0,0)');
+    c.globalAlpha = 0.55; c.fillStyle = lap; c.fillRect(x0, y0, x1 - x0, 6);
+    c.globalAlpha = 0.5; c.strokeStyle = p.oakLight; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(x0, y1 - 0.5); c.lineTo(x1, y1 - 0.5); c.stroke();
+    c.globalAlpha = 0.9; c.strokeStyle = p.tar;
+    c.strokeRect(x0 + 0.5, y0 + 0.5, x1 - x0 - 1, y1 - y0 - 1);
+    c.restore();
+
+    // rivets: a cast shadow first, then the lit dome
     const n = plank.rivets;
     const gap = (w - 12) / Math.max(1, n - 1);
     for (let i = 0; i < n; i++) {
-      c.beginPath();
-      c.arc(6 + gap * i, h / 2, 1.8, 0, Math.PI * 2);
-      c.fill();
+      const rx = 6 + gap * i, ry = h / 2;
+      c.save();
+      c.fillStyle = p.tar;
+      c.globalAlpha = 0.55;
+      c.beginPath(); c.arc(rx + 0.9, ry + 1.2, 2.1, 0, Math.PI * 2); c.fill();
+      c.globalAlpha = 1;
+      const dome = c.createRadialGradient(rx - 0.6, ry - 0.6, 0.2, rx, ry, 2);
+      dome.addColorStop(0, lifted ? p.goldBright : mixHex(p.gold, p.goldBright, 0.5));
+      dome.addColorStop(1, mixHex(p.gold, p.tar, 0.45));
+      c.fillStyle = dome;
+      c.beginPath(); c.arc(rx, ry, 1.9, 0, Math.PI * 2); c.fill();
+      c.restore();
     }
-    c.restore();
+
+    // near-miss marks: gold tick for strakes standing true, ember for the fault
+    // (every ember mark rides a tar under-stroke so it separates from the oak)
+    if (flags) {
+      c.save();
+      const emberLine = (ax, ay, bx, by) => {
+        c.lineCap = 'round';
+        c.strokeStyle = p.tar; c.lineWidth = 4.5;
+        c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
+        c.strokeStyle = p.ember; c.lineWidth = 2.5;
+        c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
+      };
+      if (flags.tieT) emberLine(x0 + 3, y0 + 1.5, x1 - 3, y0 + 1.5);
+      if (flags.tieB) emberLine(x0 + 3, y1 - 1.5, x1 - 3, y1 - 1.5);
+      if (flags.brk) {
+        c.strokeStyle = p.tar; c.lineWidth = 4;
+        c.strokeRect(x0 + 1.5, y0 + 1.5, x1 - x0 - 3, y1 - y0 - 3);
+        c.strokeStyle = p.ember; c.lineWidth = 2;
+        c.strokeRect(x0 + 1.5, y0 + 1.5, x1 - x0 - 3, y1 - y0 - 3);
+      }
+      if (flags.tick) {
+        c.lineCap = 'round';
+        c.strokeStyle = p.tar; c.lineWidth = 4;
+        c.beginPath(); c.moveTo(x0 + 5, h / 2 + 2); c.lineTo(x0 + 8, h / 2 + 5); c.lineTo(x0 + 13, h / 2 - 4); c.stroke();
+        c.strokeStyle = p.gold; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(x0 + 5, h / 2 + 2); c.lineTo(x0 + 8, h / 2 + 5); c.lineTo(x0 + 13, h / 2 - 4); c.stroke();
+      }
+      c.restore();
+    }
   }
 
   function render() {
@@ -435,7 +639,7 @@ function mount(ctx) {
         sfx('slide');
       }
       ev.preventDefault();
-      if (moveTo(v.id, nearestPlace(ev.clientY))) { sfx('tick'); render(); }
+      if (moveTo(v.id, nearestPlace(ev.clientY))) { clearNear(); sfx('tick'); render(); }
     });
     const finish = (ev) => {
       if (!drag || drag.id !== v.id) return;
@@ -444,7 +648,7 @@ function mount(ctx) {
       held = -1;
       try { v.btn.releasePointerCapture(ev.pointerId); } catch (e) { /* already gone */ }
       render();
-      if (moved) { sfx('knock'); reportMove(v.id); }
+      if (moved) { sfx('knock'); settle(v.btn); reportMove(v.id); }
     };
     on(v.btn, 'pointerup', finish);
     on(v.btn, 'pointercancel', () => { drag = null; held = -1; render(); });
@@ -454,7 +658,7 @@ function mount(ctx) {
       const place = stack.indexOf(v.id);
       const step = (d) => {
         if (held === v.id) {
-          if (moveTo(v.id, place + d)) { sfx('slide'); render(); reportMove(v.id); }
+          if (moveTo(v.id, place + d)) { clearNear(); sfx('slide'); render(); reportMove(v.id); }
           v.btn.focus();
         } else {
           const next = plankViews[stack[Math.max(0, Math.min(stack.length - 1, place + d))]];
@@ -466,28 +670,73 @@ function mount(ctx) {
       else if (ev.key === 'ArrowDown') { ev.preventDefault(); step(1); }
       else if (ev.key === ' ' || ev.key === 'Spacebar' || ev.key === 'Enter') {
         ev.preventDefault();
-        held = held === v.id ? -1 : v.id;
-        sfx(held === v.id ? 'slide' : 'knock');
+        const wasHeld = held === v.id;
+        held = wasHeld ? -1 : v.id;
+        sfx(wasHeld ? 'knock' : 'slide');
         render();
-        status.textContent = held === v.id
-          ? `${markOf(v.id)} is lifted. The arrows move it; space sets it down.`
-          : `${markOf(v.id)} is set down.`;
+        if (wasHeld) settle(v.btn);
+        status.textContent = wasHeld
+          ? `${markOf(v.id)} is set down.`
+          : `${markOf(v.id)} is lifted. The arrows move it; space sets it down.`;
       }
+    });
+
+    on(v.btn, 'focus', () => {
+      if (keysSaid) return;
+      keysSaid = true;
+      say('By key: on the testimonies, arrows walk and the walked one is accused; on the planks, '
+        + 'space lifts, up and down move what is lifted, space sets it down.');
     });
   });
 
-  function handle(res) {
+  // The shell owns the shudder and the deny voice. The board's part is to show
+  // WHERE, at the near-line's own grain: the wrongly accused oath, the lapped
+  // pair the rivets forbid, or how far from the keel the stack stands true.
+  function handle(res, sent) {
     if (!res || res.ok) return;
+    if (sent) {
+      nearPlank.clear();
+      nearTest = -1;
+      const t = instance.testimonies[sent.liar];
+      const lawless = instance.planks[t.over].rivets % 2 === instance.planks[t.under].rivets % 2;
+      const flagsOf = (id) => {
+        if (!nearPlank.has(id)) nearPlank.set(id, { tick: false, brk: false, tieT: false, tieB: false });
+        return nearPlank.get(id);
+      };
+      if (!lawless) {
+        nearTest = sent.liar;
+        sayViews[sent.liar].btn.dataset.near = '1';
+      } else {
+        let parityOk = true;
+        for (let i = 1; i < sent.order.length; i++) {
+          const below = sent.order[i - 1], above = sent.order[i];
+          if (instance.planks[above].rivets % 2 === instance.planks[below].rivets % 2) {
+            parityOk = false;
+            flagsOf(above).tieB = true; // its lower edge meets the fault
+            flagsOf(below).tieT = true; // its upper edge meets the fault
+          }
+        }
+        if (parityOk) {
+          const truthOrder = solve(instance).order;
+          let stand = 0;
+          while (stand < sent.order.length && sent.order[stand] === truthOrder[stand]) stand++;
+          for (let i = 0; i < stand; i++) flagsOf(sent.order[i]).tick = true;
+          if (stand < sent.order.length) flagsOf(sent.order[stand]).brk = true;
+        }
+      }
+      render();
+    }
     if (res.near) { status.textContent = res.near; say(res.near); }
   }
 
   on(submitBtn, 'click', () => {
     if (ctx.solved || accused < 0) return;
     sfx('confirm');
+    const sent = { order: stack.slice().reverse(), liar: accused };
     let res;
-    try { res = ctx.submit({ order: stack.slice().reverse(), liar: accused }); } catch (e) { return; }
-    if (res && typeof res.then === 'function') res.then(handle, () => {});
-    else handle(res);
+    try { res = ctx.submit(sent); } catch (e) { return; }
+    if (res && typeof res.then === 'function') res.then((r) => handle(r, sent), () => {});
+    else handle(res, sent);
   });
 
   // ---- open the lock -----------------------------------------------------

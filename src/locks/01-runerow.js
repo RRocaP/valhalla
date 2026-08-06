@@ -284,7 +284,9 @@ function mount(ctx) {
       for (let k = 0; k < 3; k++) {
         const [x0, x1] = regionSpan(k);
         c.save();
-        c.globalAlpha = 0.9;
+        c.fillStyle = p.tar;
+        c.fillRect(x0 - 1, rail.h - 11, x1 - x0 + 2, 4.5);
+        c.globalAlpha = 0.95;
         c.fillStyle = nearMarks[k] ? p.gold : p.ember;
         c.fillRect(x0, rail.h - 10, x1 - x0, 2.5);
         c.restore();

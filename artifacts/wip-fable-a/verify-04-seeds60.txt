@@ -1,0 +1,3 @@
+04-strakes: solver 60/60 wrongs 660 mutants 180/180 (7ms)
+
+GATES GREEN — 1 lock(s), 60 seeds (partial)

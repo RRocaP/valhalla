@@ -153,6 +153,20 @@ function mount(ctx) {
   // ---- state -------------------------------------------------------------
   let night = ctx.solved ? solve(instance).night : 1;
   const longest = Math.max(...instance.beacons.map((b) => b.cycle));
+  let keysSaid = false;
+  let flick = 0;          // ember flicker phase (rAF-driven, reduced-motion off)
+  let detent = false;     // brief detent emphasis after each step of the dial
+  let detentTimer = null;
+  let nearDark = null;    // beacon indexes standing dark at the refused night
+
+  const reduced = () => {
+    try { return !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
+  };
+  // hash-flicker: cheap, stateless, different per flame
+  const jit = (k) => {
+    const x = Math.sin((flick * 0.61 + k * 12.9898) * 43758.5453);
+    return x - Math.floor(x);
+  };
 
   const wrap = node('div', `display:grid;gap:14px;justify-items:center;font-family:${SERIF};color:${p.bone}`);
   const style = node('style');
@@ -169,7 +183,8 @@ function mount(ctx) {
   wrap.append(style);
 
   const law = node('p', `margin:0;font-size:13px;color:${p.boneDim};line-height:1.5;text-align:center`,
-    `Tonight is night nought. The dial runs to night ${instance.dialMax}, and past that the whole pattern comes round again.`);
+    `Tonight is night nought. The dial runs to night ${instance.dialMax}, and past that the whole pattern comes round again. `
+    + 'Set it to the next night on which all three burn as one.');
 
   const gfx = art.makeCanvas(320, 320);
   gfx.canvas.className = 'ow3-dial';
@@ -208,6 +223,32 @@ function mount(ctx) {
   const burnsHere = (b, t) => t >= 1 && (t + b.lastBurned) % b.cycle === 0;
   const litCount = (t) => instance.beacons.filter((b) => burnsHere(b, t)).length;
 
+  // a small tongue of fire: base colour, gold heart, flicker-led sway
+  function flame(c, x, y, s, colour, seed, glowR) {
+    const sway = (jit(seed) - 0.5) * s * 0.5;
+    const lift = 1 + (jit(seed + 7) - 0.5) * 0.28;
+    if (glowR) {
+      try { art.glow(c, x, y, glowR * (0.85 + jit(seed + 3) * 0.3), colour, 0.65 + jit(seed + 5) * 0.3); } catch (e) { /* stub */ }
+    }
+    c.save();
+    c.beginPath();
+    c.moveTo(x - s * 0.55, y + s * 0.5);
+    c.quadraticCurveTo(x - s * 0.62, y - s * 0.15, x + sway * 0.4, y - s * 0.55 * lift);
+    c.quadraticCurveTo(x + sway, y - s * 1.05 * lift, x + sway * 0.6, y - s * 0.5 * lift);
+    c.quadraticCurveTo(x + s * 0.62, y - s * 0.1, x + s * 0.55, y + s * 0.5);
+    c.closePath();
+    c.fillStyle = colour;
+    c.fill();
+    c.beginPath();
+    c.moveTo(x - s * 0.24, y + s * 0.42);
+    c.quadraticCurveTo(x - s * 0.26, y - s * 0.05, x + sway * 0.5, y - s * 0.34 * lift);
+    c.quadraticCurveTo(x + s * 0.26, y - s * 0.02, x + s * 0.24, y + s * 0.42);
+    c.closePath();
+    c.fillStyle = p.goldBright;
+    c.fill();
+    c.restore();
+  }
+
   function paint() {
     const c = gfx.ctx;
     const W = gfx.w, H = gfx.h;
@@ -222,7 +263,32 @@ function mount(ctx) {
     c.strokeStyle = p.oakLight;
     c.lineWidth = 2;
     c.stroke();
+    // the rim, nailed to the lid at the quarters
+    c.strokeStyle = p.gold;
+    c.globalAlpha = 0.5;
+    c.lineWidth = 1;
+    c.beginPath();
+    c.arc(cx, cy, 145, 0, Math.PI * 2);
+    c.stroke();
     c.restore();
+    for (const a of [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4]) {
+      art.ornament(c, 'nailhead', cx + Math.cos(a) * 149, cy + Math.sin(a) * 149, 9);
+    }
+
+    // one carved track per beacon, so each fire rides its own ring
+    instance.beacons.forEach((b, i) => {
+      const r = 108 - i * 22;
+      c.save();
+      c.strokeStyle = p.oakDeep;
+      c.globalAlpha = 0.9;
+      c.lineWidth = 1.6;
+      c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = fires[i];
+      c.globalAlpha = 0.22;
+      c.lineWidth = 1;
+      c.beginPath(); c.arc(cx, cy, r - 1.6, 0, Math.PI * 2); c.stroke();
+      c.restore();
+    });
 
     const step = (Math.PI * 2) / WINDOW;
     const half = (WINDOW - 1) / 2;
@@ -234,27 +300,35 @@ function mount(ctx) {
       const cos = Math.cos(a), sin = Math.sin(a);
 
       c.save();
+      const hot = k === 0 && detent;
       c.strokeStyle = k === 0 ? p.goldBright : p.oakLight;
-      c.lineWidth = k === 0 ? 2.5 : 1;
+      c.lineWidth = k === 0 ? (hot ? 3.5 : 2.5) : 1;
       c.beginPath();
       c.moveTo(cx + cos * 138, cy + sin * 138);
-      c.lineTo(cx + cos * (k === 0 ? 122 : 130), cy + sin * (k === 0 ? 122 : 130));
+      c.lineTo(cx + cos * (k === 0 ? (hot ? 118 : 122) : 130), cy + sin * (k === 0 ? (hot ? 118 : 122) : 130));
       c.stroke();
       c.restore();
 
       instance.beacons.forEach((b, i) => {
         if (!burnsHere(b, t)) return;
         const r = 108 - i * 22;
+        const fx = cx + cos * r, fy = cy + sin * r;
         c.save();
         c.fillStyle = fires[i];
         c.beginPath();
-        c.arc(cx + cos * r, cy + sin * r, 4, 0, Math.PI * 2);
+        c.arc(fx, fy, 4, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = p.goldBright;
+        c.globalAlpha = k === 0 ? 0.95 : 0.7;
+        c.beginPath();
+        c.arc(fx, fy, 1.7, 0, Math.PI * 2);
         c.fill();
         c.restore();
       });
 
       if (litCount(t) === instance.beacons.length) {
-        try { art.glow(c, cx + cos * 122, cy + sin * 122, 16, p.goldBright, 0.9); } catch (e) { /* stub */ }
+        const g = 0.8 + jit(t) * 0.25;
+        try { art.glow(c, cx + cos * 122, cy + sin * 122, 16, p.goldBright, g); } catch (e) { /* stub */ }
         c.save();
         c.strokeStyle = p.gold;
         c.lineWidth = 2;
@@ -275,7 +349,7 @@ function mount(ctx) {
     c.closePath();
     c.fill();
 
-    c.fillStyle = p.bone;
+    c.fillStyle = detent ? p.goldBright : p.bone;
     c.textAlign = 'center';
     c.font = `600 40px ${MONO}`;
     c.fillText(String(night), cx, cy + 6);
@@ -284,20 +358,32 @@ function mount(ctx) {
     c.fillText('nights hence', cx, cy + 28);
     c.restore();
 
+    // the three braziers: burning ones carry a living flame, dark ones a cold bowl
     instance.beacons.forEach((b, i) => {
       const x = cx - 34 + i * 34;
       const y = cy + 58;
       const lit = burnsHere(b, night);
-      if (lit) { try { art.glow(c, x, y, 18, fires[i], 0.8); } catch (e) { /* stub */ } }
       c.save();
       c.beginPath();
-      c.arc(x, y, 9, 0, Math.PI * 2);
-      c.fillStyle = lit ? fires[i] : p.oakDeep;
+      c.arc(x, y + 3, 9, 0, Math.PI, false);
+      c.closePath();
+      c.fillStyle = lit ? p.oak : p.oakDeep;
       c.fill();
-      c.strokeStyle = lit ? p.goldBright : p.oakLight;
+      c.strokeStyle = lit ? p.gold : p.oakLight;
       c.lineWidth = 1.5;
       c.stroke();
       c.restore();
+      if (lit) {
+        flame(c, x, y - 2, 8, fires[i], i * 31 + 5, 18);
+      } else if (nearDark && nearDark.indexOf(i) >= 0) {
+        c.save();
+        c.strokeStyle = p.ember;
+        c.lineWidth = 2;
+        c.beginPath();
+        c.arc(x, y, 13, 0, Math.PI * 2);
+        c.stroke();
+        c.restore();
+      }
     });
   }
 
@@ -311,7 +397,11 @@ function mount(ctx) {
     paint();
     ledgerRows.forEach((r) => {
       const when = r.b.lastBurned === 0 ? 'burned tonight' : `burned ${r.b.lastBurned} night${r.b.lastBurned > 1 ? 's' : ''} ago`;
-      r.text.textContent = `${r.b.name} — every ${r.b.cycle} nights, ${when}${burnsHere(r.b, night) ? ' · burning' : ''}`;
+      const dark = nearDark && nearDark.indexOf(r.i) >= 0;
+      r.text.textContent = `${r.b.name} — every ${r.b.cycle} nights, ${when}`
+        + (burnsHere(r.b, night) ? ' · burning' : (dark ? ' · stands dark' : ''));
+      r.text.style.color = dark ? p.bone : '';
+      r.text.style.fontWeight = dark ? '600' : '';
     });
     gfx.canvas.setAttribute('aria-valuenow', String(night));
     gfx.canvas.setAttribute('aria-valuetext', describe());
@@ -326,7 +416,13 @@ function mount(ctx) {
     const next = Math.max(1, Math.min(instance.dialMax, t));
     if (next === night) return;
     night = next;
+    nearDark = null;
     sfx('tick');
+    if (!reduced()) {
+      detent = true;
+      if (detentTimer) clearTimeout(detentTimer);
+      detentTimer = setTimeout(() => { detent = false; detentTimer = null; paint(); }, 130);
+    }
     render();
   }
 
@@ -377,8 +473,23 @@ function mount(ctx) {
     else if (ev.key === 'Enter') { ev.preventDefault(); submitBtn.click(); }
   });
 
-  function handle(res) {
+  on(gfx.canvas, 'focus', () => {
+    if (keysSaid) return;
+    keysSaid = true;
+    say(`By key: left and right walk one night; up and down leap ten; the page keys leap ${longest}; `
+      + 'Home and End run to the dial’s ends; Enter sets the dial.');
+  });
+
+  // The shell owns the shudder and the deny voice. The board's part is to show
+  // WHERE: the braziers standing dark on the refused night.
+  function handle(res, sent) {
     if (!res || res.ok) return;
+    if (Number.isInteger(sent) && sent === night) {
+      nearDark = instance.beacons
+        .map((b, i) => (burnsHere(b, night) ? -1 : i))
+        .filter((i) => i >= 0);
+      render(true);
+    }
     if (res.near) { status.textContent = res.near; say(res.near); }
   }
 
@@ -386,10 +497,11 @@ function mount(ctx) {
     if (ctx.solved) return;
     sfx('confirm');
     say(`The dial is set to night ${night}.`);
+    const sent = night;
     let res;
-    try { res = ctx.submit({ night }); } catch (e) { return; }
-    if (res && typeof res.then === 'function') res.then(handle, () => {});
-    else handle(res);
+    try { res = ctx.submit({ night: sent }); } catch (e) { return; }
+    if (res && typeof res.then === 'function') res.then((r) => handle(r, sent), () => {});
+    else handle(res, sent);
   });
 
   // ---- open the lock -----------------------------------------------------
@@ -397,11 +509,23 @@ function mount(ctx) {
   say('Three beacons, three reckonings: '
     + instance.beacons.map((b) => `${b.name} every ${b.cycle} nights, last burned ${b.lastBurned} nights ago`).join('; ')
     + `. The dial runs from night 1 to night ${instance.dialMax}.`);
+  say('Sought: the next night on which all three burn as one.');
   if (ctx.solved) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'The dial is set';
     status.textContent = `All three burned together on night ${night}.`;
   }
+
+  // the ember flicker — alive, calm, and absent under reduced motion
+  let raf = 0;
+  let lastFlick = 0;
+  const canFlick = typeof globalThis.requestAnimationFrame === 'function'
+    && typeof globalThis.cancelAnimationFrame === 'function' && !reduced();
+  const breathe = (ts) => {
+    if (ts - lastFlick >= 90) { lastFlick = ts; flick = (flick + 1) % 1024; paint(); }
+    raf = globalThis.requestAnimationFrame(breathe);
+  };
+  if (canFlick) raf = globalThis.requestAnimationFrame(breathe);
 
   return {
     unmount() {
@@ -410,6 +534,9 @@ function mount(ctx) {
       for (const t of timers) clearTimeout(t);
       timers.length = 0;
       if (noteTimer) clearTimeout(noteTimer);
+      if (detentTimer) clearTimeout(detentTimer);
+      if (raf) globalThis.cancelAnimationFrame(raf);
+      raf = 0;
       turn = null;
       if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
     },

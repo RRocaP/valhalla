@@ -278,12 +278,16 @@ function mount(ctx) {
   const instance = ctx.instance;
 
   const cleanup = [];
+  const timers = [];
   const on = (el, ev, fn, opts) => {
     el.addEventListener(ev, fn, opts);
     cleanup.push(() => el.removeEventListener(ev, fn, opts));
   };
   const sfx = (k) => { try { ctx.audio && ctx.audio.ui && ctx.audio.ui(k); } catch (e) { /* silent hall */ } };
   const say = (text) => { try { ctx.note && ctx.note(text); } catch (e) { /* no journal */ } };
+  const reduced = () => {
+    try { return !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
+  };
   const node = (tag, css, text) => {
     const n = document.createElement(tag);
     if (css) n.style.cssText = css;
@@ -297,6 +301,10 @@ function mount(ctx) {
   const seq = traceBand(instance.cells, buildLinks(instance.border)).seq;
   const states = ctx.solved ? solve(instance).states : instance.initial.slice();
   let focused = instance.free.length ? instance.free[0] : 0;
+  let keysSaid = false;
+  let pulse = -1;          // a just-laid crossing gleams for a breath
+  let pulseTimer = null;
+  let nearFault = null;    // [cellA, cellB]: the first doubling-over along the band
 
   const overNow = () => {
     const map = new Array(CELLS).fill(null);
@@ -415,26 +423,36 @@ function mount(ctx) {
       const carved = instance.cells[cell].carved;
       const lit = cell === focused;
       const colour = lit ? p.goldBright : (carved ? p.gold : p.bone);
+      const x0 = (cell & 3) * TILE, y0 = (cell >> 2) * TILE;
+      const cx = x0 + TILE / 2, cy = y0 + TILE / 2;
 
       if (kind === 'cross') {
         const nsOver = map[cell] === 'ns';
         band(c, cell, W, E, { width: 11, color: colour, gap: nsOver });
         band(c, cell, N, S, { width: 11, color: colour, gap: !nsOver });
+
+        // sheen where the over-strand crests the crossing
+        c.save();
+        c.globalAlpha = 0.3;
+        try { art.glow(c, cx, cy, 9, p.goldBright, 0.8); } catch (e) { /* stub */ }
+        c.globalAlpha = 0.38;
+        c.strokeStyle = p.goldBright;
+        c.lineWidth = 2.4;
+        c.lineCap = 'round';
+        c.beginPath();
+        if (nsOver) { c.moveTo(cx - 1.4, cy - 12); c.lineTo(cx - 1.4, cy + 9); }
+        else { c.moveTo(cx - 12, cy - 1.4); c.lineTo(cx + 9, cy - 1.4); }
+        c.stroke();
+        c.restore();
       } else {
         const arcs = ARCS[kind];
         for (const [a, b] of arcs) band(c, cell, a, b, { width: 11, color: colour, gap: false });
       }
 
-      const x0 = (cell & 3) * TILE, y0 = (cell >> 2) * TILE;
       if (carved) {
-        c.save();
-        c.fillStyle = p.gold;
-        for (const [dx, dy] of [[7, 7], [TILE - 7, 7], [7, TILE - 7], [TILE - 7, TILE - 7]]) {
-          c.beginPath();
-          c.arc(x0 + dx, y0 + dy, 2.5, 0, Math.PI * 2);
-          c.fill();
+        for (const [dx, dy] of [[8, 8], [TILE - 8, 8], [8, TILE - 8], [TILE - 8, TILE - 8]]) {
+          art.ornament(c, 'nailhead', x0 + dx, y0 + dy, 7);
         }
-        c.restore();
       }
       if (near.indexOf(cell) >= 0) {
         c.save();
@@ -444,6 +462,24 @@ function mount(ctx) {
         c.strokeRect(x0 + 4.5, y0 + 4.5, TILE - 9, TILE - 9);
         c.restore();
       }
+      if (cell === pulse) {
+        try { art.glow(c, cx, cy, TILE * 0.34, p.goldBright, 0.5); } catch (e) { /* stub */ }
+      }
+      if (nearFault && nearFault.indexOf(cell) >= 0) {
+        c.save();
+        c.strokeStyle = p.tar;
+        c.lineWidth = 4.5;
+        c.strokeRect(x0 + 2.5, y0 + 2.5, TILE - 5, TILE - 5);
+        c.strokeStyle = p.ember;
+        c.lineWidth = 2.5;
+        c.strokeRect(x0 + 2.5, y0 + 2.5, TILE - 5, TILE - 5);
+        c.restore();
+      }
+    }
+
+    // the panel nailed to the lid at its corners
+    for (const [nx, ny] of [[10, 10], [PANEL - 10, 10], [10, PANEL - 10], [PANEL - 10, PANEL - 10]]) {
+      art.ornament(c, 'nailhead', nx, ny, 9);
     }
   }
 
@@ -475,7 +511,14 @@ function mount(ctx) {
       return;
     }
     states[k] = !states[k];
+    nearFault = null;
     sfx('flip');
+    if (!reduced()) {
+      pulse = cell;
+      if (pulseTimer) clearTimeout(pulseTimer);
+      pulseTimer = setTimeout(() => { pulse = -1; pulseTimer = null; paint(); }, 160);
+      timers.push(pulseTimer);
+    }
     render();
     const line = describeCell(cell);
     status.textContent = line;
@@ -508,7 +551,13 @@ function mount(ctx) {
       render();
       if (!ctx.solved) toggle(cell);
     });
-    on(btn, 'focus', () => { if (focused !== cell) { focused = cell; render(); } });
+    on(btn, 'focus', () => {
+      if (!keysSaid) {
+        keysSaid = true;
+        say('By key: arrows walk the panel; space or Enter lays a crossing the other way; T follows the band from the walked tile.');
+      }
+      if (focused !== cell) { focused = cell; render(); }
+    });
     on(btn, 'keydown', (ev) => {
       const r = cell >> 2, col = cell & 3;
       if (ev.key === 'ArrowRight') { ev.preventDefault(); focus(r * SIDE + Math.min(SIDE - 1, col + 1)); }
@@ -525,8 +574,20 @@ function mount(ctx) {
 
   on(traceBtn, 'click', () => trace(focused));
 
+  // The shell owns the shudder and the deny voice. The board's part is to show
+  // WHERE the run first goes wrong — only the first doubling-over, so the
+  // marks lead the eye back to the band instead of solving it.
   function handle(res) {
     if (!res || res.ok) return;
+    const map = overNow();
+    for (let q = 0; q < seq.length; q++) {
+      const a = seq[q], b = seq[(q + 1) % seq.length];
+      if ((map[a.cell] === a.band) === (map[b.cell] === b.band)) {
+        nearFault = [a.cell, b.cell];
+        break;
+      }
+    }
+    if (nearFault) paint();
     if (res.near) { status.textContent = res.near; say(res.near); }
   }
 
@@ -542,6 +603,7 @@ function mount(ctx) {
   // ---- open the lock -----------------------------------------------------
   render();
   say(`A panel of sixteen tiles. ${instance.free.length} crossings may be laid either way; the rest are carved.`);
+  say('The standing band runs north and south; the running band, west and east.');
   instance.cells.forEach((c, cell) => {
     if (c.kind === 'cross' && c.carved) say(`Carved: ${describeCell(cell)}`);
   });
@@ -555,6 +617,10 @@ function mount(ctx) {
     unmount() {
       for (const off of cleanup) off();
       cleanup.length = 0;
+      for (const t of timers) clearTimeout(t);
+      timers.length = 0;
+      if (pulseTimer) clearTimeout(pulseTimer);
+      pulseTimer = null;
       if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
     },
   };
