@@ -71,6 +71,13 @@ export async function beginFromThreshold(page) {
   const begin = page.getByRole('button', { name: 'Lay hands on the chest', exact: true });
   await expect(begin).toBeVisible();
   await begin.click();
+  // The wager framing card (docs/JARLS.md) gates the first entry; click through
+  // it when present ('Take the wager'), tolerate its absence on continues.
+  const wager = page.getByRole('button', { name: 'Take the wager', exact: true });
+  try {
+    await wager.waitFor({ state: 'visible', timeout: 2500 });
+    await wager.click();
+  } catch { /* no wager card this run */ }
   await expect(page.locator('.screen-lid')).toBeVisible();
 }
 

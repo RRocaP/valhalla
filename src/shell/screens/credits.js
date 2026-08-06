@@ -6,7 +6,7 @@ import { portraitImage, drawPortraitPlaceholder } from '../portraits.js';
 
 const STICKER_POOL = ['bourj', 'rois', 'andreas', 'folklore', 'arya', 'ramon', 'alano', 'alanof', 'tebi'];
 
-export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSkip }) {
+export function mountCredits(root, { art, audio, reducedMotion, imageCache, tr, onSkip }) {
   const p = art.palette;
   const screen = el('div', { class: 'screen screen-credits' });
 
@@ -56,19 +56,19 @@ export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSk
 
   scroll.append(
     el('section', { class: 'credits-section' }, [el('h1', { class: 'credits-title carved-text' }, 'VALHALLA')]),
-    el('section', { class: 'credits-section' }, [el('h2', { class: 'carved-text' }, 'THE CHALLENGERS'), challengers]),
+    el('section', { class: 'credits-section' }, [el('h2', { class: 'carved-text' }, tr('credits.challengers')), challengers]),
     el('section', { class: 'credits-section' }, [
-      el('h2', { class: 'carved-text' }, 'THE HOARD'),
-      el('p', {}, 'TEBI THE OSTEOPATH · Snake-in-the-Eye'),
-      el('p', {}, 'JARL ÅLANØ — the Troll-Burster · Friend of the Children'),
+      el('h2', { class: 'carved-text' }, tr('credits.hoard')),
+      el('p', {}, tr('finale.tebiTitle')),
+      el('p', {}, `${tr('finale.alanoTitle')} — ${tr('finale.alanoEpithet')}`),
     ]),
     el('section', { class: 'credits-section' }, [
-      el('h2', { class: 'carved-text' }, 'THE SCORE'),
-      el('p', {}, '"Frostbound Lullaby"'),
-      el('p', {}, '"Hjá Vindi"'),
+      el('h2', { class: 'carved-text' }, tr('credits.score')),
+      el('p', {}, tr('credits.track1')),
+      el('p', {}, tr('credits.track2')),
     ]),
     el('section', { class: 'credits-section' }, [portraitFig('ramon', 'JARL RAMON', { white: true, size: 88 })]),
-    el('section', { class: 'credits-section credits-colophon' }, [el('p', { class: 'carved-text' }, 'carved by machine hands · MMXXVI')]),
+    el('section', { class: 'credits-section credits-colophon' }, [el('p', { class: 'carved-text' }, tr('finale.colophon'))]),
   );
 
   // Reduced motion: a static scatter as real DOM content at the foot of the
@@ -91,7 +91,7 @@ export function mountCredits(root, { art, audio, reducedMotion, imageCache, onSk
   const skipBtn = el('button', {
     type: 'button', class: 'btn-quiet credits-skip',
     onClick: () => { audio.ui('slide'); onSkip(); },
-  }, 'Skip');
+  }, tr('credits.skip'));
 
   screen.append(scroll, skipBtn);
   root.append(screen);

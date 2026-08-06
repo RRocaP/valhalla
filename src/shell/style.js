@@ -63,7 +63,8 @@ p{margin:0}
 .btn-icon:hover{background:var(--oak)}
 
 .confirm-wrap{display:inline-flex;align-items:center}
-.confirm-row{display:inline-flex;align-items:center;gap:10px;background:var(--oakDeep);border:1px solid var(--blood);border-radius:8px;padding:6px 10px}
+/* es/ca confirm labels run long — wrap inside the pill rather than overflow at 390px */
+.confirm-row{display:inline-flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:10px;background:var(--oakDeep);border:1px solid var(--blood);border-radius:8px;padding:6px 10px}
 .confirm-yes{min-height:36px;padding:6px 14px;background:var(--blood);color:var(--bone);border-radius:5px;font-weight:600}
 .confirm-no{min-height:36px;padding:6px 10px;color:var(--boneDim);text-decoration:underline}
 
@@ -168,7 +169,9 @@ p{margin:0}
   padding:4px 4px 4px 16px;border-left:2px solid rgba(143,31,31,.42)}
 .journal-line{border-bottom:1px solid rgba(233,220,195,.09);padding-bottom:7px;text-shadow:0 1px 0 rgba(12,9,6,.7)}
 .journal-empty{color:var(--boneDim);font-style:italic}
-.settings-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid rgba(233,220,195,.08)}
+/* rows wrap: es/ca labels ("Movimiento reducido" + "Según el sistema") outgrow
+   one 390px line — the control drops under the label instead of clipping */
+.settings-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 14px;padding:12px 0;border-bottom:1px solid rgba(233,220,195,.08)}
 .settings-label{font-size:.95rem;color:var(--bone)}
 .toggle{width:46px;height:26px;border-radius:13px;background:var(--oakDeep);border:1px solid var(--oakLight);position:relative;min-height:0}
 .toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--boneDim);transition:transform .15s ease}
@@ -178,6 +181,21 @@ p{margin:0}
 .segmented{display:flex;border:1px solid var(--oakLight);border-radius:8px;overflow:hidden}
 .segmented-option{min-height:40px;padding:8px 12px;color:var(--boneDim);font-size:.85rem}
 .segmented-option[aria-pressed="true"]{background:var(--gold);color:var(--tar)}
+
+/* ---- language switcher (CONTRACT §4.1 amendment): three carved plates,
+   the current tongue gold-struck. ≥44px targets. ---- */
+.lang-row{display:flex;gap:8px;flex-wrap:wrap}
+.lang-btn{min-width:56px;min-height:44px;padding:8px 12px;border-radius:6px;
+  font-family:var(--font-display);font-weight:700;letter-spacing:.1em;font-size:.9rem;color:var(--boneDim);
+  background:linear-gradient(180deg,var(--oak) 0%,var(--oakDeep) 100%);
+  box-shadow:0 2px 0 rgba(12,9,6,.7),0 3px 6px rgba(12,9,6,.35),
+    inset 0 1px 0 rgba(233,220,195,.14),inset 0 0 0 1px rgba(12,9,6,.55)}
+.lang-btn:hover{color:var(--bone);filter:brightness(1.08)}
+.lang-btn[aria-pressed="true"]{color:#2a1d05;
+  background:linear-gradient(178deg,var(--goldBright) 0%,var(--gold) 55%,#8a6d18 100%);
+  text-shadow:0 1px 0 rgba(238,207,109,.55);transform:translateY(1px);cursor:default;
+  box-shadow:0 1px 0 rgba(12,9,6,.85),0 2px 4px rgba(12,9,6,.5),
+    inset 0 1px 0 rgba(255,241,199,.85),inset 0 -2px 2px rgba(90,58,30,.5),inset 0 0 0 1px rgba(42,29,5,.45)}
 
 @media (prefers-reduced-motion: reduce){
   .lockroom-frame.shudder{animation:none}

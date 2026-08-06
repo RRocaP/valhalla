@@ -4,9 +4,6 @@
 import { el, clear, confirmButton, playBeat, waitForAdvance } from '../dom.js';
 import { portraitImage } from '../portraits.js';
 
-const ALANO_EPITHET = 'the Troll-Burster · Friend of the Children';
-const ALANO_LINE = 'Praised in every fjord for refusing the trendy Viking sport of impaling toddlers on spears.';
-
 // Hand-drawn (shield + crossed axes + question rune), same chisel-stroke
 // grammar as art.drawRune. art.portrait()/treasureFrame() document no
 // "missing image" mode, so shell owns this fallback, same approach as the
@@ -75,7 +72,7 @@ function drawTreasurePlaceholder(ctx, p, w, h) {
 }
 
 export function mountFinale(root, {
-  art, audio, imageCache, reducedMotion, animate,
+  art, audio, imageCache, reducedMotion, animate, tr,
   onReset, onReturnToLid, onCredits,
 }) {
   const p = art.palette;
@@ -85,10 +82,13 @@ export function mountFinale(root, {
   screen.append(bg.canvas);
 
   const reveal = el('div', { class: 'finale-reveal', tabindex: '-1' });
-  const raise = el('button', { type: 'button', class: 'btn-carved', onClick: () => { audio.ui('confirm'); onCredits(); } }, 'Raise the horns');
-  const resetBtn = confirmButton({ label: 'Seal the chest again', confirmLabel: 'Yes — seal it', className: 'btn-quiet', onConfirm: onReset });
-  const ret = el('button', { type: 'button', class: 'btn-quiet', onClick: onReturnToLid }, 'Return to the chest');
-  const colophon = el('p', { class: 'finale-colophon carved-text' }, 'carved by machine hands · MMXXVI');
+  const raise = el('button', { type: 'button', class: 'btn-carved', onClick: () => { audio.ui('confirm'); onCredits(); } }, tr('finale.raiseHorns'));
+  const resetBtn = confirmButton({
+    label: tr('finale.sealAgain'), confirmLabel: tr('finale.sealAgainConfirm'),
+    cancelLabel: tr('common.neverMind'), className: 'btn-quiet', onConfirm: onReset,
+  });
+  const ret = el('button', { type: 'button', class: 'btn-quiet', onClick: onReturnToLid }, tr('finale.return'));
+  const colophon = el('p', { class: 'finale-colophon carved-text' }, tr('finale.colophon'));
   const footer = el('div', { class: 'finale-footer', style: 'display:none' }, [raise, resetBtn, ret, colophon]);
   const chrome = el('div', { class: 'finale-chrome' }, [reveal, footer]);
   screen.append(chrome);
@@ -123,9 +123,9 @@ export function mountFinale(root, {
     drawTebiInto(c);
     reveal.append(
       c.canvas,
-      el('h2', { class: 'finale-title carved-text' }, 'TEBI THE OSTEOPATH · Snake-in-the-Eye'),
-      el('p', { class: 'finale-sub' }, 'The hoard of the fifteen locks.'),
-      el('p', { class: 'continue-hint' }, 'tap or press Enter to continue'),
+      el('h2', { class: 'finale-title carved-text' }, tr('finale.tebiTitle')),
+      el('p', { class: 'finale-sub' }, tr('finale.tebiSub')),
+      el('p', { class: 'continue-hint' }, tr('common.continueHint')),
     );
     reveal.focus();
     cancelAdvance = waitForAdvance(reveal, () => { audio.ui('slide'); showAlano(); });
@@ -137,10 +137,10 @@ export function mountFinale(root, {
     drawAlanoInto(c);
     reveal.append(
       c.canvas,
-      el('h2', { class: 'finale-title carved-text' }, 'JARL ÅLANØ'),
-      el('p', { class: 'finale-sub' }, `from under the false bottom — ${ALANO_EPITHET}`),
-      el('p', { class: 'finale-epithet' }, `"${ALANO_LINE}"`),
-      el('p', { class: 'continue-hint' }, 'tap or press Enter to continue'),
+      el('h2', { class: 'finale-title carved-text' }, tr('finale.alanoTitle')),
+      el('p', { class: 'finale-sub' }, tr('finale.falseBottom', { epithet: tr('finale.alanoEpithet') })),
+      el('p', { class: 'finale-epithet' }, `"${tr('finale.alanoLine')}"`),
+      el('p', { class: 'continue-hint' }, tr('common.continueHint')),
     );
     reveal.focus();
     cancelAdvance = waitForAdvance(reveal, () => { audio.ui('slide'); showTableau(); });
@@ -153,8 +153,8 @@ export function mountFinale(root, {
     const c2 = art.makeCanvas(150, 172);
     drawAlanoInto(c2);
     reveal.append(el('div', { class: 'finale-tableau' }, [
-      el('figure', { class: 'finale-tableau-item' }, [c1.canvas, el('figcaption', {}, 'TEBI THE OSTEOPATH · Snake-in-the-Eye')]),
-      el('figure', { class: 'finale-tableau-item' }, [c2.canvas, el('figcaption', {}, 'JARL ÅLANØ')]),
+      el('figure', { class: 'finale-tableau-item' }, [c1.canvas, el('figcaption', {}, tr('finale.tebiTitle'))]),
+      el('figure', { class: 'finale-tableau-item' }, [c2.canvas, el('figcaption', {}, tr('finale.alanoTitle'))]),
     ]));
     footer.style.display = '';
   }
@@ -229,7 +229,7 @@ export function mountFinale(root, {
   resize();
 
   if (animate && !reducedMotion) {
-    const skipHint = el('p', { class: 'skip-hint' }, 'tap to skip');
+    const skipHint = el('p', { class: 'skip-hint' }, tr('common.skipHint'));
     screen.append(skipHint);
     cancelBeat = playBeat({
       el: screen, duration: 2600, reducedMotion: false,
