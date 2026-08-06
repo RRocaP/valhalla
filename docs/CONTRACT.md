@@ -118,9 +118,21 @@ export default {
   audio,       // src/audio API
   submit(answer),   // -> { ok, near }. Shell handles win/lose/lockout feedback.
   note(text),       // write a line into the player's journal
-  solved            // boolean, true when re-entering an already-open lock
+  solved,           // boolean, true when re-entering an already-open lock
+  lang              // 'en' | 'es' | 'ca' (amendment 2026-08-06: full trilingual)
 }
 ```
+
+**Localization (amendment 2026-08-06):** every player-facing string ships in
+en/es/ca. English lives in the frozen fields; translations live in an additive
+per-lock `i18n: { es: {...}, ca: {...} }` block resolved via
+`src/kernel/i18n.js` `lockText()`. `verify()` stays pure and returns canonical
+English `near` lines; display goes through the lock's `nearMap`. In-fiction
+runic artifacts (the 06 lexicon's Old-Norse words, the 10 half-lines) keep
+their tongue in all languages; their glosses and every instruction localize.
+Language is `save.settings.lang` (additive, default from `navigator.language`:
+ca→ca, es→es, else en) with a switcher in settings; `#autotest` forces `en`
+so the e2e drivers' label contracts hold.
 
 `mount` must return `{ unmount() }` and `unmount` must remove every listener,
 timer, rAF, and AudioNode it created. A leak fails the QA gate.

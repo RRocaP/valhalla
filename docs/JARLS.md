@@ -73,6 +73,29 @@ not contradict the solution; the shell substitutes the actual boaster's name:
 `'The benches hold. The boast was ${name}'s.'` If that plumbing is awkward,
 use the fallback: "Folklore raises his cup. 'The benches hold. Drink.'"
 
+## Frozen localized lines (es / ca — lead-authored 2026-08-06, use VERBATIM)
+
+Subtitle: es «Quince Cerraduras de los Hombres del Norte» · ca «Quinze Panys
+dels Homes del Nord». Colophon: es «tallado por manos de máquina · MMXXVI» ·
+ca «tallat per mans de màquina · MMXXVI».
+
+| id | es taunt / yield | ca taunt / yield |
+|---|---|---|
+| bourj | «He velado mil noches de almenaras. Errarás la cuenta antes de que yo parpadee.» / «Así que los fuegos te responden. Toma el camino, contador de noches.» | «He vetllat mil nits d'alimares. Erraràs el compte abans que jo parpellegi.» / «Així que els focs et responen. Pren el camí, comptador de nits.» |
+| rois | «Los gigantes retorcieron estas palabras. Desenrédalas, o lleva la capucha del necio junto a mi fuego.» / «Has leído lo que los gigantes ocultaron. Røis te nombra sabio en runas.» | «Els gegants van retòrcer aquestes paraules. Desembulla-les, o duràs la caputxa del ximple vora el meu foc.» / «Has llegit el que els gegants van amagar. Røis t'anomena savi en runes.» |
+| andreas | «El jarl-sabueso no pronuncia su desafío. Lo dispara. Halla el sol que él ya huele.» / «Åndreas baja el arco — y se inclina.» | «El jarl-gos no pronuncia el seu desafiament. El dispara. Troba el sol que ell ja ensuma.» / «L'Åndreas abaixa l'arc — i s'inclina.» |
+| folklore | «Sienta a mi parentela pendenciera sin sangre en las tablas. Hasta yo desistí y me puse a beber.» / «Folklore alza la copa. “Los bancos aguantan. Bebe.”» | «Asseu la meva parentela busca-raons sense sang a les taules. Fins i tot jo vaig desistir i em vaig posar a beure.» / «En Folklore alça la copa. “Els bancs aguanten. Beu.”» |
+| arya | «Catorce esquirlas, una ley, y yo. Nadie ha cerrado el anillo mientras yo sostenía el cuerno.» / «La Reina baja su cuerno. Skål, cerrador del anillo. El cofre es tuyo.» | «Catorze estelles, una llei, i jo. Ningú no ha tancat l'anell mentre jo sostenia el corn.» / «La Reina abaixa el corn. Skål, tancador de l'anell. El cofre és teu.» |
+
+Treasures — es: «TEBI EL OSTEÓPATA · Serpiente-en-el-Ojo», sub «El tesoro de
+las quince cerraduras.»; «JARL ÅLANØ — el Revientatrols · Amigo de los Niños»,
+epíteto «Alabado en todos los fiordos por negarse al deporte vikingo de moda:
+ensartar niños pequeños en lanzas.» · ca: «TEBI L'OSTEÒPATA · Serp-a-l'Ull»,
+sub «El tresor dels quinze panys.»; «JARL ÅLANØ — el Rebentatrols · Amic dels
+Infants», epítet «Lloat a tots els fiords per negar-se a l'esport viking de
+moda: empalar criatures en llances.» Names (BOURJ, RØIS, ÅNDREAS, FOLKLORE,
+ÄRYÄ STÖRK, RAMON) and VALHALLA never translate.
+
 ## Accessibility
 
 Dare card and yield beat fully keyboard operable (Enter advances, Esc backs
