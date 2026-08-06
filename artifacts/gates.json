@@ -1,15 +1,113 @@
 {
-  "when": "2026-08-06T16:59:13.178Z",
-  "seeds": 60,
+  "when": "2026-08-06T18:06:13.286Z",
+  "seeds": 200,
   "locks": {
+    "01-runerow": {
+      "solverOk": 200,
+      "rejected": 1600,
+      "mutantsTried": 586,
+      "mutantsRejected": 586,
+      "ms": 15
+    },
+    "02-bismer": {
+      "solverOk": 200,
+      "rejected": 1600,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 5
+    },
+    "03-beacons": {
+      "solverOk": 200,
+      "rejected": 2345,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 10
+    },
+    "04-strakes": {
+      "solverOk": 200,
+      "rejected": 2200,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 13
+    },
+    "05-knotwork": {
+      "solverOk": 200,
+      "rejected": 1600,
+      "mutantsTried": 574,
+      "mutantsRejected": 574,
+      "ms": 980
+    },
+    "06-jotunvillur": {
+      "solverOk": 200,
+      "rejected": 1946,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 32
+    },
+    "07-tafl": {
+      "solverOk": 200,
+      "rejected": 1975,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 67738
+    },
+    "08-hacksilver": {
+      "solverOk": 200,
+      "rejected": 2000,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 30
+    },
     "09-sunstone": {
-      "solverOk": 60,
-      "rejected": 540,
-      "mutantsTried": 180,
-      "mutantsRejected": 180,
+      "solverOk": 200,
+      "rejected": 1800,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
       "ms": 4
+    },
+    "10-drottkvaett": {
+      "solverOk": 200,
+      "rejected": 2000,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 19
+    },
+    "11-skerry": {
+      "solverOk": 200,
+      "rejected": 1984,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 1664
+    },
+    "12-veitsla": {
+      "solverOk": 200,
+      "rejected": 2393,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 2088
+    },
+    "13-althing": {
+      "solverOk": 200,
+      "rejected": 2200,
+      "mutantsTried": 570,
+      "mutantsRejected": 570,
+      "ms": 209
+    },
+    "14-bindrune": {
+      "solverOk": 200,
+      "rejected": 2000,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 232
+    },
+    "15-oathring": {
+      "solverOk": 200,
+      "rejected": 2400,
+      "mutantsTried": 600,
+      "mutantsRejected": 600,
+      "ms": 8
     }
   },
   "failures": [],
-  "bundleBytes": 1076751
+  "bundleBytes": 1112428
 }

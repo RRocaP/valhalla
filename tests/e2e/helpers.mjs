@@ -225,11 +225,26 @@ export const drivers = {
     await clickButton(root, 'Set the dial');
   },
 
-  async '04-strakes'(page, root, answer) {
+  async '04-strakes'(page, root, answer, instance) {
+    // keyboard path (Space lift, arrows move, Space settle) — deterministic on
+    // every viewport, unlike mouse drag under touch emulation
     const planks = root.locator('.ow4-plank');
-    const order = Array.from({ length: answer.order.length }, (_, i) => i);
-    const targetStack = answer.order.slice().reverse();
-    await reorderByDrag(page, planks, order, targetStack);
+    const markOf = (id) => instance.planks[id].mark;
+    const domIndexOf = async (id) => {
+      const labels = await planks.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label') || ''));
+      return labels.findIndex((l) => l.startsWith(markOf(id) + ','));
+    };
+    const targetStack = answer.order.slice().reverse(); // DOM is top->bottom
+    for (let pos = 0; pos < targetStack.length; pos++) {
+      const id = targetStack[pos];
+      let cur = await domIndexOf(id);
+      if (cur === pos) continue;
+      await planks.nth(cur).click();          // focus (no movement threshold crossed)
+      await page.keyboard.press('Space');      // lift
+      while (cur > pos) { await page.keyboard.press('ArrowUp'); cur--; }
+      await page.keyboard.press('Space');      // settle
+      await expect.poll(() => domIndexOf(id)).toBe(pos);
+    }
     await root.locator('[role="radio"].ow4-say').nth(answer.liar).click();
     await clickButton(root, 'Raise the stack');
   },
@@ -246,7 +261,8 @@ export const drivers = {
     const rows = root.locator('[role="listbox"] [role="option"]');
     for (let i = 0; i < answer.words.length; i++) {
       await rows.nth(i).click();
-      await root.locator('.slate').getByRole('button', { name: answer.words[i], exact: true }).click();
+      // aria-label is "word — gloss", so match the visible text, not the accessible name
+      await root.locator(`.slate button:text-is("${answer.words[i]}")`).click();
     }
     await clickButton(root, 'Read the manifest');
   },
@@ -256,11 +272,17 @@ export const drivers = {
     const canvas = root.locator('.board canvas');
     for (const [from, to] of answer.line) {
       const say = root.locator('.say');
-      const before = await say.textContent();
+      const before = ((await say.textContent()) || '').trim();
       const pt = ([r, c]) => ({ x: PAD + c * SQ + SQ / 2, y: PAD + r * SQ + SQ / 2 });
       await canvas.click({ position: pt(from) });
       await canvas.click({ position: pt(to) });
-      await expect.poll(() => say.textContent()).not.toBe(before);
+      // the from-click writes "Move k of 3 …" immediately; the commit() text
+      // 260ms later is the only safe go-signal — it always starts with the
+      // attacker's reply or the escape line. Anything earlier races the
+      // `if (anim) return` guard and the next from-click gets swallowed.
+      await expect.poll(async () => ((await say.textContent()) || '').trim())
+        .toMatch(/^(Attacker |The king is out)/);
+      void before;
     }
     await clickButton(root, 'Swear the road');
   },
@@ -333,10 +355,9 @@ export const drivers = {
     for (let slot = 0; slot < answer.ring.length; slot++) {
       const rune = answer.ring[slot];
       const runeName = BY_CH[rune] ? BY_CH[rune].name : rune;
-      const shardIdx = instance.shards.findIndex((s) => s.rune === rune);
-      const chip = shardIdx >= 0
-        ? root.locator('.ow15-chip').nth(shardIdx)
-        : root.locator(`.ow15-chip[aria-label^="Shard ${escapeCss(runeName)},"]`);
+      // chips leave the hasp once placed, so positional nth() drifts — the
+      // aria-label ("Shard <name>, number <v>") is the only stable handle
+      const chip = root.locator(`.ow15-chip[aria-label^="Shard ${escapeCss(runeName)},"]`);
       await chip.click();
       await root.locator('.ow15-slot').nth(slot).click();
     }
