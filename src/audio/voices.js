@@ -22,6 +22,13 @@ export function clamp01(x) {
   return Math.max(0, Math.min(1, n));
 }
 
+// Single source of truth for the drone's intensity->output-gain map. Measured
+// (artifacts/wip-fable-b/metrics.json): keeps drone peaks under -12 dBFS while
+// preserving >=1.5 dB steps between intensity 0.2 / 0.6 / 1.0.
+export function droneGainFor(x) {
+  return 0.12 + clamp01(x) * 0.16;
+}
+
 // ---- deterministic noise buffer, cached per AudioContext ----
 const noiseCache = new WeakMap();
 export function getNoiseBuffer(ctx, seconds = 2) {
@@ -106,13 +113,13 @@ export function woodSlide(ctx, bus, t) {
   body.connect(top);
   top.connect(out);
 
-  const dur = 0.22;
+  const dur = 0.15; // measured 60-120 ms envelope window (was 0.22 -> 150 ms)
   body.frequency.setValueAtTime(320, t);
   body.frequency.linearRampToValueAtTime(900, t + dur * 0.6);
   body.frequency.linearRampToValueAtTime(500, t + dur);
 
   out.gain.setValueAtTime(0, t);
-  out.gain.linearRampToValueAtTime(0.3, t + 0.02);
+  out.gain.linearRampToValueAtTime(2.9, t + 0.02);
   out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
   const stopAt = t + dur + 0.05;
@@ -141,7 +148,7 @@ export function woodFlip(ctx, bus, t) {
   body.frequency.exponentialRampToValueAtTime(320, t + dur);
 
   out.gain.setValueAtTime(0, t);
-  out.gain.linearRampToValueAtTime(0.4, t + 0.006);
+  out.gain.linearRampToValueAtTime(3.6, t + 0.006);
   out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
   const stopAt = t + dur + 0.05;
@@ -163,10 +170,10 @@ export function denyBuzz(ctx, bus, t) {
   lp.connect(out);
 
   out.gain.setValueAtTime(0, t);
-  out.gain.linearRampToValueAtTime(0.18, t + 0.01);
-  out.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+  out.gain.linearRampToValueAtTime(0.42, t + 0.01);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
 
-  const stopAt = t + 0.2;
+  const stopAt = t + 0.18;
   osc.start(t);
   osc.stop(stopAt);
   scheduleCleanup([osc], [out, osc, lp]);
@@ -190,14 +197,27 @@ export function pluck(ctx, bus, t, freq, { gain = 0.3, decay = 0.9, brightness =
   exciter.connect(exShape);
   exShape.connect(exGain);
 
-  // resonant loop: delay -> damping lowpass -> feedback gain -> back to delay
+  // resonant loop: delay -> damping lowpass -> feedback gain -> back to delay.
+  // STABILITY (measured, artifacts/wip-fable-b): WebAudio lowpass biquads read
+  // Q in dB, and the default Q=1 puts a +1 dB bump at the cutoff. With 0.98
+  // feedback the loop gain exceeded 1 there, so plucks rang UP (measured
+  // +15 dBFS) instead of decaying. Q=-6 keeps the response peak-free and
+  // feedback 0.955 gives a lyre-like ~0.6-0.9 s ring-down.
+  // TUNING (measured): WebAudio inserts one render quantum (128 samples) of
+  // implicit delay in any feedback cycle, and the damping biquad adds its own
+  // phase lag -- uncompensated, every pluck sounded a fourth-to-a-third flat
+  // (e.g. A3 rang at ~139 Hz). Subtract both from the loop delay.
+  const dampF = Math.min(brightness, freq * 10);
+  const quantum = 128 / ctx.sampleRate;
+  const filterLag = 1 / (Math.PI * dampF); // 2nd-order lowpass: two poles of lag
   const delay = ctx.createDelay(0.05);
-  delay.delayTime.value = Math.min(0.05, Math.max(1 / 1200, period));
+  delay.delayTime.value = Math.min(0.05, Math.max(0, period - quantum - filterLag));
   const damping = ctx.createBiquadFilter();
   damping.type = 'lowpass';
-  damping.frequency.value = Math.min(brightness, freq * 10);
+  damping.frequency.value = dampF;
+  damping.Q.value = -6;
   const feedback = ctx.createGain();
-  feedback.gain.value = 0.98;
+  feedback.gain.value = 0.955;
 
   exGain.connect(delay);
   delay.connect(damping);
@@ -230,7 +250,7 @@ export function pluck(ctx, bus, t, freq, { gain = 0.3, decay = 0.9, brightness =
 }
 
 // ---- skin drum: pitch-dropped sine + noise thump ----
-export function drumHit(ctx, bus, t, { gain = 0.6, dur = 0.32 } = {}) {
+export function drumHit(ctx, bus, t, { gain = 0.3, dur = 0.32 } = {}) {
   const out = ctx.createGain();
   out.connect(bus);
 
@@ -265,7 +285,8 @@ export function drumHit(ctx, bus, t, { gain = 0.6, dur = 0.32 } = {}) {
 }
 
 // ---- lur swell: soft-clipped harmonic stack (unlocks/dare/finale) ----
-export function lurSwell(ctx, bus, t, freqs, { dur = 2.5, gain = 0.32, brightness = 1400 } = {}) {
+// NOTE the tanh stage saturates near +-1, so `gain` IS the output ceiling.
+export function lurSwell(ctx, bus, t, freqs, { dur = 2.5, gain = 0.2, brightness = 1400 } = {}) {
   const out = ctx.createGain();
   out.connect(bus);
   const shaper = ctx.createWaveShaper();
@@ -308,21 +329,28 @@ export function buildDrone(ctx, bus, introGain = 0.5) {
   out.gain.value = 0;
   out.connect(bus);
 
+  // Detuned saw pair with UNEQUAL weights: an equal pair at +9 cents beats at
+  // ~0.57 Hz and periodically CANCELS (measured as a spurious 6-10 dB level
+  // wobble far beyond the LFO design). With the second bow at 0.42 amplitude
+  // the pair can never null -- the beat becomes a bounded 1.5-3 dB breath.
   const osc1 = ctx.createOscillator();
   osc1.type = 'sawtooth';
   osc1.frequency.value = 110;
   const osc2 = ctx.createOscillator();
   osc2.type = 'sawtooth';
   osc2.frequency.value = 110;
-  osc2.detune.value = 9;
+  osc2.detune.value = 7;
+  const osc2Gain = ctx.createGain();
+  osc2Gain.gain.value = 0.3;
   const oscGain = ctx.createGain();
   oscGain.gain.value = 0.5;
   const bandpass = ctx.createBiquadFilter();
   bandpass.type = 'bandpass';
   bandpass.frequency.value = 260;
-  bandpass.Q.value = 1.2;
+  bandpass.Q.value = 0.8; // broad: a narrow band sweeping the saw's harmonic comb wobbled +-6 dB
   osc1.connect(oscGain);
-  osc2.connect(oscGain);
+  osc2.connect(osc2Gain);
+  osc2Gain.connect(oscGain);
   oscGain.connect(bandpass);
   bandpass.connect(out);
 
@@ -344,9 +372,9 @@ export function buildDrone(ctx, bus, introGain = 0.5) {
   lfo.type = 'sine';
   lfo.frequency.value = 0.11;
   const lfoFilterDepth = ctx.createGain();
-  lfoFilterDepth.gain.value = 70;
+  lfoFilterDepth.gain.value = 25;
   const lfoAmpDepth = ctx.createGain();
-  lfoAmpDepth.gain.value = 0.12;
+  lfoAmpDepth.gain.value = 0.04; // measured: with the bounded beat, ~2-3 dB total breath
   lfo.connect(lfoFilterDepth);
   lfoFilterDepth.connect(bandpass.frequency);
   lfo.connect(lfoAmpDepth);
@@ -358,24 +386,26 @@ export function buildDrone(ctx, bus, introGain = 0.5) {
   lfo.start(t);
   out.gain.setTargetAtTime(introGain, t, 1.2); // slow fade in, the hall breathes
 
-  return { out, osc1, osc2, oscGain, bandpass, noise, noiseFilter, noiseGain, lfo, lfoFilterDepth, lfoAmpDepth };
+  return { out, osc1, osc2, osc2Gain, oscGain, bandpass, noise, noiseFilter, noiseGain, lfo, lfoFilterDepth, lfoAmpDepth };
 }
 
 export function applyDroneIntensity(ctx, nodes, x) {
   const t = ctx.currentTime;
   const v = clamp01(x);
-  nodes.bandpass.frequency.setTargetAtTime(220 + v * 180, t, 0.4); // stays inside 180-400ish
-  nodes.bandpass.Q.setTargetAtTime(1.0 + v * 1.5, t, 0.4);
-  nodes.out.gain.setTargetAtTime(0.35 + v * 0.4, t, 0.4);
+  // center map 230-350: parking the passband right between saw harmonics
+  // (330/440) at high intensity measurably ate the level step design.
+  // Q stays fixed at 0.8 -- narrowing it with intensity also ate the steps.
+  nodes.bandpass.frequency.setTargetAtTime(230 + v * 120, t, 0.4);
+  nodes.out.gain.setTargetAtTime(droneGainFor(v), t, 0.4);
   return v;
 }
 
 export function bloomDrone(ctx, nodes, baseIntensity, t) {
   const peak = clamp01(baseIntensity + 0.4);
-  nodes.bandpass.frequency.setTargetAtTime(220 + peak * 180, t, 0.3);
-  nodes.out.gain.setTargetAtTime(0.35 + peak * 0.4, t, 0.3);
-  nodes.bandpass.frequency.setTargetAtTime(220 + baseIntensity * 180, t + 2.2, 1.2);
-  nodes.out.gain.setTargetAtTime(0.35 + baseIntensity * 0.4, t + 2.2, 1.2);
+  nodes.bandpass.frequency.setTargetAtTime(230 + peak * 120, t, 0.3);
+  nodes.out.gain.setTargetAtTime(droneGainFor(peak), t, 0.3);
+  nodes.bandpass.frequency.setTargetAtTime(230 + baseIntensity * 120, t + 2.2, 1.2);
+  nodes.out.gain.setTargetAtTime(droneGainFor(baseIntensity), t + 2.2, 1.2);
 }
 
 export function releaseDrone(ctx, nodes) {
@@ -384,7 +414,7 @@ export function releaseDrone(ctx, nodes) {
   nodes.out.gain.setTargetAtTime(0, t, 0.5);
   const stopAt = t + 1.5;
   const sources = [nodes.osc1, nodes.osc2, nodes.noise, nodes.lfo];
-  const allNodes = [nodes.out, nodes.bandpass, nodes.oscGain, nodes.noiseFilter,
+  const allNodes = [nodes.out, nodes.bandpass, nodes.oscGain, nodes.osc2Gain, nodes.noiseFilter,
     nodes.noiseGain, nodes.lfoFilterDepth, nodes.lfoAmpDepth, ...sources];
   const dispose = () => { for (const n of allNodes) { try { n.disconnect(); } catch {} } };
   for (const s of sources) {

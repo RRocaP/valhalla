@@ -4,8 +4,13 @@
 // suite runs without a real browser.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createAudio } from '../../src/audio/index.js';
-import { clamp01 } from '../../src/audio/voices.js';
+import { clamp01, PENT } from '../../src/audio/voices.js';
 import { findLoopBounds, bakeSeamlessLoop, prepareSeamlessLoop, DUCK_GAIN_FACTOR } from '../../src/audio/music.js';
 
 // ---------------------------------------------------------------------
@@ -392,7 +397,10 @@ test('findLoopBounds/bakeSeamlessLoop trim silence and produce valid loop points
   const { loopStart, loopEnd } = bakeSeamlessLoop(buffer, startSample, endSample, 0.1);
   assert.ok(loopEnd > loopStart, 'loopEnd must be after loopStart');
   assert.ok(loopStart >= 0 && loopEnd <= buffer.length / buffer.sampleRate);
-  assert.strictEqual(loopStart, startSample / buffer.sampleRate);
+  // loopStart sits AFTER the baked head segment (start + crossfade), so the
+  // wrap is sample-continuous instead of double-playing the head material
+  const cfSamples = Math.floor(0.1 * buffer.sampleRate);
+  assert.strictEqual(loopStart, (startSample + cfSamples) / buffer.sampleRate);
   assert.strictEqual(loopEnd, endSample / buffer.sampleRate);
 });
 
@@ -586,5 +594,212 @@ test('music: a decodeAudioData rejection is also swallowed', async () => {
     assert.strictEqual(audio.music.ready, false);
   } finally {
     restore();
+  }
+});
+
+// ---------------------------------------------------------------------
+// measured invariants (tuned via artifacts/wip-fable-b/render.mjs; the
+// ground-truth numbers live in artifacts/wip-fable-b/metrics.json)
+// ---------------------------------------------------------------------
+
+// Every ui kind's scheduled envelope must stay in the fast-answer family:
+// the longest gain ramp ends 60-180 ms after onset (measured -35 dB duration
+// 74-97 ms) and every source stops within 300 ms.
+test('ui kinds schedule 60-180ms envelopes and stop within 300ms', () => {
+  const { audio, ctx } = fresh();
+  audio.enable();
+  const c = ctx();
+  for (const kind of ['tick', 'knock', 'slide', 'deny', 'confirm', 'flip']) {
+    const baseline = mark(c);
+    audio.ui(kind);
+    const slice = since(c, baseline);
+    const rampEnds = slice
+      .filter((n) => n._kind === 'gain')
+      .flatMap((n) => n.gain.calls.filter((call) => call[0] === 'exp').map((call) => call[2]));
+    assert.ok(rampEnds.length > 0, `${kind}: expected decay ramps`);
+    const last = Math.max(...rampEnds);
+    assert.ok(last >= 0.06 && last <= 0.18, `${kind}: ramp end ${last} outside [0.06,0.18]`);
+    for (const n of slice) {
+      if (n.startedAt != null && n.stoppedAt != null) {
+        assert.ok(n.stoppedAt <= 0.3, `${kind}: source stops at ${n.stoppedAt} > 0.3`);
+      }
+    }
+    for (const n of slice) if (n.startedAt != null) n._end();
+  }
+});
+
+// deny must stay non-musical (no oscillator near any pentatonic degree, all
+// filtering dark <= 900 Hz); yield's two plucks must ring a falling minor
+// third C4 -> A3 after loop-delay compensation (quantum + biquad lag).
+test('deny is non-musical; yield plucks are tuned C4 -> A3', () => {
+  const { audio, ctx } = fresh();
+  audio.enable();
+  const c = ctx();
+
+  let baseline = mark(c);
+  audio.ui('deny');
+  const denySlice = since(c, baseline);
+  const denyOscs = denySlice.filter((n) => n._kind === 'oscillator');
+  assert.ok(denyOscs.length > 0, 'deny should include the buzz oscillator');
+  for (const o of denyOscs) {
+    for (const p of PENT) {
+      assert.ok(Math.abs(o.frequency.value - p) / p > 0.03,
+        `deny oscillator at ${o.frequency.value} Hz sits on a musical degree (${p})`);
+    }
+  }
+  for (const f of denySlice.filter((n) => n._kind === 'biquad')) {
+    assert.ok(f.frequency.value <= 900, `deny filter at ${f.frequency.value} Hz is not dark`);
+  }
+  for (const n of denySlice) if (n.startedAt != null) n._end();
+
+  baseline = mark(c);
+  audio.motif('yield');
+  const yieldSlice = since(c, baseline);
+  const delays = yieldSlice.filter((n) => n._kind === 'delay');
+  assert.strictEqual(delays.length, 2, 'yield should allocate two Karplus-Strong loops');
+  const quantum = 128 / c.sampleRate;
+  const rung = delays.map((d) => {
+    const damping = d.connections[0];
+    assert.strictEqual(damping._kind, 'biquad', 'delay must feed its damping lowpass');
+    return 1 / (d.delayTime.value + quantum + 1 / (Math.PI * damping.frequency.value));
+  });
+  const expected = [PENT[6], PENT[5]]; // C4 261.63, A3 220
+  for (let i = 0; i < 2; i++) {
+    const cents = Math.abs(rung[i] - expected[i]) / expected[i];
+    assert.ok(cents < 0.015,
+      `yield pluck ${i} rings at ${rung[i].toFixed(1)} Hz, expected ${expected[i]} (off ${(cents * 100).toFixed(1)}%)`);
+  }
+  assert.ok(rung[0] > rung[1], 'yield must FALL (C4 down to A3)');
+  for (const n of yieldSlice) if (n.startedAt != null) n._end();
+});
+
+// Duck timing law (measured: -3 dB within 50 ms, release lands back within
+// 0.5 dB 0.35-0.85 s after the hold ends; holds 0.15 s ui / 0.8 s motif).
+test('duck reaches fast, holds by caller kind, releases in 0.35-0.85s', () => {
+  const { audio, ctx } = fresh();
+  audio.enable();
+  const { musicBus } = graphNodes(ctx());
+
+  audio.ui('tick');
+  let [down, up] = musicBus.gain.calls.filter((call) => call[0] === 'target').slice(-2);
+  assert.ok(down[3] <= 0.02, `duck attack tc ${down[3]} too slow for -3dB@50ms`);
+  assert.ok(Math.abs((up[2] - down[2]) - 0.15) < 0.03, `ui hold ${up[2] - down[2]} != ~0.15s`);
+  let release = 1.65 * up[3]; // setTargetAtTime: within 0.5 dB of unity at ~1.65*tc
+  assert.ok(release >= 0.35 && release <= 0.85, `ui duck release ${release}s outside 0.35-0.85`);
+
+  audio.motif('shard');
+  [down, up] = musicBus.gain.calls.filter((call) => call[0] === 'target').slice(-2);
+  assert.ok(Math.abs((up[2] - down[2]) - 0.8) < 0.05, `motif hold ${up[2] - down[2]} != ~0.8s`);
+  release = 1.65 * up[3];
+  assert.ok(release >= 0.35 && release <= 0.85, `motif duck release ${release}s outside 0.35-0.85`);
+});
+
+// Build-time seam check against the COMMITTED music.mp3: decode via afconvert
+// (macOS CoreAudio), run the real loop preparation, and verify the wrap the
+// player will hear -- spectral flux at the join must not exceed the loop
+// body's 95th percentile, and the join must not step more than 2 dB.
+test('committed music.mp3 loop seam is inaudible (flux <= p95, |dRMS| <= 2dB)', (t) => {
+  const mp3 = fileURLToPath(new URL('../../music.mp3', import.meta.url));
+  if (!existsSync('/usr/bin/afconvert') || !existsSync(mp3)) {
+    return t.skip('afconvert or music.mp3 unavailable');
+  }
+  const wav = join(tmpdir(), `ow-fable-b-seam-${process.pid}.wav`);
+  try {
+    execFileSync('/usr/bin/afconvert', ['-f', 'WAVE', '-d', 'LEI16', mp3, wav]);
+    const raw = readFileSync(wav);
+    const ab = new ArrayBuffer(raw.length);
+    new Uint8Array(ab).set(raw);
+    const view = new DataView(ab);
+    let off = 12, fmt = null, dataOff = 0, dataLen = 0;
+    while (off + 8 <= raw.length) {
+      const id = String.fromCharCode(raw[off], raw[off + 1], raw[off + 2], raw[off + 3]);
+      const size = view.getUint32(off + 4, true);
+      if (id === 'fmt ') fmt = { channels: view.getUint16(off + 10, true), sampleRate: view.getUint32(off + 12, true) };
+      if (id === 'data') { dataOff = off + 8; dataLen = size; }
+      off += 8 + size + (size % 2);
+    }
+    assert.ok(fmt && dataOff, 'wav parse failed');
+    const int16 = new Int16Array(ab, dataOff, Math.floor(dataLen / 2));
+    const frames = Math.floor(int16.length / fmt.channels);
+    const mono = new Float32Array(frames);
+    for (let i = 0; i < frames; i++) {
+      let s = 0;
+      for (let ch = 0; ch < fmt.channels; ch++) s += int16[i * fmt.channels + ch];
+      mono[i] = s / (fmt.channels * 32768);
+    }
+    const sr = fmt.sampleRate;
+    const buffer = { sampleRate: sr, numberOfChannels: 1, length: frames, duration: frames / sr, getChannelData: () => mono };
+    const { loopStart, loopEnd } = prepareSeamlessLoop(buffer);
+    assert.ok(loopEnd - loopStart > 60, 'loop region implausibly short');
+
+    // the wrap as heard: 4 s of tail (baked) then 4 s from loopStart
+    const eS = Math.round(loopEnd * sr), s0 = Math.round(loopStart * sr);
+    const span = Math.round(4 * sr);
+    const seamSeq = new Float32Array(2 * span);
+    seamSeq.set(mono.subarray(eS - span, eS), 0);
+    seamSeq.set(mono.subarray(s0, s0 + span), span);
+
+    const N = 2048, HOP = 512;
+    const hann = new Float64Array(N);
+    for (let i = 0; i < N; i++) hann[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1));
+    const fft = (re, im) => {
+      const n = re.length;
+      for (let i = 1, j = 0; i < n; i++) {
+        let bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+      }
+      for (let len = 2; len <= n; len <<= 1) {
+        const wr = Math.cos(-2 * Math.PI / len), wi = Math.sin(-2 * Math.PI / len);
+        for (let i = 0; i < n; i += len) {
+          let cr = 1, ci = 0;
+          for (let k = 0; k < len / 2; k++) {
+            const ur = re[i + k], ui = im[i + k];
+            const vr = re[i + k + len / 2] * cr - im[i + k + len / 2] * ci;
+            const vi = re[i + k + len / 2] * ci + im[i + k + len / 2] * cr;
+            re[i + k] = ur + vr; im[i + k] = ui + vi;
+            re[i + k + len / 2] = ur - vr; im[i + k + len / 2] = ui - vi;
+            const ncr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = ncr;
+          }
+        }
+      }
+    };
+    const fluxTrack = (x) => {
+      const re = new Float64Array(N), im = new Float64Array(N);
+      let prev = null;
+      const out = [];
+      for (let p = 0; p + N <= x.length; p += HOP) {
+        for (let i = 0; i < N; i++) { re[i] = x[p + i] * hann[i]; im[i] = 0; }
+        fft(re, im);
+        const mags = new Float64Array(N / 2);
+        for (let k = 0; k < N / 2; k++) mags[k] = Math.hypot(re[k], im[k]);
+        if (prev) {
+          let fl = 0;
+          for (let k = 0; k < N / 2; k++) fl += Math.max(0, mags[k] - prev[k]);
+          out.push({ t: (p + N / 2) / sr, flux: fl });
+        }
+        prev = mags;
+      }
+      return out;
+    };
+
+    const refFlux = fluxTrack(mono.subarray(s0, s0 + Math.min(Math.round(60 * sr), eS - s0)))
+      .map((e) => e.flux).sort((a, b) => a - b);
+    const p95 = refFlux[Math.floor(refFlux.length * 0.95)];
+    const seamFlux = fluxTrack(seamSeq);
+    const joinMax = Math.max(...seamFlux.filter((e) => Math.abs(e.t - 4) <= 0.1).map((e) => e.flux));
+    assert.ok(joinMax <= p95, `seam flux ${joinMax.toFixed(1)} exceeds loop-body p95 ${p95.toFixed(1)}`);
+
+    const rms = (x, a, b) => {
+      let s = 0;
+      for (let i = a; i < b; i++) s += x[i] * x[i];
+      return 10 * Math.log10(Math.max(s / (b - a), 1e-24));
+    };
+    const q = Math.round(0.25 * sr);
+    const delta = rms(seamSeq, span, span + q) - rms(seamSeq, span - q, span);
+    assert.ok(Math.abs(delta) <= 2, `RMS steps ${delta.toFixed(2)} dB at the loop join`);
+  } finally {
+    rmSync(wav, { force: true });
   }
 });

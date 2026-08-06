@@ -28,6 +28,16 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
     const master = c.createGain();
     master.gain.value = mutedFlag ? 0 : 1;
     const compressor = c.createDynamicsCompressor();
+    // Safety-net only. Chrome's DEFAULTS (threshold -24, knee 30, ratio 12)
+    // measurably crushed the mix design: drone intensity steps collapsed from
+    // ~2.5 dB to ~0.15 dB and every loud voice pumped everything else
+    // (artifacts/wip-fable-b/metrics-before.json). These settings leave the
+    // tuned levels untouched below -11 dBFS and only catch stack-ups.
+    compressor.threshold.value = -6;
+    compressor.knee.value = 5;
+    compressor.ratio.value = 5;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
     compressor.connect(master);
     master.connect(c.destination);
 
@@ -77,23 +87,26 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
     const t = ctx.currentTime;
     const bus = buses.uiBus;
     musicImpl.duck(UI_DUCK_HOLD);
+    // Gains here are measured, not guessed: narrow bandpass filtering eats
+    // 25-35 dB of the noise burst, so per-voice gains sit well above 1 to land
+    // audible wood at -21..-24 dBFS peaks (artifacts/wip-fable-b/metrics.json).
     switch (kind) {
       case 'tick':
-        V.woodHit(ctx, bus, t, { resonance: 950, q: 8, decay: 0.05, gain: 0.32, lowpass: 3000 });
+        V.woodHit(ctx, bus, t, { resonance: 950, q: 8, decay: 0.15, gain: 6.0, lowpass: 2800 });
         break;
       case 'knock':
-        V.woodHit(ctx, bus, t, { resonance: 480, q: 6, decay: 0.11, gain: 0.5, lowpass: 2200 });
+        V.woodHit(ctx, bus, t, { resonance: 480, q: 6, decay: 0.16, gain: 5.4, lowpass: 2200 });
         break;
       case 'slide':
         V.woodSlide(ctx, bus, t);
         break;
       case 'deny':
-        V.woodHit(ctx, bus, t, { resonance: 220, q: 3, decay: 0.16, gain: 0.45, lowpass: 900 });
+        V.woodHit(ctx, bus, t, { resonance: 220, q: 3, decay: 0.15, gain: 4.2, lowpass: 900 });
         V.denyBuzz(ctx, bus, t);
         break;
       case 'confirm':
-        V.woodHit(ctx, bus, t, { resonance: 620, q: 7, decay: 0.09, gain: 0.4, lowpass: 2400 });
-        V.woodHit(ctx, bus, t + 0.07, { resonance: 900, q: 9, decay: 0.06, gain: 0.28, lowpass: 3000 });
+        V.woodHit(ctx, bus, t, { resonance: 620, q: 7, decay: 0.09, gain: 2.8, lowpass: 2400 });
+        V.woodHit(ctx, bus, t + 0.07, { resonance: 900, q: 9, decay: 0.06, gain: 2.0, lowpass: 2800 });
         break;
       case 'flip':
         V.woodFlip(ctx, bus, t);
@@ -110,31 +123,35 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
     musicImpl.duck(MOTIF_DUCK_HOLD);
     switch (kind) {
       case 'shard':
+        // rising A3-C4-E4 lyre arpeggio: small triumph, quick sparkle
         [V.PENT[5], V.PENT[6], V.PENT[8]].forEach((f, i) =>
-          V.pluck(ctx, bus, t + i * 0.11, f, { gain: 0.32, decay: 0.8 }));
+          V.pluck(ctx, bus, t + i * 0.11, f, { gain: 0.5, decay: 0.8 }));
         break;
       case 'hint':
-        [V.PENT[4], V.PENT[2]].forEach((f, i) =>
-          V.pluck(ctx, bus, t + i * 0.28, f, { gain: 0.28, decay: 1.0, brightness: 1500 }));
+        // two LOW lyre notes, falling fourth D3->A2: quiet, private counsel
+        [V.PENT[2], V.PENT[0]].forEach((f, i) =>
+          V.pluck(ctx, bus, t + i * 0.32, f, { gain: 0.42, decay: 1.0, brightness: 1200 }));
         break;
       case 'unlock':
-        V.drumHit(ctx, bus, t, { gain: 0.55, dur: 0.3 });
-        V.lurSwell(ctx, bus, t + 0.05, [V.PENT[0], V.PENT[3], V.PENT[5]], { dur: 2.5, gain: 0.3 });
+        V.drumHit(ctx, bus, t, { gain: 0.3, dur: 0.3 });
+        V.lurSwell(ctx, bus, t + 0.05, [V.PENT[0], V.PENT[3], V.PENT[5]], { dur: 2.5, gain: 0.14 });
         break;
       case 'chest':
-        [0, 0.14, 0.28].forEach((dt) => V.drumHit(ctx, bus, t + dt, { gain: 0.6, dur: 0.34 }));
-        V.lurSwell(ctx, bus, t + 0.1, [V.PENT[0], V.PENT[3], V.PENT[5], V.PENT[8]], { dur: 3.2, gain: 0.38, brightness: 1700 });
+        [0, 0.14, 0.28].forEach((dt) => V.drumHit(ctx, bus, t + dt, { gain: 0.28, dur: 0.34 }));
+        V.lurSwell(ctx, bus, t + 0.1, [V.PENT[0], V.PENT[3], V.PENT[5], V.PENT[8]], { dur: 3.2, gain: 0.19, brightness: 1700 });
         if (drone.playing && drone.nodes) V.bloomDrone(ctx, drone.nodes, drone.intensity, t);
         break;
       case 'dare':
-        // low horn challenge, two notes, held (a challenger steps up)
-        V.lurSwell(ctx, bus, t, [V.PENT[0], V.PENT[3]], { dur: 1.8, gain: 0.34, brightness: 1300 });
+        // low horn challenge: A2 sounds, then the fifth stacks on top and both
+        // HOLD, unresolved (a challenger steps up) - a call, not a chord onset
+        V.lurSwell(ctx, bus, t, [V.PENT[0]], { dur: 2.0, gain: 0.1, brightness: 1300 });
+        V.lurSwell(ctx, bus, t + 0.45, [V.PENT[3]], { dur: 1.55, gain: 0.075, brightness: 1300 });
         break;
       case 'yield':
-        // drum hit + falling third, resolving (the challenger bows)
-        V.drumHit(ctx, bus, t, { gain: 0.5, dur: 0.28 });
-        V.pluck(ctx, bus, t + 0.22, V.PENT[6], { gain: 0.3, decay: 0.5, brightness: 1600 });
-        V.pluck(ctx, bus, t + 0.46, V.PENT[5], { gain: 0.28, decay: 1.0, brightness: 1400 });
+        // drum hit + falling minor third C4->A3, resolving (the challenger bows)
+        V.drumHit(ctx, bus, t, { gain: 0.27, dur: 0.28 });
+        V.pluck(ctx, bus, t + 0.22, V.PENT[6], { gain: 0.46, decay: 0.5, brightness: 1600 });
+        V.pluck(ctx, bus, t + 0.46, V.PENT[5], { gain: 0.44, decay: 1.0, brightness: 1400 });
         break;
       default:
         break; // unknown kind: no-op, never throws
@@ -152,7 +169,7 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
       start() {
         if (!ctx || drone.playing) return; // idempotent, no double-allocate
         drone.playing = true;
-        drone.nodes = V.buildDrone(ctx, buses.droneBus, 0.35 + drone.intensity * 0.4);
+        drone.nodes = V.buildDrone(ctx, buses.droneBus, V.droneGainFor(drone.intensity));
       },
       stop() {
         if (!ctx || !drone.playing) return;

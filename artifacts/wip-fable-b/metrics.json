@@ -1,0 +1,564 @@
+{
+  "generatedAt": "2026-08-06T17:25:31.990Z",
+  "scenarios": {
+    "ui_tick": {
+      "durMs": 87,
+      "peakDb": -23.832213308462478,
+      "rmsDb": -50.31786535900678,
+      "crestDb": 26.485652050544303,
+      "centroidHz": 1160.20883648602,
+      "hfAbove6kDb": -37.604340277113494,
+      "attackMs": 4
+    },
+    "ui_knock": {
+      "durMs": 74,
+      "peakDb": -21.65291879624852,
+      "rmsDb": -47.727272024428714,
+      "crestDb": 26.074353228180193,
+      "centroidHz": 535.4793651332545,
+      "hfAbove6kDb": -47.370435875698796,
+      "attackMs": 4.000000000000001
+    },
+    "ui_slide": {
+      "durMs": 83.99999999999999,
+      "peakDb": -22.991489551179072,
+      "rmsDb": -47.75095337096023,
+      "crestDb": 24.75946381978116,
+      "centroidHz": 549.1810247133884,
+      "hfAbove6kDb": -42.88662952113582,
+      "attackMs": 16
+    },
+    "ui_deny": {
+      "durMs": 79,
+      "peakDb": -21.715425015716107,
+      "rmsDb": -42.88719495667849,
+      "crestDb": 21.171769940962385,
+      "centroidHz": 112.17675254178822,
+      "hfAbove6kDb": -72.4370206549018,
+      "attackMs": 8
+    },
+    "ui_confirm": {
+      "durMs": 97,
+      "peakDb": -21.575194329756854,
+      "rmsDb": -51.81631408645305,
+      "crestDb": 30.241119756696193,
+      "centroidHz": 941.9455405568212,
+      "hfAbove6kDb": -39.031872736760874,
+      "attackMs": 72
+    },
+    "ui_flip": {
+      "durMs": 74,
+      "peakDb": -22.59399565127671,
+      "rmsDb": -49.53283941845166,
+      "crestDb": 26.938843767174948,
+      "centroidHz": 830.3814468440538,
+      "hfAbove6kDb": -40.515346257616194,
+      "attackMs": 5.000000000000001
+    },
+    "motif_shard": {
+      "durMs": 317,
+      "peakDb": -17.079060971848566,
+      "centroidHz": 993.1375705636265,
+      "hfAbove6kDb": -43.128205381177274,
+      "attackMs": 112.99999999999999,
+      "onsets": [
+        0.0065,
+        0.1165,
+        0.2255
+      ],
+      "pitches": [
+        220.57513075386245,
+        262.10676069611037,
+        330.34832490149375
+      ]
+    },
+    "motif_hint": {
+      "durMs": 521,
+      "peakDb": -18.420190516360616,
+      "centroidHz": 475.927194045131,
+      "hfAbove6kDb": -63.60110502312843,
+      "attackMs": 326,
+      "onsets": [
+        0.0085,
+        0.1015,
+        0.3315,
+        0.3995
+      ],
+      "pitches": [
+        147.673108865546,
+        110.6256906511579
+      ]
+    },
+    "motif_unlock": {
+      "durMs": 2139,
+      "peakDb": -13.060285320833621,
+      "centroidHz": 361.53488335359447,
+      "hfAbove6kDb": -51.576166181044314,
+      "attackMs": 524,
+      "onsets": [
+        0.0055,
+        0.1125
+      ]
+    },
+    "motif_dare": {
+      "durMs": 1578,
+      "peakDb": -12.6702994642879,
+      "centroidHz": 180.4429567405376,
+      "hfAbove6kDb": -57.890983437876784,
+      "attackMs": 702,
+      "onsets": [
+        1.0285,
+        1.1015,
+        1.1555,
+        1.2105,
+        1.3015,
+        1.3925,
+        1.4835,
+        1.5745
+      ]
+    },
+    "motif_yield": {
+      "durMs": 597.0000000000001,
+      "peakDb": -18.73313377290216,
+      "centroidHz": 394.9298420459842,
+      "hfAbove6kDb": -55.51430200590388,
+      "attackMs": 224,
+      "onsets": [
+        0.0055,
+        0.2265,
+        0.4665
+      ],
+      "drumSweep": {
+        "fEarly": 139.1304347826087,
+        "fLate": 67.70098730606487
+      },
+      "pitches": [
+        262.47228202316546,
+        221.60137895493924
+      ]
+    },
+    "motif_chest": {
+      "peakDb": -7.251996431009205,
+      "droneRmsPreDb": -27.23167884786943,
+      "tailAboveDroneSec": 6.4
+    },
+    "drone_0.2": {
+      "meanDb": -30.16065533662886,
+      "lfoP2pDb": 3.448020144776198,
+      "centroidHz": 219.8041675843835,
+      "peakDb": -18.304237820251853
+    },
+    "drone_0.6": {
+      "meanDb": -27.69133425239208,
+      "lfoP2pDb": 3.430055497447654,
+      "centroidHz": 254.42043952870225,
+      "peakDb": -15.032706546429154
+    },
+    "drone_1": {
+      "meanDb": -25.959673751499707,
+      "lfoP2pDb": 3.3553483435236338,
+      "centroidHz": 289.0423451996661,
+      "peakDb": -12.611393464505575
+    },
+    "handoff": {
+      "baseDb": -27.77188732314316,
+      "minDb": -29.228103997057886,
+      "maxDb": -24.998328884284554,
+      "musicSteadyDb": -26.757626141505316,
+      "dipBelowFloor": -0.043783326085275576,
+      "bumpAboveCeil": -0.24070274277923787
+    },
+    "duck_motif": {
+      "baseDb": -22.52955128627578,
+      "depthAt50ms": 2.8007290484401324,
+      "maxDepth": 3.0682119994493675,
+      "releaseSec": 0.45999999999999996
+    },
+    "duck_ui": {
+      "baseDb": -22.52955128627578,
+      "depthAt50ms": 2.8236676199818334,
+      "maxDepth": 3.0000062159239747,
+      "releaseSec": 0.46999999999999975
+    },
+    "seam_music": {
+      "loopStart": 8.750020833333334,
+      "loopEnd": 273.50002083333334,
+      "bufDur": 279.0135,
+      "joinFluxMax": 72.04853986950664,
+      "trackFluxP95": 134.3787150392775,
+      "fluxRatio": 0.5361603573039644,
+      "rmsJoinDeltaDb": 0.7684817342250518
+    },
+    "seam_credits": {
+      "loopStart": 7.250020833333333,
+      "loopEnd": 262.00002083333334,
+      "bufDur": 264.96,
+      "joinFluxMax": 42.71614306225833,
+      "trackFluxP95": 101.756206146728,
+      "fluxRatio": 0.41978906918624226,
+      "rmsJoinDeltaDb": 1.148197385056129
+    }
+  },
+  "checks": [
+    {
+      "name": "ui.tick duration 60-120ms",
+      "value": 87,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.tick peak in [-26,-12] dBFS",
+      "value": -23.832213308462478,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.tick HF>6kHz <= -18 dB rel",
+      "value": -37.604340277113494,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.knock duration 60-120ms",
+      "value": 74,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.knock peak in [-24,-12] dBFS",
+      "value": -21.65291879624852,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.knock HF>6kHz <= -18 dB rel",
+      "value": -47.370435875698796,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.slide duration 60-120ms",
+      "value": 83.99999999999999,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.slide peak in [-24,-12] dBFS",
+      "value": -22.991489551179072,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.slide HF>6kHz <= -18 dB rel",
+      "value": -42.88662952113582,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.deny duration 60-120ms",
+      "value": 79,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.deny peak in [-24,-12] dBFS",
+      "value": -21.715425015716107,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.deny HF>6kHz <= -18 dB rel",
+      "value": -72.4370206549018,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.confirm duration 60-120ms",
+      "value": 97,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.confirm peak in [-24,-12] dBFS",
+      "value": -21.575194329756854,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.confirm HF>6kHz <= -18 dB rel",
+      "value": -39.031872736760874,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.flip duration 60-120ms",
+      "value": 74,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.flip peak in [-24,-12] dBFS",
+      "value": -22.59399565127671,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.flip HF>6kHz <= -18 dB rel",
+      "value": -40.515346257616194,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.deny centroid < 500 Hz (dull thud)",
+      "value": 112.17675254178822,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "motif.shard peak in [-20,-12] dBFS",
+      "value": -17.079060971848566,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.shard HF>6kHz <= -18 dB rel",
+      "value": -43.128205381177274,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "motif.hint peak in [-20,-12] dBFS",
+      "value": -18.420190516360616,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.hint HF>6kHz <= -18 dB rel",
+      "value": -63.60110502312843,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "motif.unlock peak in [-20,-12] dBFS",
+      "value": -13.060285320833621,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.unlock HF>6kHz <= -18 dB rel",
+      "value": -51.576166181044314,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "motif.dare peak in [-20,-12] dBFS",
+      "value": -12.6702994642879,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.dare HF>6kHz <= -18 dB rel",
+      "value": -57.890983437876784,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "motif.yield peak in [-20,-12] dBFS",
+      "value": -18.73313377290216,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.yield HF>6kHz <= -18 dB rel",
+      "value": -55.51430200590388,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "shard: rising A3>C4>E4 within 4%",
+      "value": 3,
+      "pass": true,
+      "detail": "221>262>330"
+    },
+    {
+      "name": "hint: falling D3>A2 within 5%",
+      "value": 2,
+      "pass": true,
+      "detail": "148>111"
+    },
+    {
+      "name": "drum fundamental drops 160->55 (early 120-175)",
+      "value": 139.1304347826087,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "drum fundamental drops 160->55 (late <= 95)",
+      "value": 67.70098730606487,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "yield: falling third (ratio 1.15-1.23)",
+      "value": 1.1844343354764817,
+      "pass": true,
+      "detail": "262>222"
+    },
+    {
+      "name": "dare/lur bloom attack 300-600ms",
+      "value": 319,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "dare/lur centroid < 2 kHz",
+      "value": 180.4429567405376,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "deny vs yield centroid separation",
+      "value": 3.520603272044842,
+      "pass": true,
+      "detail": "ratio"
+    },
+    {
+      "name": "chest peak headroom <= -6 dBFS",
+      "value": -7.251996431009205,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "chest audible tail >= 3s over drone",
+      "value": 6.4,
+      "pass": true,
+      "detail": "s"
+    },
+    {
+      "name": "drone@0.2 LFO evolution p2p 1.5-3.5dB",
+      "value": 3.448020144776198,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "drone@0.2 peak <= -12 dBFS",
+      "value": -18.304237820251853,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "drone@0.6 LFO evolution p2p 1.5-3.5dB",
+      "value": 3.430055497447654,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "drone@0.6 peak <= -12 dBFS",
+      "value": -15.032706546429154,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "drone@1 LFO evolution p2p 1.5-3.5dB",
+      "value": 3.3553483435236338,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "drone@1 peak <= -12 dBFS",
+      "value": -12.611393464505575,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "drone intensity level steps >= 1.5dB each",
+      "value": 1.731660500892371,
+      "pass": true,
+      "detail": "(2.47, 1.73)"
+    },
+    {
+      "name": "drone intensity centroid steps >= 8% each",
+      "value": 1.136081463168206,
+      "pass": true,
+      "detail": "(1.157, 1.136)"
+    },
+    {
+      "name": "handoff: no hole (min >= min(drone,music)-1.5dB)",
+      "value": -0.043783326085275576,
+      "pass": true,
+      "detail": "dB over"
+    },
+    {
+      "name": "handoff: no wall (max <= max(drone,music)+2dB)",
+      "value": -0.24070274277923787,
+      "pass": true,
+      "detail": "dB over"
+    },
+    {
+      "name": "handoff: music steady within +-3dB of drone",
+      "value": 1.0142611816378455,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_motif: -3dB (+-0.5) within 50ms",
+      "value": 2.8007290484401324,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_motif: max depth <= 4.5dB (no over-duck)",
+      "value": 3.0682119994493675,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_motif: release 0.35-0.85s after hold",
+      "value": 0.45999999999999996,
+      "pass": true,
+      "detail": "s"
+    },
+    {
+      "name": "duck_ui: -3dB (+-0.5) within 50ms",
+      "value": 2.8236676199818334,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_ui: max depth <= 4.5dB (no over-duck)",
+      "value": 3.0000062159239747,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_ui: release 0.35-0.85s after hold",
+      "value": 0.46999999999999975,
+      "pass": true,
+      "detail": "s"
+    },
+    {
+      "name": "seam_music: seam flux <= track p95",
+      "value": 0.5361603573039644,
+      "pass": true,
+      "detail": "x p95"
+    },
+    {
+      "name": "seam_music: |RMS delta at join| <= 2dB",
+      "value": 0.7684817342250518,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "seam_credits: seam flux <= track p95",
+      "value": 0.41978906918624226,
+      "pass": true,
+      "detail": "x p95"
+    },
+    {
+      "name": "seam_credits: |RMS delta at join| <= 2dB",
+      "value": 1.148197385056129,
+      "pass": true,
+      "detail": "dB"
+    }
+  ]
+}
