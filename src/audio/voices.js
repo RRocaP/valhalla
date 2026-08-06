@@ -69,57 +69,101 @@ export function scheduleCleanup(sources, allNodes) {
   for (const s of sources) s.onended = dispose;
 }
 
-// ---- wood hit: shared generator for tick/knock/deny-thud/confirm/flip base ----
-export function woodHit(ctx, bus, t, {
-  resonance = 700, q = 8, decay = 0.08, gain = 0.5, lowpass = 3000,
+// ---- shared small-hall air: synthesized impulse response, cached per ctx ----
+// Exponentially decaying deterministic noise, ~0.9 s tail, darkened by a
+// one-pole lowpass whose cutoff closes down the tail (air eats treble
+// first). Two decorrelated channels for width; each normalized to unit
+// energy so the wet level is set by the send/wet gains alone, not the IR.
+// This room is what keeps the synthesis from reading as beeps: dry is only
+// the knuckle, the hall answers.
+const irCache = new WeakMap();
+export function makeRoomIR(ctx, seconds = 0.9) {
+  let ir = irCache.get(ctx);
+  if (ir) return ir;
+  const len = Math.max(1, Math.round(ctx.sampleRate * seconds));
+  ir = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const data = ir.getChannelData(c);
+    let seed = c === 0 ? 0x51ab3e7 : 0x1c9d204f; // fixed seeds, deterministic
+    let lp = 0;
+    let energy = 0;
+    for (let i = 0; i < len; i++) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      const white = (seed / 0x7fffffff) * 2 - 1;
+      const p = i / len;
+      lp += (0.28 - 0.2 * p) * (white - lp); // ~2.3 kHz closing to ~600 Hz
+      data[i] = lp * Math.exp(-6.9 * p); // -60 dB by the tail end
+      energy += data[i] * data[i];
+    }
+    const norm = 1 / Math.sqrt(Math.max(energy, 1e-12));
+    for (let i = 0; i < len; i++) data[i] *= norm;
+  }
+  irCache.set(ctx, ir);
+  return ir;
+}
+
+// ---- felted wood touch: shared generator for every wooden UI voice ----
+// One noise burst through 2-3 resonant bandpasses at inharmonically spaced
+// wood-mode frequencies (~180/700/1150 Hz family), felted attack (2-8 ms,
+// no clicky transient), higher modes dying first, dark top. Replaces the
+// old single-bandpass woodHit and the flip/deny oscillator voices.
+export function woodTouch(ctx, bus, t, {
+  modes = [180, 700, 1150], weights = [1, 0.5, 0.28],
+  q = 14, decay = 0.14, gain = 1, lowpass = 1900, attack = 0.004,
 } = {}) {
   const out = ctx.createGain();
   out.connect(bus);
-  const src = ctx.createBufferSource();
-  src.buffer = getNoiseBuffer(ctx);
-  const body = ctx.createBiquadFilter();
-  body.type = 'bandpass';
-  body.frequency.value = resonance;
-  body.Q.value = q;
   const top = ctx.createBiquadFilter(); // keep the top end dark
   top.type = 'lowpass';
   top.frequency.value = lowpass;
-  src.connect(body);
-  body.connect(top);
   top.connect(out);
-
-  out.gain.setValueAtTime(0, t);
-  out.gain.linearRampToValueAtTime(gain, t + 0.004);
-  out.gain.exponentialRampToValueAtTime(0.0001, t + decay);
-
-  const stopAt = t + decay + 0.05;
+  const src = ctx.createBufferSource();
+  src.buffer = getNoiseBuffer(ctx);
+  const nodes = [out, top, src];
+  modes.forEach((f, i) => {
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = f;
+    bp.Q.value = q;
+    const g = ctx.createGain();
+    const w = weights[i] ?? 0.5 ** i;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain * w, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.05, decay * (1 - 0.22 * i)));
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(top);
+    nodes.push(bp, g);
+  });
+  const stopAt = t + decay + 0.06;
   src.start(t);
   src.stop(stopAt);
-  scheduleCleanup([src], [out, src, body, top]);
+  scheduleCleanup([src], nodes);
 }
 
-export function woodSlide(ctx, bus, t) {
+// near-subliminal felt brush (drag): a whisper of motion, not an event
+export function woodSlide(ctx, bus, t, { gain = 1.6 } = {}) {
   const out = ctx.createGain();
   out.connect(bus);
   const src = ctx.createBufferSource();
   src.buffer = getNoiseBuffer(ctx);
   const body = ctx.createBiquadFilter();
   body.type = 'bandpass';
-  body.Q.value = 4;
+  body.Q.value = 3;
   const top = ctx.createBiquadFilter();
   top.type = 'lowpass';
-  top.frequency.value = 2600;
+  top.frequency.value = 1200;
   src.connect(body);
   body.connect(top);
   top.connect(out);
 
-  const dur = 0.15; // measured 60-120 ms envelope window (was 0.22 -> 150 ms)
-  body.frequency.setValueAtTime(320, t);
-  body.frequency.linearRampToValueAtTime(900, t + dur * 0.6);
-  body.frequency.linearRampToValueAtTime(500, t + dur);
+  const dur = 0.12;
+  body.frequency.setValueAtTime(240, t);
+  body.frequency.linearRampToValueAtTime(520, t + dur * 0.6);
+  body.frequency.linearRampToValueAtTime(360, t + dur);
 
   out.gain.setValueAtTime(0, t);
-  out.gain.linearRampToValueAtTime(2.9, t + 0.02);
+  out.gain.linearRampToValueAtTime(gain, t + 0.012);
   out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
   const stopAt = t + dur + 0.05;
@@ -128,59 +172,33 @@ export function woodSlide(ctx, bus, t) {
   scheduleCleanup([src], [out, src, body, top]);
 }
 
-export function woodFlip(ctx, bus, t) {
-  const out = ctx.createGain();
-  out.connect(bus);
-  const src = ctx.createBufferSource();
-  src.buffer = getNoiseBuffer(ctx);
-  const body = ctx.createBiquadFilter();
-  body.type = 'bandpass';
-  body.Q.value = 5;
-  const top = ctx.createBiquadFilter();
-  top.type = 'lowpass';
-  top.frequency.value = 2600;
-  src.connect(body);
-  body.connect(top);
-  top.connect(out);
-
-  const dur = 0.16;
-  body.frequency.setValueAtTime(750, t);
-  body.frequency.exponentialRampToValueAtTime(320, t + dur);
-
-  out.gain.setValueAtTime(0, t);
-  out.gain.linearRampToValueAtTime(3.6, t + 0.006);
-  out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-
-  const stopAt = t + dur + 0.05;
-  src.start(t);
-  src.stop(stopAt);
-  scheduleCleanup([src], [out, src, body, top]);
-}
-
-export function denyBuzz(ctx, bus, t) {
+// ---- wrong: nothing buzzes, ever. The floor answers instead — a brief
+// sub drop (sine, ~66 -> 44 Hz) under the felted thud, gone in ~160 ms.
+export function subDrop(ctx, bus, t, { from = 66, to = 44, dur = 0.16, gain = 0.5 } = {}) {
   const out = ctx.createGain();
   out.connect(bus);
   const osc = ctx.createOscillator();
-  osc.type = 'square';
-  osc.frequency.value = 68; // deliberately off-scale: non-musical per contract
-  const lp = ctx.createBiquadFilter();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(from, t);
+  osc.frequency.exponentialRampToValueAtTime(to, t + dur * 0.85);
+  const lp = ctx.createBiquadFilter(); // guarantee darkness even off-graph
   lp.type = 'lowpass';
-  lp.frequency.value = 400;
+  lp.frequency.value = 150;
   osc.connect(lp);
   lp.connect(out);
 
   out.gain.setValueAtTime(0, t);
-  out.gain.linearRampToValueAtTime(0.42, t + 0.01);
-  out.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  out.gain.linearRampToValueAtTime(gain, t + 0.006);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
-  const stopAt = t + 0.18;
+  const stopAt = t + dur + 0.05;
   osc.start(t);
   osc.stop(stopAt);
   scheduleCleanup([osc], [out, osc, lp]);
 }
 
 // ---- lyre pluck: Karplus-Strong via a feedback delay loop ----
-export function pluck(ctx, bus, t, freq, { gain = 0.3, decay = 0.9, brightness = 2200 } = {}) {
+export function pluck(ctx, bus, t, freq, { gain = 0.3, decay = 0.9, brightness = 1600 } = {}) {
   const period = 1 / freq;
   const out = ctx.createGain();
   out.connect(bus);
@@ -225,7 +243,8 @@ export function pluck(ctx, bus, t, freq, { gain = 0.3, decay = 0.9, brightness =
   feedback.connect(delay); // the loop
   damping.connect(out); // tap to output
 
-  out.gain.setValueAtTime(gain, t);
+  out.gain.setValueAtTime(0, t); // felted 3 ms onset: no click, still a pluck
+  out.gain.linearRampToValueAtTime(gain, t + 0.003);
   out.gain.exponentialRampToValueAtTime(0.0001, t + decay);
 
   const endAt = t + decay + 0.1;
@@ -259,7 +278,8 @@ export function drumHit(ctx, bus, t, { gain = 0.3, dur = 0.32 } = {}) {
   osc.frequency.setValueAtTime(160, t);
   osc.frequency.exponentialRampToValueAtTime(55, t + dur * 0.7);
   const oscGain = ctx.createGain();
-  oscGain.gain.setValueAtTime(gain, t);
+  oscGain.gain.setValueAtTime(0, t); // felted skin, not a beater click
+  oscGain.gain.linearRampToValueAtTime(gain, t + 0.006);
   oscGain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   osc.connect(oscGain);
   oscGain.connect(out);
@@ -268,9 +288,11 @@ export function drumHit(ctx, bus, t, { gain = 0.3, dur = 0.32 } = {}) {
   noise.buffer = getNoiseBuffer(ctx);
   const nf = ctx.createBiquadFilter();
   nf.type = 'lowpass';
-  nf.frequency.value = 220;
+  nf.frequency.value = 180; // darker thump, and off the A3 (220 Hz) bin so
+  // the room's echo of the thump never masquerades as the yield third
   const ng = ctx.createGain();
-  ng.gain.setValueAtTime(gain * 0.5, t);
+  ng.gain.setValueAtTime(0, t);
+  ng.gain.linearRampToValueAtTime(gain * 0.5, t + 0.004);
   ng.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.35);
   noise.connect(nf);
   nf.connect(ng);
@@ -286,7 +308,7 @@ export function drumHit(ctx, bus, t, { gain = 0.3, dur = 0.32 } = {}) {
 
 // ---- lur swell: soft-clipped harmonic stack (unlocks/dare/finale) ----
 // NOTE the tanh stage saturates near +-1, so `gain` IS the output ceiling.
-export function lurSwell(ctx, bus, t, freqs, { dur = 2.5, gain = 0.2, brightness = 1400 } = {}) {
+export function lurSwell(ctx, bus, t, freqs, { dur = 2.5, gain = 0.2, brightness = 1200, attack = 0.8 } = {}) {
   const out = ctx.createGain();
   out.connect(bus);
   const shaper = ctx.createWaveShaper();
@@ -309,11 +331,11 @@ export function lurSwell(ctx, bus, t, freqs, { dur = 2.5, gain = 0.2, brightness
     return o;
   });
 
-  const attack = 0.5;
+  const a = Math.min(attack, dur * 0.45); // softer entry: the horn breathes in
   const release = 0.9;
   out.gain.setValueAtTime(0, t);
-  out.gain.linearRampToValueAtTime(gain, t + attack);
-  out.gain.setValueAtTime(gain, t + Math.max(attack, dur - release));
+  out.gain.linearRampToValueAtTime(gain, t + a);
+  out.gain.setValueAtTime(gain, t + Math.max(a, dur - release));
   out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
   const stopAt = t + dur + 0.1;

@@ -94,6 +94,9 @@ class MockCompressor extends MockNode {
     for (const k of ['threshold', 'knee', 'ratio', 'attack', 'release']) this[k] = new MockAudioParam(0);
   }
 }
+class MockConvolver extends MockNode {
+  constructor(ctx) { super(ctx, 'convolver'); this.buffer = null; this.normalize = true; }
+}
 
 class MockAudioContext {
   constructor() {
@@ -111,6 +114,7 @@ class MockAudioContext {
   createDelay() { return new MockDelay(this); }
   createWaveShaper() { return new MockWaveShaper(this); }
   createDynamicsCompressor() { return new MockCompressor(this); }
+  createConvolver() { return new MockConvolver(this); }
   createBuffer(channels, length, sampleRate) {
     const chans = [];
     for (let i = 0; i < channels; i++) chans.push(new Float32Array(length));
@@ -143,8 +147,9 @@ function fresh() {
 function mark(ctxInstance) { return ctxInstance._registry.length; }
 function since(ctxInstance, markIndex) { return ctxInstance._registry.slice(markIndex); }
 
-// The 6 permanent graph nodes are created once, in this fixed order, inside
-// enable() (see src/audio/index.js buildGraph). Safe to call any time after
+// The 6 permanent bus nodes are created once, in this fixed order, inside
+// enable() (see src/audio/index.js buildGraph); the shared-room nodes
+// (send gain, convolver, wet gain) follow them. Safe to call any time after
 // enable() even if more nodes were allocated since.
 function graphNodes(c) {
   const [destination, master, compressor, droneBus, voiceBus, uiBus, musicBus] = c._registry;
@@ -357,6 +362,37 @@ test('master chain: voices -> per-bus gains -> compressor -> master -> destinati
   }
 });
 
+test('shared room: one convolver, dark decaying ~0.9s IR, ui+voice sends, subtle wet return', () => {
+  const { audio, ctx } = fresh();
+  audio.enable();
+  const c = ctx();
+  const { compressor, droneBus, voiceBus, uiBus, musicBus } = graphNodes(c);
+  const convolvers = c._registry.filter((n) => n._kind === 'convolver');
+  assert.strictEqual(convolvers.length, 1, 'exactly one shared room');
+  const room = convolvers[0];
+  assert.ok(room.buffer, 'room must hold a synthesized IR');
+  const irSec = room.buffer.length / room.buffer.sampleRate;
+  assert.ok(irSec >= 0.7 && irSec <= 1.2, `IR ${irSec}s outside the small-hall range`);
+  const d = room.buffer.getChannelData(0);
+  const tenth = Math.floor(d.length / 10);
+  let head = 0;
+  let tail = 0;
+  for (let i = 0; i < tenth; i++) {
+    head += d[i] * d[i];
+    tail += d[d.length - tenth + i] * d[d.length - tenth + i];
+  }
+  assert.ok(tail < head / 100, 'IR must decay by >= 20 dB across its length');
+  const send = c._registry.find((n) => n._kind === 'gain' && n.connections.includes(room));
+  assert.ok(send, 'a send gain feeds the convolver');
+  assert.ok(uiBus.connections.includes(send), 'uiBus sends to the room');
+  assert.ok(voiceBus.connections.includes(send), 'voiceBus sends to the room');
+  assert.ok(!musicBus.connections.includes(send), 'music (recordings) must not send');
+  assert.ok(!droneBus.connections.includes(send), 'the drone bed must not send');
+  const wet = room.connections.find((n) => n._kind === 'gain');
+  assert.ok(wet && wet.connections.includes(compressor), 'wet return joins the mix at the compressor');
+  assert.ok(wet.gain.value <= 0.85, `wet return ${wet.gain.value} too hot: the room is felt, not heard`);
+});
+
 test("motif('chest') schedules a finale tail of at least 3 seconds", () => {
   const { audio, ctx } = fresh();
   audio.enable();
@@ -490,11 +526,11 @@ test('music.stop(): fades music out and restores the drone gain', async () => {
   }
 });
 
-test('ui() ducks the music bus ~3dB and releases shortly after', () => {
+test('meaningful ui (knock) ducks the music bus ~3dB and releases shortly after', () => {
   const { audio, ctx } = fresh();
   audio.enable();
   const { musicBus } = graphNodes(ctx());
-  audio.ui('tick');
+  audio.ui('knock');
   const calls = musicBus.gain.calls.filter((call) => call[0] === 'target').slice(-2);
   const [duckCall, releaseCall] = calls;
   assert.ok(Math.abs(duckCall[1] - DUCK_GAIN_FACTOR) < 1e-6, `expected duck target ~${DUCK_GAIN_FACTOR}, got ${duckCall[1]}`);
@@ -502,12 +538,24 @@ test('ui() ducks the music bus ~3dB and releases shortly after', () => {
   assert.ok(releaseCall[2] > duckCall[2], 'release must be scheduled after the duck');
 });
 
+test('near-subliminal ui (tick/slide/flip) never ducks the score', () => {
+  const { audio, ctx } = fresh();
+  audio.enable();
+  const { musicBus } = graphNodes(ctx());
+  for (const kind of ['tick', 'slide', 'flip']) {
+    const before = musicBus.gain.calls.length;
+    audio.ui(kind);
+    assert.strictEqual(musicBus.gain.calls.length, before,
+      `${kind} is a felt texture; it must not pump the music bus`);
+  }
+});
+
 test('motif() ducks the music bus ~3dB and holds longer than a ui() duck', () => {
   const { audio, ctx } = fresh();
   audio.enable();
   const { musicBus } = graphNodes(ctx());
 
-  audio.ui('tick');
+  audio.ui('knock');
   const uiCalls = musicBus.gain.calls.filter((call) => call[0] === 'target').slice(-2);
   const uiHold = uiCalls[1][2] - uiCalls[0][2];
 
@@ -606,8 +654,11 @@ test('music: a decodeAudioData rejection is also swallowed', async () => {
 // ---------------------------------------------------------------------
 
 // URL-aware fetch mock: byteLength encodes the track so a per-instance
-// decode impl can tag the produced buffer with its source.
-const ACT_LEN = { './music.mp3': 8, './act2.mp3': 12, './act3.mp3': 16, './credits.mp3': 20 };
+// decode impl can tag the produced buffer with its source. Tags follow ACT
+// NUMBERS under the 2026-08-07 chill-opener order: act 1 plays ./act3.mp3,
+// act 2 ./music.mp3, act 3 ./act2.mp3.
+const FILE_FOR_ACT = { 1: './act3.mp3', 2: './music.mp3', 3: './act2.mp3', credits: './credits.mp3' };
+const ACT_LEN = { [FILE_FOR_ACT[1]]: 8, [FILE_FOR_ACT[2]]: 12, [FILE_FOR_ACT[3]]: 16, [FILE_FOR_ACT.credits]: 20 };
 const ACT_TAG = { 8: 'act1', 12: 'act2', 16: 'act3', 20: 'credits' };
 function actFetchImpl(urls, failFor = () => false) {
   return async (url) => {
@@ -653,14 +704,14 @@ test('music.act(): lazy — act2.mp3 unfetched until requested; current act play
     tagDecode(c);
     audio.music.start();
     assert.ok(await waitFor(() => audio.music.ready === true));
-    assert.deepStrictEqual(urls, ['./music.mp3'], 'start() must fetch only the current act');
+    assert.deepStrictEqual(urls, [FILE_FOR_ACT[1]], 'start() must fetch only the current act');
     const act1Src = loopSources(c).find((s) => s.buffer && s.buffer._tag === 'act1');
     assert.ok(act1Src, 'act 1 should be looping');
     assert.strictEqual(act1Src.stoppedAt, null);
 
     const beforeSwitch = mark(c);
     audio.music.act(2);
-    assert.deepStrictEqual(urls, ['./music.mp3', './act2.mp3'], 'act(2) lazily fetches its own file');
+    assert.deepStrictEqual(urls, [FILE_FOR_ACT[1], FILE_FOR_ACT[2]], 'act(2) lazily fetches its own file');
     assert.strictEqual(loopSources(c, beforeSwitch).length, 0, 'no new source before the decode lands');
     assert.strictEqual(act1Src.stoppedAt, null, 'act 1 must keep playing while act 2 decodes');
 
@@ -737,18 +788,18 @@ test('music.act(): idempotent — same act and duplicate switches never double-f
     const baseline = mark(c);
     audio.music.act(1); // already the current act
     assert.strictEqual(since(c, baseline).length, 0);
-    assert.deepStrictEqual(urls, ['./music.mp3']);
+    assert.deepStrictEqual(urls, [FILE_FOR_ACT[1]]);
 
     audio.music.act(2);
     audio.music.act(2); // duplicate while the fetch is in flight
-    assert.strictEqual(urls.filter((u) => u === './act2.mp3').length, 1, 'one fetch per act');
+    assert.strictEqual(urls.filter((u) => u === FILE_FOR_ACT[2]).length, 1, 'one fetch per act');
     assert.ok(await waitFor(() => loopSources(c, baseline).length === 1));
 
     const afterSwitch = mark(c);
     audio.music.act(2); // now the current act: full no-op
     for (let i = 0; i < 10; i++) await Promise.resolve();
     assert.strictEqual(loopSources(c, afterSwitch).length, 0, 'repeat act(2) must not re-crossfade');
-    assert.strictEqual(urls.filter((u) => u === './act2.mp3').length, 1);
+    assert.strictEqual(urls.filter((u) => u === FILE_FOR_ACT[2]).length, 1);
   } finally {
     restore();
   }
@@ -757,7 +808,7 @@ test('music.act(): idempotent — same act and duplicate switches never double-f
 test('music.act(): fetch failure stays on the current act silently and retries on the next act() call', async () => {
   const urls = [];
   let act2Down = true;
-  const restore = withMockFetch(actFetchImpl(urls, (url) => act2Down && url === './act2.mp3'));
+  const restore = withMockFetch(actFetchImpl(urls, (url) => act2Down && url === FILE_FOR_ACT[2]));
   try {
     const { audio, ctx } = fresh();
     audio.enable();
@@ -775,7 +826,7 @@ test('music.act(): fetch failure stays on the current act silently and retries o
     act2Down = false;
     const beforeRetry = mark(c);
     assert.doesNotThrow(() => audio.music.act(2)); // documented retry-on-next-call
-    assert.strictEqual(urls.filter((u) => u === './act2.mp3').length, 2, 'the retry re-fetches');
+    assert.strictEqual(urls.filter((u) => u === FILE_FOR_ACT[2]).length, 2, 'the retry re-fetches');
     assert.ok(await waitFor(() => loopSources(c, beforeRetry).length === 1), 'retry completes the switch');
     assert.strictEqual(loopSources(c, beforeRetry)[0].buffer._tag, 'act2');
   } finally {
@@ -809,7 +860,7 @@ test('music.credits() fades whatever act is live; start() resumes the CURRENT ac
     assert.ok(creditsSrc.stoppedAt !== null, 'start() must fade the credits loop out');
     assert.ok(await waitFor(() => loopSources(c, m2).length === 1));
     assert.strictEqual(loopSources(c, m2)[0].buffer._tag, 'act2', 'start() resumes act 2, the current act');
-    assert.strictEqual(urls.filter((u) => u === './act2.mp3').length, 1, 'the cached act 2 buffer is reused');
+    assert.strictEqual(urls.filter((u) => u === FILE_FOR_ACT[2]).length, 1, 'the cached act 2 buffer is reused');
   } finally {
     restore();
   }
@@ -856,7 +907,7 @@ test('music.act() before start() (load from save): only the saved act is fetched
     assert.strictEqual(audio.music.ready, false, 'ready is false until the selected act has a buffer');
     audio.music.start();
     assert.ok(await waitFor(() => loopSources(c, m0).length === 1), 'the saved act starts once decoded');
-    assert.deepStrictEqual(urls, ['./act3.mp3'], 'music.mp3 must NOT be fetched when resuming at act 3');
+    assert.deepStrictEqual(urls, [FILE_FOR_ACT[3]], "act 1's file must NOT be fetched when resuming at act 3");
     assert.strictEqual(loopSources(c, m0)[0].buffer._tag, 'act3');
     assert.strictEqual(audio.music.ready, true);
     const last = droneOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
@@ -890,9 +941,45 @@ test('music.act(): a switch issued while the context is suspended (iOS) still sc
   }
 });
 
+test('first music entry is the 4s exhale (drone eased gently); resumes use the 2s handoff', async () => {
+  const restore = withMockFetch(actFetchImpl([]));
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    tagDecode(c);
+    const beforeDrone = mark(c);
+    audio.drone.start();
+    const droneBus = graphNodes(c).droneBus;
+    const droneOut = since(c, beforeDrone).find((n) => n._kind === 'gain' && n.connections.includes(droneBus));
+
+    const m0 = mark(c);
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+    const firstGain = loopSources(c, m0)[0].connections[0];
+    let fade = firstGain.gain.calls.find((call) => call[0] === 'target');
+    assert.ok(fade[3] >= 0.9, `first-entry fade tc ${fade[3]} — expected ~1.0 (4 s exhale)`);
+    const ease = droneOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
+    assert.ok(Math.abs(ease[1]) < 1e-6, 'drone eases to 0 under the first entry');
+    assert.ok(ease[2] >= 1.2, `gentle entry holds the drone until t=${ease[2]} — expected >= 1.2`);
+    assert.ok(ease[3] >= 1.0, `gentle drone ease tc ${ease[3]} — expected >= 1.0`);
+
+    audio.music.stop();
+    const m1 = mark(c);
+    audio.music.start(); // resume from cache: the one-time exhale is spent
+    assert.ok(await waitFor(() => loopSources(c, m1).length === 1));
+    fade = loopSources(c, m1)[0].connections[0].gain.calls.find((call) => call[0] === 'target');
+    assert.ok(Math.abs(fade[3] - 0.5) < 0.01, `resume fade tc ${fade[3]} — expected 0.5 (2 s handoff)`);
+    const ease2 = droneOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
+    assert.ok(ease2[2] <= 0.8 && ease2[3] <= 0.9, 'resume uses the standard drone ease, not the gentle one');
+  } finally {
+    restore();
+  }
+});
+
 // ---------------------------------------------------------------------
-// measured invariants (tuned via artifacts/wip-fable-b/render.mjs; the
-// ground-truth numbers live in artifacts/wip-fable-b/metrics.json)
+// measured invariants (tuned via artifacts/wip-soundfeel/render.mjs; the
+// ground-truth numbers live in artifacts/wip-soundfeel/metrics.json)
 // ---------------------------------------------------------------------
 
 // Every ui kind's scheduled envelope must stay in the fast-answer family:
@@ -921,24 +1008,37 @@ test('ui kinds schedule 60-180ms envelopes and stop within 300ms', () => {
   }
 });
 
-// deny must stay non-musical (no oscillator near any pentatonic degree, all
-// filtering dark <= 900 Hz); yield's two plucks must ring a falling minor
-// third C4 -> A3 after loop-delay compensation (quantum + biquad lag).
-test('deny is non-musical; yield plucks are tuned C4 -> A3', () => {
+// Nothing buzzes, ever (OW-SOUNDFEEL): no ui voice may use a square or
+// sawtooth oscillator. deny is a LOW felted thud + brief sub drop — one sine
+// falling below 60 Hz, all filtering dark (<= 900 Hz), never on a pentatonic
+// degree; yield's two plucks must ring a falling minor third C4 -> A3 after
+// loop-delay compensation (quantum + biquad lag).
+test('nothing buzzes; deny is a felted thud + sub drop; yield plucks are tuned C4 -> A3', () => {
   const { audio, ctx } = fresh();
   audio.enable();
   const c = ctx();
+
+  for (const kind of ['tick', 'knock', 'slide', 'deny', 'confirm', 'flip']) {
+    const b = mark(c);
+    audio.ui(kind);
+    const slice = since(c, b);
+    for (const o of slice.filter((n) => n._kind === 'oscillator')) {
+      assert.strictEqual(o.type, 'sine', `${kind}: oscillator type ${o.type} — nothing buzzes, ever`);
+    }
+    for (const n of slice) if (n.startedAt != null) n._end();
+  }
 
   let baseline = mark(c);
   audio.ui('deny');
   const denySlice = since(c, baseline);
   const denyOscs = denySlice.filter((n) => n._kind === 'oscillator');
-  assert.ok(denyOscs.length > 0, 'deny should include the buzz oscillator');
-  for (const o of denyOscs) {
-    for (const p of PENT) {
-      assert.ok(Math.abs(o.frequency.value - p) / p > 0.03,
-        `deny oscillator at ${o.frequency.value} Hz sits on a musical degree (${p})`);
-    }
+  assert.strictEqual(denyOscs.length, 1, 'deny carries exactly one sub-drop oscillator');
+  const sub = denyOscs[0];
+  assert.strictEqual(sub.type, 'sine');
+  assert.ok(sub.frequency.value < 60, `sub drop must end below 60 Hz, got ${sub.frequency.value}`);
+  for (const p of PENT) {
+    assert.ok(Math.abs(sub.frequency.value - p) / p > 0.03,
+      `deny sub at ${sub.frequency.value} Hz sits on a musical degree (${p})`);
   }
   for (const f of denySlice.filter((n) => n._kind === 'biquad')) {
     assert.ok(f.frequency.value <= 900, `deny filter at ${f.frequency.value} Hz is not dark`);
@@ -966,6 +1066,23 @@ test('deny is non-musical; yield plucks are tuned C4 -> A3', () => {
   for (const n of yieldSlice) if (n.startedAt != null) n._end();
 });
 
+// The skin drum's weight is its 160->55 Hz fall; in the rendered world the
+// tail sits under the room's echo, so the sweep is asserted here, on the
+// scheduled automation, deterministically.
+test('drum voices sweep 160->55 Hz (yield carries real skin weight)', () => {
+  const { audio, ctx } = fresh();
+  audio.enable();
+  const c = ctx();
+  const baseline = mark(c);
+  audio.motif('yield');
+  const oscs = since(c, baseline).filter((n) => n._kind === 'oscillator' && n.type === 'sine');
+  const drum = oscs.find((o) => o.frequency.calls.some((call) => call[0] === 'set' && call[1] === 160));
+  assert.ok(drum, 'yield drum oscillator starts at 160 Hz');
+  assert.ok(drum.frequency.calls.some((call) => call[0] === 'exp' && call[1] === 55),
+    'drum frequency must fall exponentially to 55 Hz');
+  for (const n of since(c, baseline)) if (n.startedAt != null) n._end();
+});
+
 // Duck timing law (measured: -3 dB within 50 ms, release lands back within
 // 0.5 dB 0.35-0.85 s after the hold ends; holds 0.15 s ui / 0.8 s motif).
 test('duck reaches fast, holds by caller kind, releases in 0.35-0.85s', () => {
@@ -973,7 +1090,7 @@ test('duck reaches fast, holds by caller kind, releases in 0.35-0.85s', () => {
   audio.enable();
   const { musicBus } = graphNodes(ctx());
 
-  audio.ui('tick');
+  audio.ui('knock');
   let [down, up] = musicBus.gain.calls.filter((call) => call[0] === 'target').slice(-2);
   assert.ok(down[3] <= 0.02, `duck attack tc ${down[3]} too slow for -3dB@50ms`);
   assert.ok(Math.abs((up[2] - down[2]) - 0.15) < 0.03, `ui hold ${up[2] - down[2]} != ~0.15s`);
@@ -987,16 +1104,19 @@ test('duck reaches fast, holds by caller kind, releases in 0.35-0.85s', () => {
   assert.ok(release >= 0.35 && release <= 0.85, `motif duck release ${release}s outside 0.35-0.85`);
 });
 
-// Build-time seam check against the COMMITTED music.mp3: decode via afconvert
-// (macOS CoreAudio), run the real loop preparation, and verify the wrap the
-// player will hear -- spectral flux at the join must not exceed the loop
-// body's 95th percentile, and the join must not step more than 2 dB.
-test('committed music.mp3 loop seam is inaudible (flux <= p95, |dRMS| <= 2dB)', (t) => {
-  const mp3 = fileURLToPath(new URL('../../music.mp3', import.meta.url));
+// Build-time seam check against the COMMITTED tracks the player meets first:
+// act 1 (./act3.mp3, the chill opener) and act 2 (./music.mp3). Decode via
+// afconvert (macOS CoreAudio), run the real loop preparation, and verify the
+// wrap the player will hear -- spectral flux at the join must not exceed the
+// loop body's 95th percentile, and the join must not step more than 2 dB.
+// (act2.mp3 and the act-pair crossfades are covered by the wip-soundfeel
+// render harness.)
+for (const file of ['act3.mp3', 'music.mp3']) test(`committed ${file} loop seam is inaudible (flux <= p95, |dRMS| <= 2dB)`, (t) => {
+  const mp3 = fileURLToPath(new URL('../../' + file, import.meta.url));
   if (!existsSync('/usr/bin/afconvert') || !existsSync(mp3)) {
-    return t.skip('afconvert or music.mp3 unavailable');
+    return t.skip(`afconvert or ${file} unavailable`);
   }
-  const wav = join(tmpdir(), `ow-fable-b-seam-${process.pid}.wav`);
+  const wav = join(tmpdir(), `ow-seam-${process.pid}-${file}.wav`);
   try {
     execFileSync('/usr/bin/afconvert', ['-f', 'WAVE', '-d', 'LEI16', mp3, wav]);
     const raw = readFileSync(wav);

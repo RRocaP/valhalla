@@ -40,6 +40,13 @@ export function mountLockRoom(root, {
   screen.style.setProperty('--mood-glow', mood.glow);
   screen.style.setProperty('--mood-edge', mood.edge);
 
+  // OW-RUNEFIRE's `opts.magic` groove-fire, adopted the moment it exists and
+  // silently skipped when it doesn't (older drawRune builds ignore the opt, so
+  // the sniff only decides whether the shard strike ramps it at all).
+  const RUNE_MAGIC = (() => {
+    try { return /magic/.test(Function.prototype.toString.call(art.drawRune)); } catch { return false; }
+  })();
+
   // Presentation-only styles for this screen (loop-2 escalation): the carved
   // primary's seated disabled state, the horn hint slots, the shard strike
   // reveal, and the yield banner. `#app` prefix outranks style.js at equal
@@ -77,7 +84,17 @@ export function mountLockRoom(root, {
   #app.reduced-motion .yield-banner{animation:none}
   #app.reduced-motion .ceremony-shard .carved-heading{transition:none}
   #app .heckle-line{margin:6px auto 0;max-width:52ch;font-style:italic;font-size:.86rem;
-    letter-spacing:.02em;color:var(--bone);opacity:.85;text-shadow:0 1px 0 rgba(12,9,6,.85)}`;
+    letter-spacing:.02em;color:var(--bone);opacity:.85;text-shadow:0 1px 0 rgba(12,9,6,.85)}
+  /* Dare card, tightened around a bigger arch (Ramon, live on iPhone: the
+     portrait was small and the plate/taunt drifted away from it). The card's
+     own rhythm is now portrait -> name -> taunt -> button with the gaps
+     shrinking toward the face, so the jarl reads as the subject. */
+  #app .dare-card{gap:0;padding:12px 16px 16px}
+  #app .dare-card .dare-portrait{margin:0 auto 10px}
+  #app .dare-name{margin:0;line-height:1.05}
+  #app .dare-taunt{margin:9px 0 0;padding:9px 6px}
+  #app .dare-card .btn-carved{margin-top:14px}
+  #app .yield-stage canvas{margin:0 auto}`;
   screen.append(roomStyle);
 
   let bg = art.makeCanvas(1, 1);
@@ -418,14 +435,115 @@ export function mountLockRoom(root, {
     else runShardCeremony();
   }
 
+  // ---- the duel portrait stage (dare card + yield beat share it) ----------
+  // The arch is measured from the card instead of pinned at 220px: at 390x844
+  // that lands it at ~78% of the card with 44px+ of air at each screen edge,
+  // which is what makes a face read at arm's length. The canvas is padded out
+  // past the arch so the surround can carry its chip band.
+  function archStage(frac, maxArch) {
+    const cardW = Math.min(420, Math.max(220, lockRootEl.clientWidth || 342));
+    // Room limits apply to the CANVAS (arch + both pads, ~1.11x the arch), not
+    // the arch: 46px of air at each screen edge clears the 44px floor, and the
+    // card's own 16px padding keeps the canvas from widening the card itself.
+    const room = Math.min(
+      Math.max(180, (screen.clientWidth || cardW) - 92),
+      cardW - 32,
+    );
+    // Vertical budget: a 1280x800 desktop room is SHORT, and the card has to
+    // land whole there too (reduced motion skips the rise transform, so it
+    // sits ~12px lower than the animated one). The reserve is the measured
+    // chrome under the arch — name, taunt, button, gaps, card padding.
+    const sBox = screen.getBoundingClientRect();
+    const headerBottom = Math.max(0, header.getBoundingClientRect().bottom - sBox.top);
+    const vRoom = Math.max(200, (screen.clientHeight || 800) - headerBottom - 268);
+    const archW = Math.max(150, Math.min(
+      Math.round(cardW * frac), maxArch,
+      Math.floor(room / 1.11),   // canvas = arch + 2 pads ~= arch * 1.11
+      Math.floor(vRoom / 1.29),  // canvas height ~= arch * 1.29
+    ));
+    const archH = Math.round(archW * 1.18);
+    const pad = Math.max(9, Math.round(archW * 0.055));
+    const made = art.makeCanvas(archW + pad * 2, archH + pad * 2);
+    made.canvas.dataset.arch = `${pad},${pad},${archW},${archH}`;
+    return { ...made, pad, archW, archH };
+  }
+
+  // A wolf-tooth run cut into the surround, following the arch just outside
+  // the gold groove (docs/QUALITY.md carve standard). Three cuts per chip —
+  // socket, shade wall, lit wall — with the wall shading resolved per chip
+  // against the one hearth key (upper-left), so the band reads as CARVED at
+  // 200% and stays subordinate to the face at thumbnail size.
+  function archChipBand(c, ax, ay, aw, ah, pad) {
+    const R = aw / 2 + pad * 0.5;
+    const cx = ax + aw / 2;
+    const springY = ay + aw / 2;
+    const jamb = Math.max(0, ay + ah - springY);
+    const s = Math.max(5, pad * 0.85);
+    const pts = [];
+    const nJ = Math.max(2, Math.round(jamb / s));
+    for (let i = nJ; i >= 1; i--) pts.push([cx - R, springY + (jamb * i) / nJ, 1, 0]);
+    const nC = Math.max(8, Math.round((Math.PI * R) / s));
+    for (let i = 0; i <= nC; i++) {
+      const a = Math.PI + (Math.PI * i) / nC;
+      pts.push([cx + Math.cos(a) * R, springY + Math.sin(a) * R, -Math.cos(a), -Math.sin(a)]);
+    }
+    for (let i = 1; i <= nJ; i++) pts.push([cx + R, springY + (jamb * i) / nJ, -1, 0]);
+
+    c.save();
+    c.lineCap = 'butt';
+    pts.forEach(([px, py, nx, ny], i) => {
+      const tx = -ny;
+      const ty = nx;
+      const depth = s * (i % 2 ? 0.74 : 0.34);
+      const b0 = [px - tx * s * 0.5, py - ty * s * 0.5];
+      const b1 = [px + tx * s * 0.5, py + ty * s * 0.5];
+      const apex = [px + nx * depth, py + ny * depth];
+      c.fillStyle = `rgba(12,9,6,.34)`;
+      c.beginPath();
+      c.moveTo(b0[0], b0[1]);
+      c.lineTo(b1[0], b1[1]);
+      c.lineTo(apex[0], apex[1]);
+      c.closePath();
+      c.fill();
+      // each wall takes the key or turns away from it: outward face normal
+      // vs the hearth direction (light travelling down-right)
+      for (const [B, other] of [[b0, b1], [b1, b0]]) {
+        let ex = apex[0] - B[0];
+        let ey = apex[1] - B[1];
+        let wx = -ey;
+        let wy = ex;
+        if (wx * (other[0] - B[0]) + wy * (other[1] - B[1]) > 0) { wx = -wx; wy = -wy; }
+        const catches = wx + wy < 0; // normal faces up-left, toward the hearth
+        c.strokeStyle = catches ? `rgba(132,95,50,.62)` : `rgba(12,9,6,.55)`;
+        c.lineWidth = Math.max(0.8, s * 0.14);
+        c.beginPath();
+        c.moveTo(B[0], B[1]);
+        c.lineTo(apex[0], apex[1]);
+        c.stroke();
+      }
+    });
+    // stepped architrave: one scribe line outside the run, with its lit twin
+    for (const [off, style, wdt] of [[pad * 0.95, 'rgba(12,9,6,.42)', 1], [pad * 0.95 + 1.1, 'rgba(233,220,195,.10)', 1]]) {
+      const RR = aw / 2 + off;
+      c.strokeStyle = style;
+      c.lineWidth = wdt;
+      c.beginPath();
+      c.moveTo(cx - RR, ay + ah);
+      c.lineTo(cx - RR, springY);
+      c.arc(cx, springY, RR, Math.PI, 0, false);
+      c.lineTo(cx + RR, ay + ah);
+      c.stroke();
+    }
+    c.restore();
+  }
+
   function runYieldBeat(after) {
     const overlay = el('div', { class: 'ceremony-overlay', tabindex: '-1' });
-    const port = art.makeCanvas(160, 190);
+    const port = archStage(0.58, 230);
     // the challenger's war-banner lowers behind the portrait as the bow lands
-    const stage = el('div', { class: 'yield-stage' }, [
-      el('div', { class: 'yield-banner', 'aria-hidden': 'true' }, yieldDuel.name),
-      port.canvas,
-    ]);
+    const banner = el('div', { class: 'yield-banner', 'aria-hidden': 'true' }, yieldDuel.name);
+    banner.style.top = `${port.pad + 5}px`;
+    const stage = el('div', { class: 'yield-stage' }, [banner, port.canvas]);
     const line = el('p', { class: 'ceremony-line' }, lineFor(yieldDuel.yield, lang));
 overlay.append(stage, line);
     clear(lockRootEl);
@@ -433,14 +551,27 @@ overlay.append(stage, line);
     overlay.focus();
     const img = portraitsCache ? portraitImage(portraitsCache, yieldDuel.key) : null;
     const canTween = typeof art.portrait === 'function' && !!img;
-    if (!canTween) drawPortraitPlaceholder(port.ctx, p, 0, 0, port.w, port.h, yieldDuel.name);
+    // The bow dips and shears the arch's contents, so each frame starts from a
+    // clean surface (the old code painted over the last one and smeared the
+    // crown) and re-cuts the surround around it.
+    const paintYield = (t) => {
+      port.ctx.clearRect(0, 0, port.w, port.h);
+      archChipBand(port.ctx, port.pad, port.pad, port.archW, port.archH, port.pad);
+      if (canTween) {
+        art.portrait(port.ctx, img, port.pad, port.pad, port.archW, port.archH,
+          { bow: t, rim: 0.5 * (1 - t * 0.28) });
+      } else {
+        drawPortraitPlaceholder(port.ctx, p, port.pad, port.pad, port.archW, port.archH, yieldDuel.name);
+      }
+    };
+    paintYield(0);
     audio.motif('yield');
     // act switches ride the chapter turns (docs/CONTRACT.md §1 v2)
     if (lock.id === '06-jotunvillur') audio.music?.act?.(2);
     else if (lock.id === '12-veitsla') audio.music?.act?.(3);
     cancelBeat = playBeat({
       el: overlay, duration: 1200, reducedMotion,
-      render(t) { if (canTween) art.portrait(port.ctx, img, 0, 0, port.w, port.h, { bow: t, rim: 0.5 * (1 - t * 0.5) }); },
+      render(t) { paintYield(t); },
       onDone: () => {
         cancelBeat = null;
         if (!journalHasLine(save, yieldDuel.yield)) note(`${yieldDuel.name} yields: "${lineFor(yieldDuel.yield, lang)}"`);
@@ -496,6 +627,8 @@ overlay.append(stage, line);
           color: p.goldBright,
           weight: (RC * 0.56 / 7.5) * (0.45 + 0.55 * ease),
           glow: 0.2 + 0.35 * ease,
+          // the groove takes fire as the chisel finishes its bite
+          ...(RUNE_MAGIC ? { magic: ease * 0.85, t: t * 1500, reduced: reducedMotion } : {}),
         });
         c.restore();
         // ember spall: deterministic sparks while the chisel bites
@@ -541,11 +674,15 @@ overlay.append(stage, line);
     // an inscription. Entrance styles live in style.js; reduced motion drops
     // every animation and lands on the fully-lit final state.
     const vignette = el('div', { class: 'dare-vignette', 'aria-hidden': 'true' });
-    const port = art.makeCanvas(220, 260);
+    const port = archStage(0.78, 300);
     port.canvas.className = 'dare-portrait';
+    archChipBand(port.ctx, port.pad, port.pad, port.archW, port.archH, port.pad);
     const img = portraitsCache ? portraitImage(portraitsCache, dare.key) : null;
-    if (typeof art.portrait === 'function' && img) art.portrait(port.ctx, img, 0, 0, port.w, port.h, { rim: 0.9 });
-    else drawPortraitPlaceholder(port.ctx, p, 0, 0, port.w, port.h, dare.name);
+    if (typeof art.portrait === 'function' && img) {
+      art.portrait(port.ctx, img, port.pad, port.pad, port.archW, port.archH, { rim: 0.9 });
+    } else {
+      drawPortraitPlaceholder(port.ctx, p, port.pad, port.pad, port.archW, port.archH, dare.name);
+    }
     const answerBtn = el('button', { type: 'button', class: 'btn-carved' }, 'Answer the dare');
     const namePlate = carvedHeading('h3', {
       art, text: dare.name, size: 30, className: 'dare-name', depth: 0.9,

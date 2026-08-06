@@ -1,6 +1,9 @@
 // Streamed score (the "roca-airways" pattern, docs/AUDIO.md + CONTRACT §1 v2):
-// a three-act progression — Act I ./music.mp3, Act II ./act2.mp3, Act III
-// ./act3.mp3 — plus ./credits.mp3. Same-origin relative fetches only, lazy
+// a three-act progression plus ./credits.mp3. Act order (Ramon, 2026-08-07):
+// the game must START chill and build — Act I ./act3.mp3 (Windswept Silence,
+// the calm opener), Act II ./music.mp3 (Frostbound Lullaby), Act III
+// ./act2.mp3 (Frost on the Nyckelharpa, the climax). Files stay as committed;
+// only this mapping orders them. Same-origin relative fetches only, lazy
 // after enable()+start()/act(), silent fallback to the synth drone on any
 // failure. Acts crossfade equal-power (~2.5 s) at the shell's yield beats.
 
@@ -14,6 +17,10 @@ export const AMP_THRESHOLD = Math.pow(10, AMP_THRESHOLD_DB / 20);
 // (measured: join flux and |dRMS| in artifacts/wip-score/metrics.json).
 const CROSSFADE_SECONDS = 2.5;
 const HANDOFF_SECONDS = 2.0; // drone -> gameplay music crossfade
+// The very first time music enters (threshold begin, act 1): the hall
+// exhales, ~4 s in, the drone held a little longer under it. Later act
+// switches keep the 2.5 s crossfade; resumes keep the 2 s handoff.
+const FIRST_HANDOFF_SECONDS = 4.0;
 const CREDITS_FADE_SECONDS = 1.5; // gameplay -> credits fade
 const STOP_FADE_SECONDS = 1.2; // music -> silence, drone returns
 export const ACT_CROSSFADE_SECONDS = 2.5; // act -> act equal-power crossfade
@@ -24,10 +31,11 @@ export const DUCK_GAIN_FACTOR = Math.pow(10, -DUCK_DB / 20);
 // beside the drone (measured in artifacts/wip-fable-b/metrics.json) so the
 // handoff is a passing of the torch, not a wall.
 export const MUSIC_LEVEL = 0.24;
-// Act I's loop-body median RMS through this file's own region scan (measured
-// in artifacts/wip-score/metrics.json). Acts II/III seat their own body RMS
-// to this reference so an equal-power act crossfade holds combined loudness
-// flat even if the files were mastered at different levels.
+// The reference body loudness: ./music.mp3's loop-body median RMS through
+// this file's own region scan (measured in artifacts/wip-score/metrics.json;
+// that file is now Act II under the 2026-08-07 act order). Every act seats
+// its own body RMS to this reference so an equal-power act crossfade holds
+// combined loudness flat even if the files were mastered at different levels.
 const REF_BODY_RMS_DB = -13.62;
 const REGION_WINDOW_SECONDS = 0.25; // RMS window for steady-level region scan
 const REGION_FLOOR_DB = -6; // windows within 6 dB of the median count as steady
@@ -152,15 +160,18 @@ export function findLoopRegion(buffer, startSample, endSample) {
   }
   if (rawCost - bestCost < MATCH_HYSTERESIS_DB) end = i1; // marginal gain: keep it whole
   const bodyRms = medianOf(rms.slice(i0, end + 1));
-  // Two purpose-built entries (measured, artifacts/wip-score/metrics.json):
+  // Two purpose-built entries (measured, artifacts/wip-score/metrics.json +
+  // artifacts/wip-soundfeel/metrics.json):
   //
-  // handoff entry — for the drone handoff and any cold start. The earliest
-  // SOFT run after the intro: 2 s averaging [-2.5, +0.5] dB of the body,
-  // never below -4 or above +2. The drone was tuned (OW-FABLE-B) against
-  // Act I entering on its soft build (~-2 dB) and blooming from there;
-  // entering at full body level walls +3 dB over the drone. May sit inside
-  // the baked head (v1 did the same with its 0.5 s bake): the 2 s handoff
-  // fade-in masks the morph.
+  // handoff entry — for the drone handoff and any cold start. The CALMEST
+  // early run (Ramon, 2026-08-07: the opening seconds of gameplay must feel
+  // like the hall exhaling, not a track starting): among 2 s runs in the
+  // body's first minute averaging [-4.5, +0.5] dB of the body with no spike
+  // past +1.5, take the quietest, earliness breaking near-ties (0.08 dB/s).
+  // The drone was tuned (OW-FABLE-B) against Act I entering soft (~-2 dB)
+  // and blooming from there; entering at full body level walls +3 dB over
+  // the drone. May sit inside the baked head (v1 did the same with its
+  // 0.5 s bake): the handoff fade-in masks the morph.
   //
   // act-crossfade entry — for act() switches over live music. The run whose
   // opening 2 s averages within ENTRY_BAND_DB of the body and stays inside
@@ -171,8 +182,11 @@ export function findLoopRegion(buffer, startSample, endSample) {
   // Both carry an earliness preference: first impressions play the piece's
   // opening material, not its middle.
   const bodyDb = dbOf(bodyRms);
+  const HANDOFF_SCAN_WINDOWS = 240; // calm-entry search stays in the first ~60 s
+  const HANDOFF_EARLINESS_DB = 0.02; // per window (~0.08 dB/s): early calm beats late calm
   let handoff = -1;
-  for (let j = i0; j + ENTRY_RUN_WINDOWS - 1 <= end; j++) {
+  let handoffScore = Infinity;
+  for (let j = i0; j + ENTRY_RUN_WINDOWS - 1 <= end && j <= i0 + HANDOFF_SCAN_WINDOWS; j++) {
     let sum = 0;
     let min = Infinity;
     let max = -Infinity;
@@ -183,7 +197,25 @@ export function findLoopRegion(buffer, startSample, endSample) {
       if (d > max) max = d;
     }
     const rel = sum / ENTRY_RUN_WINDOWS - bodyDb;
-    if (rel >= -2.5 && rel <= 0.5 && min >= bodyDb - 4 && max <= bodyDb + 2) { handoff = j; break; }
+    if (rel < -4.5 || rel > 0.5 || min < bodyDb - 6 || max > bodyDb + 1.5) continue;
+    const score = rel + (j - i0) * HANDOFF_EARLINESS_DB;
+    if (score < handoffScore) { handoffScore = score; handoff = j; }
+  }
+  if (handoff < 0) {
+    // fallback: the earliest run inside the old, tighter band
+    for (let j = i0; j + ENTRY_RUN_WINDOWS - 1 <= end; j++) {
+      let sum = 0;
+      let min = Infinity;
+      let max = -Infinity;
+      for (let i = j; i < j + ENTRY_RUN_WINDOWS; i++) {
+        const d = dbOf(rms[i]);
+        sum += d;
+        if (d < min) min = d;
+        if (d > max) max = d;
+      }
+      const rel = sum / ENTRY_RUN_WINDOWS - bodyDb;
+      if (rel >= -2.5 && rel <= 0.5 && min >= bodyDb - 4 && max <= bodyDb + 2) { handoff = j; break; }
+    }
   }
   if (handoff < 0) handoff = i0;
   const bestEntryFrom = (from) => {
@@ -283,15 +315,16 @@ export function createMusic(ctx, bus, drone) {
     loopStart: 0, loopEnd: 0, playStart: 0, actStart: 0, level: MUSIC_LEVEL,
   });
   const tracks = {
-    1: newTrack('./music.mp3'),
-    2: newTrack('./act2.mp3'),
-    3: newTrack('./act3.mp3'),
+    1: newTrack('./act3.mp3'), // Windswept Silence — the chill opener
+    2: newTrack('./music.mp3'), // Frostbound Lullaby
+    3: newTrack('./act2.mp3'), // Frost on the Nyckelharpa — the climax
     credits: newTrack('./credits.mp3'),
   };
   let mode = 'stopped'; // 'stopped' | 'gameplay' | 'credits'
   let currentAct = 1; // which act start() resumes and `ready` reflects
   let pendingAct = 0; // act awaiting fetch+prepare for a switch; 0 = none
   let playing = null; // { src, g, level }
+  let firstEntry = true; // act 1's very first audible entry gets the 4 s exhale
 
   async function fetchDecode(url) {
     const res = await fetch(url);
@@ -300,13 +333,17 @@ export function createMusic(ctx, bus, drone) {
     return ctx.decodeAudioData(arr);
   }
 
-  function crossfadeDroneOut(t) {
+  function crossfadeDroneOut(t, gentle = false) {
     if (drone.playing && drone.nodes) {
       drone.nodes.out.gain.cancelScheduledValues(t);
       // Staggered handoff: hold the drone while the music establishes, then
       // ease it under -- measured to keep combined RMS within -3/+2 dB of the
-      // pre-handoff level through the whole crossfade window.
-      drone.nodes.out.gain.setTargetAtTime(0, t + 0.7, 0.8);
+      // pre-handoff level through the whole crossfade window. The gentle
+      // (first-entry) variant holds 2 s and eases much slower under the 4 s
+      // fade-in: the opener (Windswept Silence) is sparse, so the drone must
+      // keep the floor warm through its first quiet phrases.
+      if (gentle) drone.nodes.out.gain.setTargetAtTime(0, t + 1.6, 1.3);
+      else drone.nodes.out.gain.setTargetAtTime(0, t + 0.7, 0.8);
     }
   }
   function restoreDrone(t) {
@@ -331,6 +368,15 @@ export function createMusic(ctx, bus, drone) {
     src.start(t, tr.playStart); // enter at full-level material, no lead-in gap
     g.gain.setTargetAtTime(tr.level, t, Math.max(0.05, fadeInSeconds / 4));
     return { src, g, level: tr.level };
+  }
+
+  // Every drone->music gameplay entry funnels through here so the one-time
+  // first-entry gentleness (4 s fade, slower drone ease) can never replay.
+  function enterGameplay(tr) {
+    const gentle = firstEntry && tr === tracks[1];
+    firstEntry = false;
+    playing = playTrack(tr, gentle ? FIRST_HANDOFF_SECONDS : HANDOFF_SECONDS);
+    crossfadeDroneOut(ctx.currentTime, gentle);
   }
 
   function fadeOutAndStop(p, seconds) {
@@ -370,8 +416,7 @@ export function createMusic(ctx, bus, drone) {
     if (!playing) {
       // gameplay mode but nothing sounding yet (start()'s own fetch still in
       // flight, or previously failed): enter exactly like a fresh start()
-      playing = playTrack(tr, HANDOFF_SECONDS);
-      crossfadeDroneOut(t);
+      enterGameplay(tr);
       return;
     }
     const old = playing;
@@ -416,8 +461,7 @@ export function createMusic(ctx, bus, drone) {
     if (key === currentAct && mode === 'gameplay' && !playing) {
       // start()'s lazy fetch landing (plays only if still wanted — a stop()
       // issued mid-fetch stays stopped)
-      playing = playTrack(tracks[key], HANDOFF_SECONDS);
-      crossfadeDroneOut(ctx.currentTime);
+      enterGameplay(tracks[key]);
     }
   }
 
@@ -436,9 +480,10 @@ export function createMusic(ctx, bus, drone) {
       // it keeps its own opening — just past the baked morph segment.
       tr.playStart = key === 'credits' ? loopStart : playStart;
       tr.actStart = actStart;
-      // Act I and credits keep the v1 trim exactly; acts II/III seat their
-      // body to Act I's reference so crossfades hold loudness flat.
-      tr.level = (key === 2 || key === 3) ? levelFor(bodyRmsDb) : MUSIC_LEVEL;
+      // Credits keeps the v1 trim exactly; every act seats its body to the
+      // fixed reference (Frostbound Lullaby's measured body) so act
+      // crossfades hold loudness flat regardless of the act->file order.
+      tr.level = key === 'credits' ? MUSIC_LEVEL : levelFor(bodyRmsDb);
       tr.ready = true;
       onTrackReady(key);
     }).catch(() => {
@@ -457,8 +502,7 @@ export function createMusic(ctx, bus, drone) {
     const tr = tracks[currentAct];
     if (tr.ready) {
       // already decoded (e.g. resuming after stop()/credits()) -> play now
-      playing = playTrack(tr, HANDOFF_SECONDS);
-      crossfadeDroneOut(ctx.currentTime);
+      enterGameplay(tr);
       return;
     }
     if (!pendingAct) fetchTrack(currentAct); // a pending act() will land as gameplay by itself

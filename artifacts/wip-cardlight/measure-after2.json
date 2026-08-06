@@ -1,0 +1,157 @@
+{
+ "rows": [
+  {
+   "vp": "phone",
+   "beat": "dare-bourj",
+   "arch": [
+    15,
+    15,
+    268,
+    316
+   ],
+   "graded": {
+    "lum": 75.9,
+    "rgb": [
+     98.3,
+     69.3,
+     51.5
+    ],
+    "sat": 0.476,
+    "max": 192.07799999999997
+   },
+   "raw": {
+    "lum": 69,
+    "rgb": [
+     89.4,
+     62.9,
+     46.7
+    ],
+    "sat": 0.478,
+    "max": 207.11399999999998
+   },
+   "ratio": 1.1,
+   "satDrop": 0.004,
+   "geo": {
+    "cardW": 342,
+    "portW": 298,
+    "portH": 346,
+    "pctOfCard": 0.871,
+    "marginL": 46,
+    "marginR": 46,
+    "gapPortToName": 10,
+    "gapNameToTaunt": 9,
+    "docScrollW": 390,
+    "innerW": 390
+   }
+  },
+  {
+   "vp": "phone",
+   "beat": "yield-bourj",
+   "arch": [
+    12,
+    12,
+    212,
+    250
+   ],
+   "graded": {
+    "lum": 74.9,
+    "rgb": [
+     96.6,
+     68.4,
+     51.1
+    ],
+    "sat": 0.471,
+    "max": 186.19199999999998
+   },
+   "raw": {
+    "lum": 69,
+    "rgb": [
+     89.4,
+     62.9,
+     46.7
+    ],
+    "sat": 0.478,
+    "max": 207.22799999999998
+   },
+   "ratio": 1.085,
+   "satDrop": 0.014
+  },
+  {
+   "vp": "desktop",
+   "beat": "dare-bourj",
+   "arch": [
+    17,
+    17,
+    300,
+    354
+   ],
+   "graded": {
+    "lum": 75.9,
+    "rgb": [
+     98.3,
+     69.2,
+     51.5
+    ],
+    "sat": 0.476,
+    "max": 194.078
+   },
+   "raw": {
+    "lum": 69,
+    "rgb": [
+     89.4,
+     62.9,
+     46.7
+    ],
+    "sat": 0.478,
+    "max": 206.92899999999997
+   },
+   "ratio": 1.1,
+   "satDrop": 0.004,
+   "geo": {
+    "cardW": 420,
+    "portW": 334,
+    "portH": 388,
+    "pctOfCard": 0.795,
+    "marginL": 473,
+    "marginR": 473,
+    "gapPortToName": 10,
+    "gapNameToTaunt": 9,
+    "docScrollW": 1280,
+    "innerW": 1280
+   }
+  },
+  {
+   "vp": "desktop",
+   "beat": "yield-bourj",
+   "arch": [
+    13,
+    13,
+    230,
+    271
+   ],
+   "graded": {
+    "lum": 74.6,
+    "rgb": [
+     96.3,
+     68.2,
+     50.9
+    ],
+    "sat": 0.471,
+    "max": 183.904
+   },
+   "raw": {
+    "lum": 69.1,
+    "rgb": [
+     89.5,
+     63,
+     46.8
+    ],
+    "sat": 0.478,
+    "max": 205.81500000000003
+   },
+   "ratio": 1.081,
+   "satDrop": 0.014
+  }
+ ],
+ "errs": []
+}

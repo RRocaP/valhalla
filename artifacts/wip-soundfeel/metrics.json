@@ -1,0 +1,686 @@
+{
+  "generatedAt": "2026-08-06T23:48:24.067Z",
+  "scenarios": {
+    "ui_tick": {
+      "peakDb": -44.23112696588787,
+      "rmsDb": -70.63516998700196,
+      "centroidHz": 475.6298761274913,
+      "hfAbove4kDb": -45.08125096268927,
+      "attackMs": 5.000000000000001,
+      "durMs": 486
+    },
+    "ui_slide": {
+      "peakDb": -42.9676466619696,
+      "rmsDb": -66.38794174074658,
+      "centroidHz": 382.0794743406242,
+      "hfAbove4kDb": -50.439671220536155,
+      "attackMs": 13.999999999999998,
+      "durMs": 547
+    },
+    "ui_flip": {
+      "peakDb": -41.89505033709664,
+      "rmsDb": -70.50329899154102,
+      "centroidHz": 511.0190850225933,
+      "hfAbove4kDb": -44.32244309617349,
+      "attackMs": 5.000000000000001,
+      "durMs": 468
+    },
+    "ui_knock": {
+      "peakDb": -27.666309773043373,
+      "rmsDb": -55.20055732745405,
+      "centroidHz": 782.520114374242,
+      "hfAbove4kDb": -39.7135488821958,
+      "attackMs": 4.000000000000001,
+      "durMs": 430,
+      "roomWetFrac": 0.022941193113482913,
+      "roomTailSec": 0.6525
+    },
+    "ui_confirm": {
+      "peakDb": -29.99907039886238,
+      "rmsDb": -58.54773938233589,
+      "centroidHz": 911.3126860598803,
+      "hfAbove4kDb": -32.18122409075399,
+      "attackMs": 4.000000000000001,
+      "durMs": 424
+    },
+    "ui_deny": {
+      "peakDb": -26.280593432190564,
+      "rmsDb": -46.84732137991121,
+      "centroidHz": 71.13068693436529,
+      "hfAbove4kDb": -76.41641911271107,
+      "attackMs": 4.000000000000001,
+      "durMs": 504
+    },
+    "motif_shard": {
+      "durMs": 463,
+      "peakDb": -27.025584368268582,
+      "centroidHz": 767.6447822366856,
+      "hfAbove4kDb": -41.321952356072316,
+      "attackMs": 112.99999999999999,
+      "onsets": [
+        0.0065,
+        0.1165,
+        0.2255
+      ],
+      "pitches": [
+        221.25999368595765,
+        263.9807058746327,
+        335.03109115834854
+      ]
+    },
+    "motif_hint": {
+      "durMs": 662,
+      "peakDb": -22.62079099748046,
+      "centroidHz": 415.11460053723385,
+      "hfAbove4kDb": -54.492755950697244,
+      "attackMs": 324,
+      "onsets": [
+        0.0085,
+        0.0745,
+        0.1285,
+        0.3315
+      ],
+      "pitches": [
+        148.0440640951204,
+        110.65949737895477
+      ]
+    },
+    "motif_unlock": {
+      "durMs": 2221,
+      "peakDb": -15.556346407502613,
+      "centroidHz": 293.34734854843214,
+      "hfAbove4kDb": -46.61853808864325,
+      "attackMs": 854.0000000000001,
+      "onsets": [
+        0.0055,
+        0.0925,
+        0.1705
+      ]
+    },
+    "motif_dare": {
+      "durMs": 1650.9999999999998,
+      "peakDb": -15.329700650195463,
+      "centroidHz": 147.374442218499,
+      "hfAbove4kDb": -53.76116828974928,
+      "attackMs": 784,
+      "onsets": [
+        1.1375,
+        1.1925,
+        1.3015,
+        1.3925,
+        1.4835,
+        1.5745,
+        1.6295,
+        1.6865
+      ],
+      "softEntryRiseDb": 4.707677682153982
+    },
+    "motif_yield": {
+      "durMs": 664,
+      "peakDb": -25.30539331751685,
+      "centroidHz": 211.20126588609287,
+      "hfAbove4kDb": -52.93359675010227,
+      "attackMs": 27.000000000000004,
+      "onsets": [
+        0.0055,
+        0.0895,
+        0.1625,
+        0.2265,
+        0.3845,
+        0.4665
+      ],
+      "drumSweep": {
+        "earlyHiOverLoDb": 19.606515105030727,
+        "lateLoOverHiDb": -7.7559118392372
+      },
+      "thirdBands": {
+        "c4FallDb": 12.25475506574908,
+        "a3RiseDb": 5.4799414566897156,
+        "lateA3OverC4Db": 12.921127479409009
+      }
+    },
+    "motif_chest": {
+      "peakDb": -10.660905170251368,
+      "droneRmsPreDb": -27.23167884786943,
+      "tailAboveDroneSec": 6.4
+    },
+    "handoff": {
+      "baseDb": -27.91468586034794,
+      "minDb": -29.66152637358409,
+      "maxDb": -25.320971945672355,
+      "musicSteadyDb": -29.192077553987158,
+      "dipBelowFloor": -2.0305511804030694,
+      "bumpAboveCeil": -0.4062860853244139,
+      "maxRiseDbPerSec": 1.4618989303539287
+    },
+    "act12": {
+      "beforeDb": -29.825713545886874,
+      "afterDb": -24.575344680869257,
+      "minDb": -28.41835182157641,
+      "maxDb": -24.311324657613618,
+      "floorDb": -33.913533577292625,
+      "label": "act1->act2 (act3.mp3->music.mp3)"
+    },
+    "act23": {
+      "beforeDb": -24.706141430654757,
+      "afterDb": -24.112525157307097,
+      "minDb": -27.88394101587371,
+      "maxDb": -24.209804510182515,
+      "floorDb": -29.38394101587371,
+      "label": "act2->act3 (music.mp3->act2.mp3)"
+    },
+    "seating": {
+      "profiles": {
+        "act1": {
+          "bodyRmsDb": -14.152911919176795,
+          "level": 0.25518599600866104,
+          "playStart": 8.5041875,
+          "actStart": 22.5041875
+        },
+        "act2": {
+          "bodyRmsDb": -13.60472941636818,
+          "level": 0.23957842886998837,
+          "playStart": 13.500020833333334,
+          "actStart": 15.750020833333334
+        },
+        "act3": {
+          "bodyRmsDb": -15.005348601393555,
+          "level": 0.2815001766893558,
+          "playStart": 6.83725,
+          "actStart": 45.08725
+        }
+      },
+      "seatedBodyDb": {
+        "act1": -26.015775165767877,
+        "act2": -26.015775165767877,
+        "act3": -26.015775165767877
+      }
+    },
+    "duck_motif": {
+      "baseDb": -21.237416327433863,
+      "depthAt50ms": 2.751665942468499,
+      "maxDepth": 2.9627220084657786,
+      "releaseSec": 0.41500000000000004
+    },
+    "duck_ui": {
+      "baseDb": -21.237416327433863,
+      "depthAt50ms": 2.7555159322168805,
+      "maxDepth": 2.943170512621016,
+      "releaseSec": 0.4249999999999998
+    },
+    "seam_act1": {
+      "loopStart": 5.2541875,
+      "loopEnd": 169.7541875,
+      "playStart": 8.5041875,
+      "bufDur": 171.4135,
+      "joinFluxMax": 207.04298298134148,
+      "trackFluxP95": 243.59153326978694,
+      "fluxRatio": 0.8499596853887096,
+      "rmsJoinDeltaDb": -1.3623760330968206
+    },
+    "seam_act2": {
+      "loopStart": 10.750020833333334,
+      "loopEnd": 272.50002083333334,
+      "playStart": 13.500020833333334,
+      "bufDur": 279.0135,
+      "joinFluxMax": 83.79394158288618,
+      "trackFluxP95": 167.5624895050992,
+      "fluxRatio": 0.5000757737031365,
+      "rmsJoinDeltaDb": -0.45536491571460047
+    },
+    "seam_act3": {
+      "loopStart": 7.83725,
+      "loopEnd": 180.83725,
+      "playStart": 6.83725,
+      "bufDur": 182.0935,
+      "joinFluxMax": 74.65770036276274,
+      "trackFluxP95": 95.65386264155347,
+      "fluxRatio": 0.7804985423592325,
+      "rmsJoinDeltaDb": 0.4111611359031606
+    },
+    "seam_credits": {
+      "loopStart": 9.750020833333334,
+      "loopEnd": 262.00002083333334,
+      "playStart": 12.000020833333334,
+      "bufDur": 264.96,
+      "joinFluxMax": 35.27297324189727,
+      "trackFluxP95": 88.58823346045152,
+      "fluxRatio": 0.398167700879194,
+      "rmsJoinDeltaDb": 0.04941964977764357
+    }
+  },
+  "checks": [
+    {
+      "name": "ui.tick near-subliminal peak in [-48,-30] dBFS",
+      "value": -44.23112696588787,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.tick dark: HF>4kHz <= -25 dB rel",
+      "value": -45.08125096268927,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.tick centroid <= 1300 Hz",
+      "value": 475.6298761274913,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "ui.tick felted attack <= 12ms",
+      "value": 5.000000000000001,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.slide near-subliminal peak in [-48,-30] dBFS",
+      "value": -42.9676466619696,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.slide dark: HF>4kHz <= -25 dB rel",
+      "value": -50.439671220536155,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.slide centroid <= 1300 Hz",
+      "value": 382.0794743406242,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "ui.slide felted attack <= 30ms",
+      "value": 13.999999999999998,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.flip near-subliminal peak in [-48,-30] dBFS",
+      "value": -41.89505033709664,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.flip dark: HF>4kHz <= -25 dB rel",
+      "value": -44.32244309617349,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.flip centroid <= 1300 Hz",
+      "value": 511.0190850225933,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "ui.flip felted attack <= 12ms",
+      "value": 5.000000000000001,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.knock peak in [-33,-23] dBFS (soft felted)",
+      "value": -27.666309773043373,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.knock dark: HF>4kHz <= -25 dB rel",
+      "value": -39.7135488821958,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.knock centroid <= 1300 Hz",
+      "value": 782.520114374242,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "ui.knock felted attack <= 12ms",
+      "value": 4.000000000000001,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.confirm peak in [-33,-23] dBFS (soft felted)",
+      "value": -29.99907039886238,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.confirm dark: HF>4kHz <= -25 dB rel",
+      "value": -32.18122409075399,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.confirm centroid <= 1300 Hz",
+      "value": 911.3126860598803,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "ui.confirm felted attack <= 12ms",
+      "value": 4.000000000000001,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "ui.deny peak in [-30,-15] dBFS (sub-led thud)",
+      "value": -26.280593432190564,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "ui.deny centroid < 300 Hz (low felt thud)",
+      "value": 71.13068693436529,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "ui.deny dark: HF>4kHz <= -25 dB rel",
+      "value": -76.41641911271107,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "ui.deny centroid <= 1300 Hz",
+      "value": 71.13068693436529,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "ui.deny felted attack <= 12ms",
+      "value": 4.000000000000001,
+      "pass": true,
+      "detail": "ms"
+    },
+    {
+      "name": "room: knock tail-energy fraction (>0.25s) <= 0.20",
+      "value": 0.022941193113482913,
+      "pass": true,
+      "detail": "of total"
+    },
+    {
+      "name": "room: knock tail-energy fraction >= 0.02 (room exists)",
+      "value": 0.022941193113482913,
+      "pass": true,
+      "detail": "of total"
+    },
+    {
+      "name": "room: knock audibly rings >= 0.4s (-50dB point)",
+      "value": 0.6525,
+      "pass": true,
+      "detail": "s"
+    },
+    {
+      "name": "motif.shard peak in [-30,-17] dBFS",
+      "value": -27.025584368268582,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.shard dark: HF>4kHz <= -25 dB rel",
+      "value": -41.321952356072316,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "motif.hint peak in [-30,-17] dBFS",
+      "value": -22.62079099748046,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.hint dark: HF>4kHz <= -25 dB rel",
+      "value": -54.492755950697244,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "motif.unlock peak in [-26,-14] dBFS",
+      "value": -15.556346407502613,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.unlock dark: HF>4kHz <= -25 dB rel",
+      "value": -46.61853808864325,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "motif.dare peak in [-26,-14] dBFS",
+      "value": -15.329700650195463,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.dare dark: HF>4kHz <= -25 dB rel",
+      "value": -53.76116828974928,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "motif.yield peak in [-30,-17] dBFS",
+      "value": -25.30539331751685,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.yield dark: HF>4kHz <= -25 dB rel",
+      "value": -52.93359675010227,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "shard: rising A3>C4>E4 within 4%",
+      "value": 3,
+      "pass": true,
+      "detail": "221>264>335"
+    },
+    {
+      "name": "hint: falling D3>A2 within 5%",
+      "value": 2,
+      "pass": true,
+      "detail": "148>111"
+    },
+    {
+      "name": "yield drum sweep: onset near 145 Hz (>=3dB over 70)",
+      "value": 19.606515105030727,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "yield: C4 band falls across the third (>=4dB)",
+      "value": 12.25475506574908,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "yield: A3 band rises across the third (>=4dB)",
+      "value": 5.4799414566897156,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "yield: resolves down to A3 (>=3dB over C4 band)",
+      "value": 12.921127479409009,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "dare: soft entry (still >=2.5dB below plateau at 0.42s)",
+      "value": 4.707677682153982,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "dare/lur centroid < 2 kHz",
+      "value": 147.374442218499,
+      "pass": true,
+      "detail": "Hz"
+    },
+    {
+      "name": "deny vs yield centroid separation",
+      "value": 2.9692004251410573,
+      "pass": true,
+      "detail": "ratio"
+    },
+    {
+      "name": "chest peak headroom <= -9 dBFS (quieter finale)",
+      "value": -10.660905170251368,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "chest audible tail >= 3s over drone",
+      "value": 6.4,
+      "pass": true,
+      "detail": "s"
+    },
+    {
+      "name": "first entry: no hole (1s RMS >= min(drone,music)-2.5dB)",
+      "value": -2.0305511804030694,
+      "pass": true,
+      "detail": "dB over"
+    },
+    {
+      "name": "first entry: no wall (1s RMS <= max(drone,music)+3dB)",
+      "value": -0.4062860853244139,
+      "pass": true,
+      "detail": "dB over"
+    },
+    {
+      "name": "first entry: music steady within +-3dB of drone",
+      "value": -1.277391693639217,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "first entry: exhale (combined rise <= 4.5dB per 1s)",
+      "value": 1.4618989303539287,
+      "pass": true,
+      "detail": "dB/s"
+    },
+    {
+      "name": "act12: crossfade no hole (>= side minima -1.5dB)",
+      "value": 5.495181755716214,
+      "pass": true,
+      "detail": "dB over"
+    },
+    {
+      "name": "act12: crossfade no wall (<= louder side +3dB)",
+      "value": 2.7359799767443604,
+      "pass": true,
+      "detail": "dB under"
+    },
+    {
+      "name": "act23: crossfade no hole (>= side minima -1.5dB)",
+      "value": 1.5,
+      "pass": true,
+      "detail": "dB over"
+    },
+    {
+      "name": "act23: crossfade no wall (<= louder side +3dB)",
+      "value": 3.097279352875418,
+      "pass": true,
+      "detail": "dB under"
+    },
+    {
+      "name": "acts seated: level*body loudness spread <= 1dB",
+      "value": 0,
+      "pass": true,
+      "detail": "act1=-26.0 act2=-26.0 act3=-26.0"
+    },
+    {
+      "name": "duck_motif: -3dB (+-0.5) within 50ms",
+      "value": 2.751665942468499,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_motif: max depth <= 4.5dB (no over-duck)",
+      "value": 2.9627220084657786,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_motif: release 0.35-0.85s after hold",
+      "value": 0.41500000000000004,
+      "pass": true,
+      "detail": "s"
+    },
+    {
+      "name": "duck_ui: -3dB (+-0.5) within 50ms",
+      "value": 2.7555159322168805,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_ui: max depth <= 4.5dB (no over-duck)",
+      "value": 2.943170512621016,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "duck_ui: release 0.35-0.85s after hold",
+      "value": 0.4249999999999998,
+      "pass": true,
+      "detail": "s"
+    },
+    {
+      "name": "seam_act1: seam flux <= track p95",
+      "value": 0.8499596853887096,
+      "pass": true,
+      "detail": "x p95"
+    },
+    {
+      "name": "seam_act1: |RMS delta at join| <= 2dB",
+      "value": 1.3623760330968206,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "seam_act2: seam flux <= track p95",
+      "value": 0.5000757737031365,
+      "pass": true,
+      "detail": "x p95"
+    },
+    {
+      "name": "seam_act2: |RMS delta at join| <= 2dB",
+      "value": 0.45536491571460047,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "seam_act3: seam flux <= track p95",
+      "value": 0.7804985423592325,
+      "pass": true,
+      "detail": "x p95"
+    },
+    {
+      "name": "seam_act3: |RMS delta at join| <= 2dB",
+      "value": 0.4111611359031606,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "seam_credits: seam flux <= track p95",
+      "value": 0.398167700879194,
+      "pass": true,
+      "detail": "x p95"
+    },
+    {
+      "name": "seam_credits: |RMS delta at join| <= 2dB",
+      "value": 0.04941964977764357,
+      "pass": true,
+      "detail": "dB"
+    }
+  ]
+}

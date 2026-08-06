@@ -1,0 +1,157 @@
+{
+ "rows": [
+  {
+   "vp": "phone",
+   "beat": "dare-bourj",
+   "arch": [
+    0,
+    0,
+    220,
+    260
+   ],
+   "graded": {
+    "lum": 39.1,
+    "rgb": [
+     50.2,
+     35.7,
+     27.1
+    ],
+    "sat": 0.461,
+    "max": 109.249
+   },
+   "raw": {
+    "lum": 69,
+    "rgb": [
+     89.5,
+     62.9,
+     46.7
+    ],
+    "sat": 0.478,
+    "max": 205.413
+   },
+   "ratio": 0.566,
+   "satDrop": 0.035,
+   "geo": {
+    "cardW": 342,
+    "portW": 220,
+    "portH": 260,
+    "pctOfCard": 0.643,
+    "marginL": 85,
+    "marginR": 85,
+    "gapPortToName": 12,
+    "gapNameToTaunt": 12,
+    "docScrollW": 390,
+    "innerW": 390
+   }
+  },
+  {
+   "vp": "phone",
+   "beat": "yield-bourj",
+   "arch": [
+    0,
+    0,
+    160,
+    190
+   ],
+   "graded": {
+    "lum": 35.7,
+    "rgb": [
+     45.7,
+     32.7,
+     24.9
+    ],
+    "sat": 0.454,
+    "max": 92.58
+   },
+   "raw": {
+    "lum": 68.5,
+    "rgb": [
+     88.9,
+     62.5,
+     46.3
+    ],
+    "sat": 0.479,
+    "max": 190.957
+   },
+   "ratio": 0.521,
+   "satDrop": 0.052
+  },
+  {
+   "vp": "desktop",
+   "beat": "dare-bourj",
+   "arch": [
+    0,
+    0,
+    220,
+    260
+   ],
+   "graded": {
+    "lum": 39.1,
+    "rgb": [
+     50.2,
+     35.7,
+     27.1
+    ],
+    "sat": 0.461,
+    "max": 109.249
+   },
+   "raw": {
+    "lum": 69,
+    "rgb": [
+     89.5,
+     62.9,
+     46.7
+    ],
+    "sat": 0.478,
+    "max": 205.413
+   },
+   "ratio": 0.566,
+   "satDrop": 0.035,
+   "geo": {
+    "cardW": 420,
+    "portW": 220,
+    "portH": 260,
+    "pctOfCard": 0.524,
+    "marginL": 530,
+    "marginR": 530,
+    "gapPortToName": 12,
+    "gapNameToTaunt": 12,
+    "docScrollW": 1280,
+    "innerW": 1280
+   }
+  },
+  {
+   "vp": "desktop",
+   "beat": "yield-bourj",
+   "arch": [
+    0,
+    0,
+    160,
+    190
+   ],
+   "graded": {
+    "lum": 35.3,
+    "rgb": [
+     45.1,
+     32.3,
+     24.7
+    ],
+    "sat": 0.453,
+    "max": 95.58
+   },
+   "raw": {
+    "lum": 68.5,
+    "rgb": [
+     88.9,
+     62.5,
+     46.3
+    ],
+    "sat": 0.479,
+    "max": 190.957
+   },
+   "ratio": 0.515,
+   "satDrop": 0.054
+  }
+ ],
+ "errs": []
+}

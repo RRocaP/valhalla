@@ -93,9 +93,12 @@ so the relief is unmistakable at retina.
 ### `portrait()` (FROZEN — added for the duels, docs/JARLS.md)
 
 Draws a supplied image (HTMLImageElement or canvas; caller decodes the data
-URI) **graded into the palette** inside a carved arch: desaturate ~25–35%,
-warm oak-tone multiply, tar vignette, carved arch mask with gold groove rim —
-the portrait must sit in the same light as the wood, never look pasted.
+URI) **graded into the palette** inside a carved arch. GRADE AMENDMENT
+(Ramon, 2026-08-07 — identity beats grading): oak tint moves HUE ONLY with
+per-pixel source-luminance restoration (no exposure tax), desaturation ≤15%,
+vignette confined to the outer 12% corners, rim-light on the shadow side;
+rest-state face luminance ≥0.8× source. The portrait sits in the wood's light
+AND the face reads at arm's length on a phone.
 `opts`: `{ bow: 0..1 }` — yield animation driver: 0 upright, 1 fully bowed
 (vertical dip ~8% of h + slight forward shear + dim toward tar; implement so
 intermediate values render, shell tweens it); `{ white: true }` — replaces the

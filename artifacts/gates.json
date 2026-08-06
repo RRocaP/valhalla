@@ -1,15 +1,15 @@
 {
-  "when": "2026-08-06T23:01:28.829Z",
-  "seeds": 60,
+  "when": "2026-08-06T23:43:44.993Z",
+  "seeds": 100,
   "locks": {
-    "08-hacksilver": {
-      "solverOk": 60,
-      "rejected": 600,
-      "mutantsTried": 180,
-      "mutantsRejected": 180,
-      "ms": 13
+    "02-bismer": {
+      "solverOk": 100,
+      "rejected": 700,
+      "mutantsTried": 300,
+      "mutantsRejected": 300,
+      "ms": 4
     }
   },
   "failures": [],
-  "bundleBytes": 1596073
+  "bundleBytes": 1611755
 }

@@ -1,0 +1,186 @@
+{
+ "rows": [
+  {
+   "vp": "phone",
+   "beat": "dare-bourj",
+   "arch": [
+    16,
+    16,
+    285,
+    336
+   ],
+   "graded": {
+    "lum": 76,
+    "rgb": [
+     96.2,
+     70,
+     53.8
+    ],
+    "sat": 0.441,
+    "max": 193.45199999999997
+   },
+   "raw": {
+    "lum": 69,
+    "rgb": [
+     89.5,
+     62.9,
+     46.7
+    ],
+    "sat": 0.478,
+    "max": 206.413
+   },
+   "ratio": 1.101,
+   "satDrop": 0.076,
+   "geo": {
+    "cardW": 349,
+    "portW": 317,
+    "portH": 368,
+    "pctOfCard": 0.908,
+    "marginL": 40,
+    "marginR": 33,
+    "gapPortToName": 10,
+    "gapNameToTaunt": 9,
+    "docScrollW": 390,
+    "innerW": 390
+   }
+  },
+  {
+   "vp": "phone",
+   "beat": "yield-bourj",
+   "arch": [
+    12,
+    12,
+    212,
+    250
+   ],
+   "graded": {
+    "lum": 74.9,
+    "rgb": [
+     94.5,
+     69.1,
+     53.3
+    ],
+    "sat": 0.436,
+    "max": 185.85399999999998
+   },
+   "raw": {
+    "lum": 69,
+    "rgb": [
+     89.4,
+     62.9,
+     46.7
+    ],
+    "sat": 0.478,
+    "max": 207.22799999999998
+   },
+   "ratio": 1.086,
+   "satDrop": 0.087
+  },
+  {
+   "vp": "desktop",
+   "beat": "dare-bourj",
+   "arch": [
+    17,
+    17,
+    300,
+    354
+   ],
+   "graded": {
+    "lum": 75.9,
+    "rgb": [
+     96.1,
+     69.9,
+     53.7
+    ],
+    "sat": 0.441,
+    "max": 193.85399999999998
+   },
+   "raw": {
+    "lum": 69,
+    "rgb": [
+     89.4,
+     62.9,
+     46.7
+    ],
+    "sat": 0.478,
+    "max": 206.92899999999997
+   },
+   "ratio": 1.101,
+   "satDrop": 0.076,
+   "geo": {
+    "cardW": 420,
+    "portW": 334,
+    "portH": 388,
+    "pctOfCard": 0.795,
+    "marginL": 473,
+    "marginR": 473,
+    "gapPortToName": 10,
+    "gapNameToTaunt": 9,
+    "docScrollW": 1280,
+    "innerW": 1280
+   }
+  },
+  {
+   "vp": "desktop",
+   "beat": "yield-bourj",
+   "arch": [
+    13,
+    13,
+    230,
+    271
+   ],
+   "graded": {
+    "lum": 74.7,
+    "rgb": [
+     94.2,
+     68.9,
+     53.1
+    ],
+    "sat": 0.436,
+    "max": 182.099
+   },
+   "raw": {
+    "lum": 69.1,
+    "rgb": [
+     89.5,
+     63,
+     46.8
+    ],
+    "sat": 0.478,
+    "max": 205.81500000000003
+   },
+   "ratio": 1.081,
+   "satDrop": 0.088
+  }
+ ],
+ "errs": [
+  {
+   "vp": "phone",
+   "beat": "dare",
+   "e": [
+    "pageerror: Cannot read properties of undefined (reading 'm0')"
+   ]
+  },
+  {
+   "vp": "phone",
+   "beat": "yield",
+   "e": [
+    "pageerror: Cannot read properties of undefined (reading 'm0')"
+   ]
+  },
+  {
+   "vp": "desktop",
+   "beat": "dare",
+   "e": [
+    "pageerror: Cannot read properties of undefined (reading 'm0')"
+   ]
+  },
+  {
+   "vp": "desktop",
+   "beat": "yield",
+   "e": [
+    "pageerror: Cannot read properties of undefined (reading 'm0')"
+   ]
+  }
+ ]
+}

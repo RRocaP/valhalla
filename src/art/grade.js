@@ -15,6 +15,19 @@ export function gradeInto(ctx, img, w, h, opts = {}) {
   const desat = opts.desat ?? 0.3;
   const multiplyStrength = opts.multiplyStrength ?? 0.5;
   const vignette = opts.vignette ?? 0.55;
+  // Exposure controls. All three default to 0 = the original pipeline, so
+  // sticker()'s grade is untouched; portrait() opts into them.
+  //  preserveLum — restore the pre-tint luminance after the warm multiply, so
+  //    the oak tint shifts HUE and leaves exposure alone (a plain multiply by
+  //    the tint costs ~40% of every portrait's brightness, which is what put
+  //    the jarls' faces in silhouette).
+  //  lift — gamma lift, so hair, fur and leather keep their detail instead of
+  //    collapsing into one black mass.
+  //  vignetteEdge — when > 0 the tar falloff starts at (1 - edge) of the
+  //    corner radius: only the outermost `edge` of the frame darkens at all.
+  const preserveLum = opts.preserveLum ?? 0;
+  const lift = opts.lift ?? 0;
+  const vignetteEdge = opts.vignetteEdge ?? 0;
 
   const { w: sw, h: sh } = srcSize(img);
   const scale = Math.max(w / sw, h / sh);
@@ -27,6 +40,14 @@ export function gradeInto(ctx, img, w, h, opts = {}) {
   const imgData = ctx.getImageData(0, 0, rw, rh);
   const data = imgData.data;
   const tint = hexToRgb(mix(palette.oak, palette.oakLight, 0.4));
+  // 256-entry gamma LUT: the lift is a per-channel pow(), and a phone should
+  // not pay ~1.3M Math.pow calls to open one dare card.
+  let liftLut = null;
+  if (lift > 0) {
+    const gamma = 1 - lift * 0.36;
+    liftLut = new Float32Array(256);
+    for (let v = 0; v < 256; v++) liftLut[v] = 255 * Math.pow(v / 255, gamma);
+  }
   for (let i = 0; i < data.length; i += 4) {
     const r0 = data[i];
     const g0 = data[i + 1];
@@ -41,6 +62,21 @@ export function gradeInto(ctx, img, w, h, opts = {}) {
     r1 += (rM - r1) * multiplyStrength;
     g1 += (gM - g1) * multiplyStrength;
     b1 += (bM - b1) * multiplyStrength;
+    if (preserveLum > 0) {
+      // desaturation is luminance-preserving, so `lum` is still the target
+      const lum1 = r1 * 0.299 + g1 * 0.587 + b1 * 0.114;
+      if (lum1 > 0.5) {
+        const gain = 1 + (lum / lum1 - 1) * preserveLum;
+        r1 *= gain;
+        g1 *= gain;
+        b1 *= gain;
+      }
+    }
+    if (liftLut) {
+      r1 = liftLut[r1 < 0 ? 0 : r1 > 255 ? 255 : r1 | 0];
+      g1 = liftLut[g1 < 0 ? 0 : g1 > 255 ? 255 : g1 | 0];
+      b1 = liftLut[b1 < 0 ? 0 : b1 > 255 ? 255 : b1 | 0];
+    }
     data[i] = r1;
     data[i + 1] = g1;
     data[i + 2] = b1;
@@ -48,7 +84,13 @@ export function gradeInto(ctx, img, w, h, opts = {}) {
   ctx.putImageData(imgData, 0, 0);
 
   if (vignette > 0) {
-    const vg = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.28, w / 2, h / 2, Math.max(w, h) * 0.72);
+    // corner-only falloff when vignetteEdge is set: r0 sits at (1 - edge) of
+    // the half-diagonal, so the flanks (and the whole face) stay untouched and
+    // only the corners take tar.
+    const corner = Math.hypot(w, h) / 2;
+    const r0 = vignetteEdge > 0 ? corner * (1 - vignetteEdge) : Math.min(w, h) * 0.28;
+    const r1 = vignetteEdge > 0 ? corner : Math.max(w, h) * 0.72;
+    const vg = ctx.createRadialGradient(w / 2, h / 2, r0, w / 2, h / 2, r1);
     vg.addColorStop(0, rgba(palette.tar, 0));
     vg.addColorStop(1, rgba(palette.tar, vignette));
     ctx.fillStyle = vg;

@@ -45,9 +45,9 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
     const droneBus = c.createGain();
     droneBus.gain.value = 1;
     const voiceBus = c.createGain();
-    voiceBus.gain.value = 0.9;
+    voiceBus.gain.value = 0.7; // motifs seated a notch lower (OW-SOUNDFEEL)
     const uiBus = c.createGain();
-    uiBus.gain.value = 0.6;
+    uiBus.gain.value = 0.19; // ~-10 dB from the old 0.6: the UI whispers
     const musicBus = c.createGain();
     musicBus.gain.value = 1;
     droneBus.connect(compressor);
@@ -55,7 +55,27 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
     uiBus.connect(compressor);
     musicBus.connect(compressor);
 
-    return { master, compressor, droneBus, voiceBus, uiBus, musicBus };
+    // One shared small-hall air (OW-SOUNDFEEL): every synth voice leans on
+    // the same room via bus sends into a ConvolverNode holding a synthesized
+    // ~0.9 s dark IR. The wet return stays subtle (measured tail energy
+    // <= 20% of a knock, artifacts/wip-soundfeel/metrics.json) — the room is
+    // felt, not heard. Music and drone do not send (recordings and a
+    // continuous bed gain nothing from it). Created after the six frozen
+    // graph nodes so their creation order stays test-stable.
+    const roomSend = c.createGain();
+    roomSend.gain.value = 1;
+    const room = c.createConvolver();
+    room.buffer = V.makeRoomIR(c);
+    const roomWet = c.createGain();
+    roomWet.gain.value = 0.8; // measured: knock tail-energy fraction ~0.026
+
+    uiBus.connect(roomSend);
+    voiceBus.connect(roomSend);
+    roomSend.connect(room);
+    room.connect(roomWet);
+    roomWet.connect(compressor);
+
+    return { master, compressor, droneBus, voiceBus, uiBus, musicBus, roomSend, room, roomWet };
   }
 
   function enable() {
@@ -87,30 +107,35 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
     if (!ctx) return;
     const t = ctx.currentTime;
     const bus = buses.uiBus;
-    musicImpl.duck(UI_DUCK_HOLD);
-    // Gains here are measured, not guessed: narrow bandpass filtering eats
-    // 25-35 dB of the noise burst, so per-voice gains sit well above 1 to land
-    // audible wood at -21..-24 dBFS peaks (artifacts/wip-fable-b/metrics.json).
+    // FEWER, SOFTER (OW-SOUNDFEEL): only meaningful touches speak — knock
+    // (placement), confirm (submit), deny (wrong) — and only those duck the
+    // score. tick/slide/flip are near-subliminal felt textures (~-40 dBFS):
+    // present in a silent hall, invisible under music. Gains are measured,
+    // not guessed: narrow bandpass modes eat 25-35 dB of the noise burst, so
+    // per-voice gains sit above 1 (artifacts/wip-soundfeel/metrics.json).
     switch (kind) {
-      case 'tick':
-        V.woodHit(ctx, bus, t, { resonance: 950, q: 8, decay: 0.15, gain: 6.0, lowpass: 2800 });
+      case 'tick': // near-subliminal: felt, not heard
+        V.woodTouch(ctx, bus, t, { modes: [310, 960], weights: [1, 0.4], q: 16, decay: 0.09, gain: 4.8, lowpass: 1500 });
         break;
-      case 'knock':
-        V.woodHit(ctx, bus, t, { resonance: 480, q: 6, decay: 0.16, gain: 5.4, lowpass: 2200 });
+      case 'knock': // meaningful placement: the soft felted knock
+        musicImpl.duck(UI_DUCK_HOLD);
+        V.woodTouch(ctx, bus, t, { modes: [180, 700, 1150], weights: [1, 0.5, 0.25], q: 13, decay: 0.15, gain: 17, lowpass: 1900 });
         break;
-      case 'slide':
-        V.woodSlide(ctx, bus, t);
+      case 'slide': // near-subliminal drag brush
+        V.woodSlide(ctx, bus, t, { gain: 1.5 });
         break;
-      case 'deny':
-        V.woodHit(ctx, bus, t, { resonance: 220, q: 3, decay: 0.15, gain: 4.2, lowpass: 900 });
-        V.denyBuzz(ctx, bus, t);
+      case 'deny': // wrong: LOW felted thud + brief sub drop; nothing buzzes
+        musicImpl.duck(UI_DUCK_HOLD);
+        V.woodTouch(ctx, bus, t, { modes: [112, 330, 560], weights: [1, 0.45, 0.2], q: 9, decay: 0.15, gain: 7.5, lowpass: 640, attack: 0.006 });
+        V.subDrop(ctx, bus, t, { gain: 0.8 });
         break;
-      case 'confirm':
-        V.woodHit(ctx, bus, t, { resonance: 620, q: 7, decay: 0.09, gain: 2.8, lowpass: 2400 });
-        V.woodHit(ctx, bus, t + 0.07, { resonance: 900, q: 9, decay: 0.06, gain: 2.0, lowpass: 2800 });
+      case 'confirm': // submit: two soft knocks, low then higher — settled
+        musicImpl.duck(UI_DUCK_HOLD);
+        V.woodTouch(ctx, bus, t, { modes: [200, 760, 1220], weights: [1, 0.5, 0.25], q: 13, decay: 0.11, gain: 7.5, lowpass: 1900 });
+        V.woodTouch(ctx, bus, t + 0.08, { modes: [260, 900, 1400], weights: [1, 0.5, 0.22], q: 14, decay: 0.09, gain: 5.5, lowpass: 2100, attack: 0.003 });
         break;
-      case 'flip':
-        V.woodFlip(ctx, bus, t);
+      case 'flip': // near-subliminal turn
+        V.woodTouch(ctx, bus, t, { modes: [240, 820], weights: [1, 0.45], q: 12, decay: 0.11, gain: 3.6, lowpass: 1500, attack: 0.005 });
         break;
       default:
         break; // unknown kind: no-op, never throws
@@ -122,37 +147,39 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
     const t = ctx.currentTime;
     const bus = buses.voiceBus;
     musicImpl.duck(MOTIF_DUCK_HOLD);
+    // Motifs stay — each marks a real event — but darker, quieter, and
+    // leaning on the shared room (OW-SOUNDFEEL).
     switch (kind) {
       case 'shard':
-        // rising A3-C4-E4 lyre arpeggio: small triumph, quick sparkle
+        // rising A3-C4-E4 lyre arpeggio: small triumph, no sparkle glare
         [V.PENT[5], V.PENT[6], V.PENT[8]].forEach((f, i) =>
-          V.pluck(ctx, bus, t + i * 0.11, f, { gain: 0.5, decay: 0.8 }));
+          V.pluck(ctx, bus, t + i * 0.11, f, { gain: 0.34, decay: 0.8, brightness: 1500 }));
         break;
       case 'hint':
         // two LOW lyre notes, falling fourth D3->A2: quiet, private counsel
         [V.PENT[2], V.PENT[0]].forEach((f, i) =>
-          V.pluck(ctx, bus, t + i * 0.32, f, { gain: 0.42, decay: 1.0, brightness: 1200 }));
+          V.pluck(ctx, bus, t + i * 0.32, f, { gain: 0.3, decay: 1.0, brightness: 1000 }));
         break;
       case 'unlock':
-        V.drumHit(ctx, bus, t, { gain: 0.3, dur: 0.3 });
-        V.lurSwell(ctx, bus, t + 0.05, [V.PENT[0], V.PENT[3], V.PENT[5]], { dur: 2.5, gain: 0.14 });
+        V.drumHit(ctx, bus, t, { gain: 0.22, dur: 0.3 });
+        V.lurSwell(ctx, bus, t + 0.05, [V.PENT[0], V.PENT[3], V.PENT[5]], { dur: 2.5, gain: 0.1 });
         break;
       case 'chest':
-        [0, 0.14, 0.28].forEach((dt) => V.drumHit(ctx, bus, t + dt, { gain: 0.28, dur: 0.34 }));
-        V.lurSwell(ctx, bus, t + 0.1, [V.PENT[0], V.PENT[3], V.PENT[5], V.PENT[8]], { dur: 3.2, gain: 0.19, brightness: 1700 });
+        [0, 0.14, 0.28].forEach((dt) => V.drumHit(ctx, bus, t + dt, { gain: 0.2, dur: 0.34 }));
+        V.lurSwell(ctx, bus, t + 0.1, [V.PENT[0], V.PENT[3], V.PENT[5], V.PENT[8]], { dur: 3.2, gain: 0.14, brightness: 1500, attack: 0.6 });
         if (drone.playing && drone.nodes) V.bloomDrone(ctx, drone.nodes, drone.intensity, t);
         break;
       case 'dare':
         // low horn challenge: A2 sounds, then the fifth stacks on top and both
         // HOLD, unresolved (a challenger steps up) - a call, not a chord onset
-        V.lurSwell(ctx, bus, t, [V.PENT[0]], { dur: 2.0, gain: 0.1, brightness: 1300 });
-        V.lurSwell(ctx, bus, t + 0.45, [V.PENT[3]], { dur: 1.55, gain: 0.075, brightness: 1300 });
+        V.lurSwell(ctx, bus, t, [V.PENT[0]], { dur: 2.0, gain: 0.075, brightness: 1100, attack: 0.9 });
+        V.lurSwell(ctx, bus, t + 0.45, [V.PENT[3]], { dur: 1.55, gain: 0.055, brightness: 1100, attack: 0.7 });
         break;
       case 'yield':
         // drum hit + falling minor third C4->A3, resolving (the challenger bows)
-        V.drumHit(ctx, bus, t, { gain: 0.27, dur: 0.28 });
-        V.pluck(ctx, bus, t + 0.22, V.PENT[6], { gain: 0.46, decay: 0.5, brightness: 1600 });
-        V.pluck(ctx, bus, t + 0.46, V.PENT[5], { gain: 0.44, decay: 1.0, brightness: 1400 });
+        V.drumHit(ctx, bus, t, { gain: 0.2, dur: 0.28 });
+        V.pluck(ctx, bus, t + 0.22, V.PENT[6], { gain: 0.32, decay: 0.5, brightness: 1400 });
+        V.pluck(ctx, bus, t + 0.46, V.PENT[5], { gain: 0.3, decay: 1.0, brightness: 1200 });
         break;
       default:
         break; // unknown kind: no-op, never throws
