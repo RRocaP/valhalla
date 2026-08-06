@@ -1,0 +1,4 @@
+WARN: index.html 1.50 MB — over the 1.5 MB warn line
+04-strakes: solver 60/60 wrongs 660 mutants 180/180 (7ms)
+
+GATES GREEN — 1 lock(s), 60 seeds (partial)

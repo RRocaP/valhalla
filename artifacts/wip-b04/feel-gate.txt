@@ -1,0 +1,30 @@
+
+— 01 — ættir surfaced; near-miss marks the regions; no local shudder
+  THREW TypeError: el.addEventListener is not a function
+             at on (file:///Users/ramon/oathwood/src/locks/01-runerow.js:284:8)
+             at Object.mount (file:///Users/ramon/oathwood/src/locks/01-runerow.js:1114:3)
+  FAIL listeners balanced (leaked 38)
+
+— 02 — clipped premise on board and journal; near marks the clearing weighing
+  THREW TypeError: btn.style.setProperty is not a function
+             at file:///Users/ramon/oathwood/src/locks/02-bismer.js:1108:15
+             at Array.map (<anonymous>)
+
+— 03 — goal stated; flicker starts and is cancelled; near marks dark fires
+  THREW TypeError: document.createTextNode is not a function
+             at Object.mount (file:///Users/ramon/oathwood/src/locks/03-beacons.js:314:25)
+             at file:///Users/ramon/oathwood/artifacts/wip-fable-a/feel-gate.mjs:220:20
+
+— 04 — near marks: cleared oath, forbidden pair, stand-true count
+
+— 05 — bands defined in journal; toggle pulse timer cleaned; near fault path
+
+— 01 — grip survives re-render: focus restored, capture re-established
+  THREW TypeError: el.addEventListener is not a function
+             at on (file:///Users/ramon/oathwood/src/locks/01-runerow.js:284:8)
+             at Object.mount (file:///Users/ramon/oathwood/src/locks/01-runerow.js:1114:3)
+  FAIL listeners balanced (leaked 38)
+
+— 04 — grip survives re-render: plank drag keeps capture and focus
+
+FEEL GATE FAILED — 6 problem(s)

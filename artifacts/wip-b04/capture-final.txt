@@ -1,0 +1,2 @@
+desk: box 820x835 scrollH=835 occupancy=0.876 largestVoid=0.024 gap=8 canvases=23 blank=0 under44=0 errs=0
+phone: box 366x1423 scrollH=1423 occupancy=0.923 largestVoid=0.022 gap=8 canvases=23 blank=0 under44=0 errs=0

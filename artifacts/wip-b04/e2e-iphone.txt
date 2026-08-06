@@ -1,0 +1,5 @@
+
+Running 1 test using 1 worker
+
+[1/1] [iphone] › tests/e2e/journey.spec.mjs:12:1 › full journey: threshold -> fifteen locks -> finale -> credits
+  1 passed (20.4s)

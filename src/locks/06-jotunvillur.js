@@ -22,6 +22,7 @@
 // Answer: { words: [4 plaintext strings, in manifest order] }.
 
 import { SHARDS } from '../kernel/shards.js';
+import { localizeNear } from '../kernel/i18n.js';
 
 const ID = '06-jotunvillur';
 
@@ -177,7 +178,53 @@ function wrongAnswers(instance) {
   return out.slice(0, 10);
 }
 
+// ---- canonical near-lines --------------------------------------------------
+// `verify` stays pure and returns English (CONTRACT §4.1 amendment); these two
+// builders restate its two templates verbatim so `i18n.nearMap` can key every
+// line it can emit. Four carved words, so offLid runs 1..4 and right runs 0..3.
+
+const NEAR_OFF_LID = (n) => `${n} of your words are carved on no board of this lid.`;
+const NEAR_RING = (n) => `${n} of the four ring true. The rest are strangers.`;
+
+export const NEAR_LINES = Object.freeze([
+  ...[1, 2, 3, 4].map(NEAR_OFF_LID),
+  ...[0, 1, 2, 3].map(NEAR_RING),
+]);
+
 // ---- view ------------------------------------------------------------------
+
+// Board copy. English is the source; es/ca live in the additive i18n block
+// (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
+// Artifact-tongue law: the lid's Old-Norse words keep their tongue in every
+// language — only their GLOSSES localize.
+const BOARD_EN = {
+  ask: 'Each carved word hides a cargo word — the rune says only how its own name ends. Read all four.',
+  law: 'Giant-madness: a letter is cut as the rune whose NAME ends in that '
+    + 'letter’s sound — so ár, úr, týr, nauðr, maðr and lǫgr all come out as ᚱ. Reading '
+    + 'backwards, one carved rune can stand for six letters. Four cargo words are carved '
+    + 'below; give each one the ship-word from the lid that enciphers to it.',
+  ariaRows: 'Carved cargo words',
+  readings: '{n} readings',
+  keysHead: 'Rune keys — spell the true letters',
+  lexHead: 'The lid’s ship-lexicon',
+  submit: 'Read the manifest',
+  draftIdle: 'Spell a reading with the rune keys, or take a word from the lid.',
+  fits: '(fits the carving)',
+  unfits: '(does not fit)',
+  ariaKey: 'letter {letter}, carved as {name}',
+  ariaBack: 'erase last letter',
+  ariaLex: '{word} — {gloss}',
+  notePick: 'Word {n} of the manifest read as “{word}” ({gloss}).',
+  noteTurn: 'Turned to the {place} carved word: {runes} — {n} raw readings.',
+  noteManifest: 'Manifest read: {words}.',
+  noteOpen: 'Four cargo words, carved in giant-madness. Each rune stands for every letter whose rune-name ends in it.',
+  noteRaw: 'Raw readings before the lid narrows them: {list}.',
+  fallback: 'That manifest does not read.',
+  places: ['first', 'second', 'third', 'fourth'],
+};
+
+/** English glosses, read straight off the frozen lexicon so they cannot drift */
+const EN_GLOSS = Object.freeze(LEXICON.reduce((acc, [w, g]) => { acc[w] = g; return acc; }, {}));
 
 // A rune-stick (rúnakefli): the carved word rides a real birch lath — pale
 // scraped face, grain ticks, chamfered lit top edge, end-grain caps — and the
@@ -241,6 +288,19 @@ function runeStrip(art, chars, size, opts = {}) {
 function mount(ctx) {
   const { root, instance, art, audio } = ctx;
   const P = art.palette;
+  // Board copy resolves against ctx.lang; en falls through to the frozen source
+  // (and #autotest pins the shell to en, so the driver label contracts hold).
+  const lang = ctx.lang || 'en';
+  const LOC = I18N[lang] || {};
+  const L = LOC.board || {};
+  const T = (key, params) => {
+    let s = key in L ? L[key] : BOARD_EN[key];
+    if (params) for (const k of Object.keys(params)) s = s.split(`{${k}}`).join(String(params[k]));
+    return s;
+  };
+  const PLACE = (Array.isArray(L.places) && L.places.length === 4) ? L.places : BOARD_EN.places;
+  const glossOf = (w) => (L.gloss && L.gloss[w]) || EN_GLOSS[w] || w;
+  const nearOf = (near) => localizeNear(near, LOC.nearMap || {});
   // every listener is tracked so unmount can take them all back down
   const bound = [];
   const on = (el, type, fn) => { el.addEventListener(type, fn); bound.push([el, type, fn]); };
@@ -275,6 +335,11 @@ function mount(ctx) {
   .ow-jotun h4{margin:.2rem 0 0;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}
   .ow-jotun .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch}
   .ow-jotun .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
+  /* the carved plate: one plain sentence saying what the lock asks, always visible */
+  .ow-jotun .ask{margin:0;font-size:.92rem;line-height:1.4;color:${P.goldBright};max-width:64ch;
+    background:linear-gradient(180deg,${P.oak},${P.oakDeep});border:1px solid ${P.tar};
+    border-left:3px solid ${P.gold};border-radius:4px;padding:.5rem .65rem;
+    box-shadow:inset 0 1px 0 rgba(233,220,195,.1),0 1px 2px rgba(12,9,6,.5)}
   /* the shell sets \`#app *{min-width:0}\`, which outranks a bare class rule and
      flattens every touch target; these re-assert the 44 px floor at equal weight */
   #app .ow-jotun button{min-width:44px}
@@ -282,18 +347,20 @@ function mount(ctx) {
   #app .ow-jotun .row{min-height:44px}`;
   wrap.appendChild(styleEl);
 
+  const ask = document.createElement('p');
+  ask.className = 'ask';
+  ask.textContent = T('ask');
+  wrap.appendChild(ask);
+
   const law = document.createElement('p');
   law.className = 'law';
-  law.textContent = 'Giant-madness: a letter is cut as the rune whose NAME ends in that '
-    + 'letter’s sound — so ár, úr, týr, nauðr, maðr and lǫgr all come out as ᚱ. Reading '
-    + 'backwards, one carved rune can stand for six letters. Four cargo words are carved '
-    + 'below; give each one the ship-word from the lid that enciphers to it.';
+  law.textContent = T('law');
   wrap.appendChild(law);
 
   const rows = document.createElement('div');
   rows.className = 'rows';
   rows.setAttribute('role', 'listbox');
-  rows.setAttribute('aria-label', 'Carved cargo words');
+  rows.setAttribute('aria-label', T('ariaRows'));
   wrap.appendChild(rows);
 
   const picks = [null, null, null, null];
@@ -309,7 +376,7 @@ function mount(ctx) {
     row.appendChild(runeStrip(art, instance.runes[i], 26));
     const n = document.createElement('span');
     n.className = 'n';
-    n.textContent = `${instance.collisions[i]} readings`;
+    n.textContent = T('readings', { n: instance.collisions[i] });
     row.appendChild(n);
     const slot = document.createElement('span');
     slot.className = 'slot';
@@ -328,13 +395,13 @@ function mount(ctx) {
   draftEl.setAttribute('aria-live', 'polite');
   wrap.appendChild(draftEl);
 
-  const h1 = document.createElement('h4'); h1.textContent = 'Rune keys — spell the true letters';
+  const h1 = document.createElement('h4'); h1.textContent = T('keysHead');
   wrap.appendChild(h1);
   const keys = document.createElement('div');
   keys.className = 'keys';
   wrap.appendChild(keys);
 
-  const h2 = document.createElement('h4'); h2.textContent = 'The lid’s ship-lexicon';
+  const h2 = document.createElement('h4'); h2.textContent = T('lexHead');
   wrap.appendChild(h2);
   const slate = document.createElement('div');
   slate.className = 'slate';
@@ -343,7 +410,7 @@ function mount(ctx) {
   const send = document.createElement('button');
   send.className = 'btn-carved'; // one primary-action language: the carved gold plate
   send.type = 'button';
-  send.textContent = 'Read the manifest';
+  send.textContent = T('submit');
   send.disabled = true;
   wrap.appendChild(send);
 
@@ -357,7 +424,7 @@ function mount(ctx) {
   for (const [letter] of instance.table.map((r) => [r[0]])) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.setAttribute('aria-label', `letter ${letter}, carved as ${RUNE_NAME[letter]}`);
+    b.setAttribute('aria-label', T('ariaKey', { letter, name: RUNE_NAME[letter] }));
     b.appendChild(runeStrip(art, [RUNE_OF[CIPHER[letter]]], 22));
     const cap = document.createElement('div');
     cap.style.cssText = `font-size:.7rem;color:${P.boneDim}`;
@@ -369,21 +436,23 @@ function mount(ctx) {
   const back = document.createElement('button');
   back.type = 'button';
   back.textContent = '⌫';
-  back.setAttribute('aria-label', 'erase last letter');
+  back.setAttribute('aria-label', T('ariaBack'));
   on(back, 'click', () => { draft = draft.slice(0, -1); audio.ui('tick'); refresh(); });
   keys.appendChild(back);
 
-  const slateEls = instance.lexicon.map(([w, gloss]) => {
+  const slateEls = instance.lexicon.map(([w]) => {
+    // artifact tongue: the carved word `w` never translates; its gloss does
+    const gloss = glossOf(w);
     const b = document.createElement('button');
     b.type = 'button';
     b.textContent = w;
     b.title = gloss;
-    b.setAttribute('aria-label', `${w} — ${gloss}`);
+    b.setAttribute('aria-label', T('ariaLex', { word: w, gloss }));
     on(b, 'click', () => {
       picks[sel] = w;
       draft = '';
       audio.ui('knock');
-      ctx.note(`Word ${sel + 1} of the manifest read as “${w}” (${gloss}).`);
+      ctx.note(T('notePick', { n: sel + 1, word: w, gloss }));
       tell.textContent = '';
       // move the hand on to the next carving still waiting for a reading
       const nextOpen = picks.findIndex((pk, i) => pk === null && i !== sel);
@@ -398,7 +467,11 @@ function mount(ctx) {
     sel = i;
     draft = '';
     audio.ui('slide');
-    ctx.note(`Turned to the ${['first', 'second', 'third', 'fourth'][i]} carved word: ${instance.cipher[i].split('').map((c) => RUNE_NAME_OF(c)).join(' ')} — ${instance.collisions[i]} raw readings.`);
+    ctx.note(T('noteTurn', {
+      place: PLACE[i],
+      runes: instance.cipher[i].split('').map((c) => RUNE_NAME_OF(c)).join(' '),
+      n: instance.collisions[i],
+    }));
     refresh();
   }
   const RUNE_NAME_OF = (c) => ({ i: 'íss', 'þ': 'þurs', n: 'nauðr', l: 'lǫgr', s: 'sól', r: 'reið' }[c] || c);
@@ -412,8 +485,8 @@ function mount(ctx) {
     const enc = encipher(draft);
     const fits = draft.length <= target.length && enc !== null && target.startsWith(enc);
     draftEl.textContent = draft
-      ? `${draft}  →  ${enc || '?'}   ${fits ? '(fits the carving)' : '(does not fit)'}`
-      : 'Spell a reading with the rune keys, or take a word from the lid.';
+      ? `${draft}  →  ${enc || '?'}   ${fits ? T('fits') : T('unfits')}`
+      : T('draftIdle');
     draftEl.style.color = draft ? (fits ? P.goldBright : P.blood) : P.boneDim;
     for (const s of slateEls) {
       const hit = encipher(s.w) === target;
@@ -425,9 +498,9 @@ function mount(ctx) {
 
   on(send, 'click', () => {
     if (picks.some((p) => p === null)) return;
-    ctx.note(`Manifest read: ${picks.join(' · ')}.`);
+    ctx.note(T('noteManifest', { words: picks.join(' · ') }));
     const res = ctx.submit({ words: picks.slice() }) || {};
-    if (!res.ok) { tell.textContent = res.near || 'That manifest does not read.'; if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
+    if (!res.ok) { tell.textContent = nearOf(res.near) || T('fallback'); if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
   });
 
   const onKey = (e) => {
@@ -439,8 +512,8 @@ function mount(ctx) {
   on(wrap, 'keydown', onKey);
 
   root.appendChild(wrap);
-  ctx.note('Four cargo words, carved in giant-madness. Each rune stands for every letter whose rune-name ends in it.');
-  ctx.note(`Raw readings before the lid narrows them: ${instance.collisions.join(', ')}.`);
+  ctx.note(T('noteOpen'));
+  ctx.note(T('noteRaw', { list: instance.collisions.join(', ') }));
   if (ctx.solved) {
     solve(instance).words.forEach((w, i) => { picks[i] = w; });
     send.disabled = true;
@@ -454,6 +527,128 @@ function mount(ctx) {
     },
   };
 }
+
+// ---------------------------------------------------------------------- i18n
+// Additive per-lock block (docs/CONTRACT.md §4.1 amendment). English lives in
+// the frozen fields below; `nearMap` keys are the canonical English near-lines.
+// The lid's Old-Norse words and the rune-names keep their tongue everywhere —
+// only their glosses and the instructions around them localize.
+const I18N = {
+  es: {
+    title: 'La Cifra Jötunvillur',
+    epigraph: 'Cada letra lleva el nombre de otra. El tallador lo llamó locura de gigantes.',
+    hints: [
+      'Aquí una runa no es una letra. Es toda letra cuyo nombre de runa acaba en ese sonido.',
+      'Seis letras acaban en el sonido de reið; esa es la runa apretada. Solo la lista de palabras de la tapa la aclara.',
+      'Toma primero la talla más corta — su árbol de lecturas es delgado, y enseña la mano que talló las demás.',
+    ],
+    nearMap: {
+      [NEAR_OFF_LID(1)]: '1 de tus palabras no está tallada en tabla alguna de esta tapa.',
+      [NEAR_OFF_LID(2)]: '2 de tus palabras no están talladas en tabla alguna de esta tapa.',
+      [NEAR_OFF_LID(3)]: '3 de tus palabras no están talladas en tabla alguna de esta tapa.',
+      [NEAR_OFF_LID(4)]: 'Ninguna de tus palabras está tallada en tabla alguna de esta tapa.',
+      [NEAR_RING(0)]: 'Ninguna de las cuatro suena verdadera. Todas son extrañas.',
+      [NEAR_RING(1)]: '1 de las cuatro suena verdadera. Las demás son extrañas.',
+      [NEAR_RING(2)]: '2 de las cuatro suenan verdaderas. Las demás son extrañas.',
+      [NEAR_RING(3)]: '3 de las cuatro suenan verdaderas. La que falta es extraña.',
+    },
+    board: {
+      ask: 'Cada palabra tallada esconde una palabra de carga — la runa solo dice cómo acaba su propio nombre. Lee las cuatro.',
+      law: 'Locura de gigantes: una letra se talla como la runa cuyo NOMBRE acaba en el '
+        + 'sonido de esa letra — así ár, úr, týr, nauðr, maðr y lǫgr salen todas como ᚱ. Leída '
+        + 'al revés, una sola runa tallada puede valer por seis letras. Abajo hay cuatro palabras '
+        + 'de carga talladas; da a cada una la palabra de barco de la tapa que se cifra en ella.',
+      ariaRows: 'Palabras de carga talladas',
+      readings: '{n} lecturas',
+      keysHead: 'Teclas rúnicas — deletrea las letras verdaderas',
+      lexHead: 'El léxico de barco de la tapa',
+      submit: 'Leer el manifiesto',
+      draftIdle: 'Deletrea una lectura con las teclas rúnicas, o toma una palabra de la tapa.',
+      fits: '(encaja en la talla)',
+      unfits: '(no encaja)',
+      ariaKey: 'letra {letter}, tallada como {name}',
+      ariaBack: 'borrar la última letra',
+      ariaLex: '{word} — {gloss}',
+      notePick: 'Palabra {n} del manifiesto leída como “{word}” ({gloss}).',
+      noteTurn: 'La mano pasa a la {place} palabra tallada: {runes} — {n} lecturas en bruto.',
+      noteManifest: 'Manifiesto leído: {words}.',
+      noteOpen: 'Cuatro palabras de carga, talladas en locura de gigantes. Cada runa vale por toda letra cuyo nombre rúnico acaba en ella.',
+      noteRaw: 'Lecturas en bruto antes de que la tapa las estreche: {list}.',
+      fallback: 'Ese manifiesto no se lee.',
+      places: ['primera', 'segunda', 'tercera', 'cuarta'],
+      gloss: {
+        salt: 'sal', korn: 'grano', silfr: 'plata', ull: 'lana',
+        torf: 'turba', hamarr: 'martillo', bast: 'soga de tilo', lin: 'lino',
+        stafn: 'roda de proa', knarr: 'nave de carga', skinn: 'pieles', hafr: 'macho cabrío',
+        ostr: 'queso', mork: 'marco de peso', malt: 'malta', hnot: 'nuez',
+        hlutr: 'parte', farmr: 'carga', skaut: 'puño de vela', 'roþr': 'boga',
+        'þorn': 'espina', 'þrall': 'siervo', haf: 'mar abierta', floti: 'flota',
+        askr: 'madera de fresno', naust: 'cobertizo de naves', brim: 'rompiente', botn: 'fondo de bodega',
+        'burþr': 'fardo', hilmir: 'señor del yelmo', stafr: 'asta', runar: 'runas',
+        tolf: 'doce', fimm: 'cinco', hals: 'cuello de proa', rif: 'rizo',
+        kista: 'arca', malmr: 'mena', horn: 'cuerno', blot: 'ofrenda',
+        laukr: 'puerro',
+      },
+    },
+  },
+  ca: {
+    title: 'La Xifra Jötunvillur',
+    epigraph: 'Cada lletra duu el nom d’una altra. El tallador en deia follia de gegants.',
+    hints: [
+      'Aquí una runa no és una lletra. És tota lletra el nom rúnic de la qual acaba en aquell so.',
+      'Sis lletres acaben en el so de reið; aquella és la runa atapeïda. Només la llista de mots de la tapa l’aclareix.',
+      'Pren primer la talla més curta — el seu arbre de lectures és prim, i ensenya la mà que va tallar les altres.',
+    ],
+    nearMap: {
+      [NEAR_OFF_LID(1)]: '1 dels teus mots no és tallat en cap post d’aquesta tapa.',
+      [NEAR_OFF_LID(2)]: '2 dels teus mots no són tallats en cap post d’aquesta tapa.',
+      [NEAR_OFF_LID(3)]: '3 dels teus mots no són tallats en cap post d’aquesta tapa.',
+      [NEAR_OFF_LID(4)]: 'Cap dels teus mots no és tallat en cap post d’aquesta tapa.',
+      [NEAR_RING(0)]: 'Cap de les quatre no sona vertadera. Totes són estranyes.',
+      [NEAR_RING(1)]: '1 de les quatre sona vertadera. Les altres són estranyes.',
+      [NEAR_RING(2)]: '2 de les quatre sonen vertaderes. Les altres són estranyes.',
+      [NEAR_RING(3)]: '3 de les quatre sonen vertaderes. La que manca és estranya.',
+    },
+    board: {
+      ask: 'Cada mot tallat amaga un mot de càrrega — la runa només diu com acaba el seu propi nom. Llegeix-los tots quatre.',
+      law: 'Follia de gegants: una lletra es talla com la runa el NOM de la qual acaba en el '
+        + 'so d’aquella lletra — així ár, úr, týr, nauðr, maðr i lǫgr surten totes com ᚱ. Llegida '
+        + 'a l’inrevés, una sola runa tallada pot valer per sis lletres. A sota hi ha quatre mots '
+        + 'de càrrega tallats; dona a cadascun el mot de nau de la tapa que s’hi xifra.',
+      ariaRows: 'Mots de càrrega tallats',
+      readings: '{n} lectures',
+      keysHead: 'Tecles rúniques — lletreja les lletres vertaderes',
+      lexHead: 'El lèxic de nau de la tapa',
+      submit: 'Llegir el manifest',
+      draftIdle: 'Lletreja una lectura amb les tecles rúniques, o pren un mot de la tapa.',
+      fits: '(encaixa a la talla)',
+      unfits: '(no encaixa)',
+      ariaKey: 'lletra {letter}, tallada com {name}',
+      ariaBack: 'esborrar la darrera lletra',
+      ariaLex: '{word} — {gloss}',
+      notePick: 'Mot {n} del manifest llegit com a “{word}” ({gloss}).',
+      noteTurn: 'La mà passa al {place} mot tallat: {runes} — {n} lectures en brut.',
+      noteManifest: 'Manifest llegit: {words}.',
+      noteOpen: 'Quatre mots de càrrega, tallats en follia de gegants. Cada runa val per tota lletra el nom rúnic de la qual hi acaba.',
+      noteRaw: 'Lectures en brut abans que la tapa les estrengui: {list}.',
+      fallback: 'Aquest manifest no es llegeix.',
+      places: ['primer', 'segon', 'tercer', 'quart'],
+      gloss: {
+        salt: 'sal', korn: 'gra', silfr: 'argent', ull: 'llana',
+        torf: 'torba', hamarr: 'martell', bast: 'corda de tell', lin: 'lli',
+        stafn: 'roda de proa', knarr: 'nau de càrrega', skinn: 'pells', hafr: 'boc',
+        ostr: 'formatge', mork: 'marc de pes', malt: 'malt', hnot: 'nou',
+        hlutr: 'part', farmr: 'càrrega', skaut: 'puny de vela', 'roþr': 'remada',
+        'þorn': 'espina', 'þrall': 'serf', haf: 'mar oberta', floti: 'flota',
+        askr: 'fusta de freixe', naust: 'cobert de naus', brim: 'rompent', botn: 'fons de bodega',
+        'burþr': 'fardell', hilmir: 'senyor de l’elm', stafr: 'asta', runar: 'runes',
+        tolf: 'dotze', fimm: 'cinc', hals: 'coll de proa', rif: 'ris',
+        kista: 'arca', malmr: 'mena', horn: 'corn', blot: 'ofrena',
+        laukr: 'porro',
+      },
+    },
+  },
+};
 
 export default {
   id: ID,
@@ -475,6 +670,8 @@ export default {
     'Six letters end in the sound of reið; that rune is the crowded one. Only the lid’s word-list can thin it.',
     'Take the shortest carving first — its tree of readings is thin, and it teaches the hand that cut the rest.',
   ],
+
+  i18n: I18N,
 
   mount,
 };

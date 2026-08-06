@@ -6,8 +6,10 @@ import { rng } from '../../kernel/rng.js';
 import { hintsArmed, isComplete } from '../progress.js';
 import { pushJournal, hintTakenLine } from '../journal.js';
 import { toRoman, ordinalWord } from '../numerals.js';
-import { duelFor } from '../duels.js';
+import { dareFor, heckleFor, yieldFor, lineFor, journalHasLine } from '../duels.js';
 import { portraitImage, drawPortraitPlaceholder } from '../portraits.js';
+import { applyMood, moodTint } from '../../art/moods.js';
+import { resolveLang, lockText, localizeNear } from '../../kernel/i18n.js';
 
 export function mountLockRoom(root, {
   lock, locks, save, art, audio, reducedMotion, portraitsCache,
@@ -15,13 +17,28 @@ export function mountLockRoom(root, {
 }) {
   const p = art.palette;
   const solved = save.opened.includes(lock.id);
-  const duel = duelFor(lock.ordinal);
-  const showDare = !!duel && !solved;
+  const lang = resolveLang(save.settings && save.settings.lang,
+    typeof navigator !== 'undefined' ? navigator.language : '');
+  const locText = lockText(lock, lang);
+  const dare = dareFor(lock.ordinal);       // gauntlet opens: 01/04/07/10/13
+  const heckle = heckleFor(lock.ordinal);   // gauntlet middle: 02/05/08/11/14
+  const yieldDuel = yieldFor(lock.ordinal); // gauntlet ends:  03/06/09/12/15
+  const showDare = !!dare && !solved;
 
   const screen = el('div', { class: 'screen screen-lockroom' });
   const frame = el('div', { class: 'lockroom-frame' });
   screen.append(frame);
   root.append(screen);
+
+  // Which gauntlet's hall this room stands in (docs/JARLS.md: five gauntlets
+  // of three). The mood is environment only — light, air and colour over the
+  // painted room; it never touches puzzle furniture or text colour.
+  const gauntlet = Math.ceil(lock.ordinal / 3);
+  const mood = moodTint(gauntlet);
+  screen.dataset.mood = mood.key;
+  screen.style.setProperty('--mood-tint', mood.tint);
+  screen.style.setProperty('--mood-glow', mood.glow);
+  screen.style.setProperty('--mood-edge', mood.edge);
 
   // Presentation-only styles for this screen (loop-2 escalation): the carved
   // primary's seated disabled state, the horn hint slots, the shard strike
@@ -29,6 +46,9 @@ export function mountLockRoom(root, {
   // source order without touching shell-owned files.
   const roomStyle = el('style');
   roomStyle.textContent = `
+  #app .lockroom-mood{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+  #app .screen-lockroom .ledger-numeral{text-shadow:-1px -1px 0 var(--tar),1px 1px 0 rgba(238,207,109,.24),0 0 20px var(--mood-glow)}
+  #app .screen-lockroom .attempts-dots .dot{background:var(--mood-tint);box-shadow:0 0 6px var(--mood-glow)}
   #app .btn-carved[disabled]{opacity:.42;filter:saturate(.3) brightness(.85);transform:none;cursor:default;
     box-shadow:0 2px 0 rgba(12,9,6,.6),0 3px 6px rgba(12,9,6,.4),inset 0 0 0 1px rgba(42,29,5,.45)}
   #app .hint-slot{border:0;background:none;display:inline-flex;align-items:center;gap:7px;padding:4px 8px;min-height:44px;
@@ -55,12 +75,47 @@ export function mountLockRoom(root, {
     .ceremony-shard .carved-heading{transition:none}
   }
   #app.reduced-motion .yield-banner{animation:none}
-  #app.reduced-motion .ceremony-shard .carved-heading{transition:none}`;
+  #app.reduced-motion .ceremony-shard .carved-heading{transition:none}
+  #app .heckle-line{margin:6px auto 0;max-width:52ch;font-style:italic;font-size:.86rem;
+    letter-spacing:.02em;color:var(--bone);opacity:.85;text-shadow:0 1px 0 rgba(12,9,6,.85)}`;
   screen.append(roomStyle);
 
   let bg = art.makeCanvas(1, 1);
   bg.canvas.className = 'lockroom-canvas';
   screen.prepend(bg.canvas);
+
+  // The mood rides on its own surface, directly over the room paint and under
+  // every DOM layer, so the hall's light can breathe without a single wood
+  // repaint. It stays AFTER bg.canvas in the DOM on purpose: the wood must
+  // remain the first canvas in the screen.
+  const mountedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  let moodLayer = art.makeCanvas(1, 1);
+  moodLayer.canvas.className = 'lockroom-mood';
+  moodLayer.canvas.setAttribute('aria-hidden', 'true');
+  bg.canvas.after(moodLayer.canvas);
+
+  function paintMood(ms) {
+    moodLayer.ctx.clearRect(0, 0, moodLayer.w, moodLayer.h);
+    applyMood(moodLayer.ctx, moodLayer.w, moodLayer.h, gauntlet, ms, reducedMotion);
+  }
+
+  // A tall board (lock 14's stave, lock 12's benches) grows the room past the
+  // viewport it was measured in. The backdrop canvases then stretch to fit,
+  // which is harmless for a wood texture but not for light: a stretched mood
+  // puts its quiet text bands in the wrong place. Re-cut the mood surface to
+  // the live screen box whenever it actually moves.
+  function syncMoodSize() {
+    const w = screen.clientWidth;
+    const h = screen.clientHeight;
+    if (!(w > 0 && h > 0)) return false;
+    if (Math.abs(w - moodLayer.w) < 2 && Math.abs(h - moodLayer.h) < 2) return false;
+    const fresh = art.makeCanvas(w, h);
+    fresh.canvas.className = 'lockroom-mood';
+    fresh.canvas.setAttribute('aria-hidden', 'true');
+    screen.replaceChild(fresh.canvas, moodLayer.canvas);
+    moodLayer = fresh;
+    return true;
+  }
 
   // 'board' draws the architrave tray around the mounted puzzle; 'dare' and
   // 'beat' leave the stage to the card/overlay. Furniture is repainted only
@@ -120,11 +175,17 @@ export function mountLockRoom(root, {
     fresh.canvas.className = 'lockroom-canvas';
     screen.replaceChild(fresh.canvas, bg.canvas);
     bg = fresh;
+    const freshMood = art.makeCanvas(w, h);
+    freshMood.canvas.className = 'lockroom-mood';
+    freshMood.canvas.setAttribute('aria-hidden', 'true');
+    screen.replaceChild(freshMood.canvas, moodLayer.canvas);
+    moodLayer = freshMood;
     lastFurnitureKey = '';
     paintBg();
+    paintMood(reducedMotion ? 0 : (typeof performance !== 'undefined' ? performance.now() : Date.now()) - mountedAt);
     if (headerTitle) {
       const freshTitle = carvedHeading('h2', {
-        art, text: lock.title, size: headerTitleSize(), className: 'lock-title', depth: 0.95,
+        art, text: locText.title, size: headerTitleSize(), className: 'lock-title', depth: 0.95,
       });
       header.replaceChild(freshTitle, headerTitle);
       headerTitle = freshTitle;
@@ -136,13 +197,18 @@ export function mountLockRoom(root, {
   // title on resize and reads all three of these bindings.
   const headerTitleSize = () => Math.round(Math.max(22, Math.min(40, screen.clientWidth * 0.028 + 12)));
   let headerTitle = carvedHeading('h2', {
-    art, text: lock.title, size: headerTitleSize(), className: 'lock-title', depth: 0.95,
+    art, text: locText.title, size: headerTitleSize(), className: 'lock-title', depth: 0.95,
   });
   const header = el('div', { class: 'lockroom-header' }, [
     el('div', { class: 'ledger-numeral' }, toRoman(lock.ordinal)),
     headerTitle,
-    el('p', { class: 'lock-epigraph' }, lock.epigraph),
+    el('p', { class: 'lock-epigraph' }, locText.epigraph),
+    heckle && !solved ? el('p', { class: 'heckle-line' }, lineFor(heckle.heckle, lang)) : null,
   ]);
+  if (heckle && !solved && !journalHasLine(save, heckle.heckle)) {
+    pushJournal(save, `${heckle.name}: "${lineFor(heckle.heckle, lang)}"`);
+    onPersist();
+  }
 
   const nearLine = el('p', { class: 'near-line', 'aria-live': 'polite' });
   const attemptsDots = el('div', { class: 'attempts-dots' });
@@ -170,6 +236,22 @@ export function mountLockRoom(root, {
   window.addEventListener('resize', resizeBg);
   resizeBg();
 
+  // Mood air (smoke, wisps, motes, glints) on a time-gated rAF: ~30fps is
+  // ample for drift this slow and halves the per-second cost. Reduced motion
+  // never starts the loop — resizeBg's paintMood already laid the still frame.
+  let moodRaf = 0;
+  let lastMoodPaint = -1e9;
+  function moodLoop(now) {
+    moodRaf = requestAnimationFrame(moodLoop);
+    if (now - lastMoodPaint < 33) return;
+    lastMoodPaint = now;
+    syncMoodSize();
+    paintMood(now - mountedAt);
+  }
+  if (!reducedMotion && typeof requestAnimationFrame === 'function') {
+    moodRaf = requestAnimationFrame(moodLoop);
+  }
+
   // The tray hugs the mounted board: re-measure when the board's own size
   // changes (rows opening, tells appearing), rAF-debounced, repaint only on a
   // real move (paintBg is keyed on the measured box).
@@ -177,7 +259,11 @@ export function mountLockRoom(root, {
   const scheduleFurniture = () => {
     if (furnitureRaf) return;
     const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn) => setTimeout(fn, 32);
-    furnitureRaf = raf(() => { furnitureRaf = 0; paintBg(); });
+    furnitureRaf = raf(() => {
+      furnitureRaf = 0;
+      paintBg();
+      if (syncMoodSize()) paintMood(reducedMotion ? 0 : (typeof performance !== 'undefined' ? performance.now() : Date.now()) - mountedAt);
+    });
   };
   let contentRO = null;
   if (typeof ResizeObserver === 'function') {
@@ -265,7 +351,7 @@ export function mountLockRoom(root, {
         onClick: () => takeHint(k),
       }, [horn.canvas, el('span', {}, `Hint ${k + 1}`)]);
       hintHorn.append(slot);
-      if (isTaken) hintText.append(el('p', {}, lock.hints[k]));
+      if (isTaken) hintText.append(el('p', {}, locText.hints[k]));
     }
   }
 
@@ -309,14 +395,14 @@ export function mountLockRoom(root, {
     onPersist();
     audio.ui('deny');
     shudder();
-    nearLine.textContent = result.near || '';
+    nearLine.textContent = localizeNear(result.near, locText.nearMap) || '';
     renderAttempts();
     renderHints();
     return { ok: false, near: result.near };
   }
 
   function mountPuzzle() {
-    const ctx = { root: lockRootEl, instance, art, audio, submit, note, solved };
+    const ctx = { root: lockRootEl, instance, art, audio, submit, note, solved, lang };
     lockHandle = lock.mount(ctx);
     furnitureMode = 'board';
     scheduleFurniture();
@@ -328,7 +414,7 @@ export function mountLockRoom(root, {
     nearLine.textContent = '';
     furnitureMode = 'beat';
     paintBg();
-    if (duel) runYieldBeat(runShardCeremony);
+    if (yieldDuel) runYieldBeat(runShardCeremony);
     else runShardCeremony();
   }
 
@@ -337,24 +423,24 @@ export function mountLockRoom(root, {
     const port = art.makeCanvas(160, 190);
     // the challenger's war-banner lowers behind the portrait as the bow lands
     const stage = el('div', { class: 'yield-stage' }, [
-      el('div', { class: 'yield-banner', 'aria-hidden': 'true' }, duel.name),
+      el('div', { class: 'yield-banner', 'aria-hidden': 'true' }, yieldDuel.name),
       port.canvas,
     ]);
-    const line = el('p', { class: 'ceremony-line' }, duel.yield);
-    overlay.append(stage, line);
+    const line = el('p', { class: 'ceremony-line' }, lineFor(yieldDuel.yield, lang));
+overlay.append(stage, line);
     clear(lockRootEl);
     lockRootEl.append(overlay);
     overlay.focus();
-    const img = portraitsCache ? portraitImage(portraitsCache, duel.key) : null;
+    const img = portraitsCache ? portraitImage(portraitsCache, yieldDuel.key) : null;
     const canTween = typeof art.portrait === 'function' && !!img;
-    if (!canTween) drawPortraitPlaceholder(port.ctx, p, 0, 0, port.w, port.h, duel.name);
+    if (!canTween) drawPortraitPlaceholder(port.ctx, p, 0, 0, port.w, port.h, yieldDuel.name);
     audio.motif('yield');
     cancelBeat = playBeat({
       el: overlay, duration: 1200, reducedMotion,
       render(t) { if (canTween) art.portrait(port.ctx, img, 0, 0, port.w, port.h, { bow: t, rim: 0.5 * (1 - t * 0.5) }); },
       onDone: () => {
         cancelBeat = null;
-        if (!save.journal.some((l) => l.includes(duel.yield))) note(`${duel.name} yields: "${duel.yield}"`);
+        if (!journalHasLine(save, yieldDuel.yield)) note(`${yieldDuel.name} yields: "${lineFor(yieldDuel.yield, lang)}"`);
         after();
       },
     });
@@ -454,25 +540,25 @@ export function mountLockRoom(root, {
     const vignette = el('div', { class: 'dare-vignette', 'aria-hidden': 'true' });
     const port = art.makeCanvas(220, 260);
     port.canvas.className = 'dare-portrait';
-    const img = portraitsCache ? portraitImage(portraitsCache, duel.key) : null;
+    const img = portraitsCache ? portraitImage(portraitsCache, dare.key) : null;
     if (typeof art.portrait === 'function' && img) art.portrait(port.ctx, img, 0, 0, port.w, port.h, { rim: 0.9 });
-    else drawPortraitPlaceholder(port.ctx, p, 0, 0, port.w, port.h, duel.name);
+    else drawPortraitPlaceholder(port.ctx, p, 0, 0, port.w, port.h, dare.name);
     const answerBtn = el('button', { type: 'button', class: 'btn-carved' }, 'Answer the dare');
     const namePlate = carvedHeading('h3', {
-      art, text: duel.name, size: 30, className: 'dare-name', depth: 0.9,
+      art, text: dare.name, size: 30, className: 'dare-name', depth: 0.9,
       color: p.goldBright, letterSpacing: 3,
     });
     const card = el('div', { class: 'dare-card' }, [
       port.canvas,
       namePlate,
-      el('p', { class: 'dare-taunt' }, `"${duel.taunt}"`),
+      el('p', { class: 'dare-taunt' }, `"${lineFor(dare.taunt, lang)}"`),
       answerBtn,
     ]);
     furnitureMode = 'dare';
     paintBg();
     lockRootEl.append(vignette, card);
-    if (!save.journal.some((l) => l.includes(duel.taunt))) {
-      note(`${duel.name}: "${duel.taunt}"`);
+    if (!journalHasLine(save, dare.taunt)) {
+      note(`${dare.name}: "${lineFor(dare.taunt, lang)}"`);
     }
     audio.motif('dare');
     answerBtn.addEventListener('click', () => {
@@ -490,6 +576,7 @@ export function mountLockRoom(root, {
 
   return function unmount() {
     window.removeEventListener('resize', resizeBg);
+    if (moodRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(moodRaf);
     if (contentRO) contentRO.disconnect();
     if (furnitureRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(furnitureRaf);
     if (cancelBeat) cancelBeat();

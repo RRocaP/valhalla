@@ -1,0 +1,3 @@
+desk: keyboard path 994ms · tally-before-brand "All eight joints lie fair." · solved=true · errors=0
+phone: keyboard path 1013ms · tally-before-brand "All eight joints lie fair." · solved=true · errors=0
+DRIVER CONTRACT: GREEN (both viewports)

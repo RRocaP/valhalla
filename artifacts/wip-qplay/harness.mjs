@@ -58,6 +58,9 @@ export async function crossThreshold(page) {
   const btn = page.locator('.screen-threshold button').first();
   await btn.waitFor({ timeout: 8000 });
   await btn.click();
+  // wager framing card gates first entry (docs/JARLS.md) — click through if shown
+  const wager = page.locator('.wager-layer button, .wager-card button').first();
+  try { await wager.waitFor({ state: 'visible', timeout: 2000 }); await wager.click(); } catch {}
   await page.waitForSelector('.screen-lid, .screen-finale', { timeout: 8000 });
 }
 

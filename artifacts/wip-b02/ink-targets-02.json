@@ -1,0 +1,22 @@
+[
+ {
+  "vp": "1280x800",
+  "nCanvas": 15,
+  "blank": [],
+  "nCtrl": 12,
+  "under44": 0,
+  "sample": [],
+  "gridsAfterRemount": 1,
+  "errors": []
+ },
+ {
+  "vp": "390x844",
+  "nCanvas": 15,
+  "blank": [],
+  "nCtrl": 12,
+  "under44": 0,
+  "sample": [],
+  "gridsAfterRemount": 1,
+  "errors": []
+ }
+]

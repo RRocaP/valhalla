@@ -7,7 +7,7 @@
 // instead of copied, so this file never drifts from docs/JARLS.md /
 // docs/CONTRACT.md's frozen rune table.
 import { expect } from '@playwright/test';
-import { DUELS, DUEL_ORDER } from '../../src/shell/duels.js';
+import { GAUNTLETS, dareFor, yieldFor, lineFor } from '../../src/shell/duels.js';
 import { BY_CH } from '../../src/kernel/futhark.js';
 
 export const SCREENS_DIR = 'artifacts/screens';
@@ -90,17 +90,19 @@ export async function openLockFromLid(page, ordinal) {
 
 // ---- duel dare card / ceremonies ----------------------------------------
 
-export function duelFor(ordinal) {
-  return DUELS[ordinal] || null;
-}
-export { DUEL_ORDER };
+// Gauntlet cadence (docs/JARLS.md v3): dares open each 3-lock chapter,
+// yields close it. e2e runs under #autotest = forced en.
+export const DARE_ORDER = GAUNTLETS.map((g) => g.dareAt);     // 1,4,7,10,13
+export const DUEL_ORDER = GAUNTLETS.map((g) => g.yieldAt);    // 3,6,9,12,15
+export { dareFor, yieldFor, GAUNTLETS };
+export function duelFor(ordinal) { return yieldFor(ordinal); } // legacy name
 
 export async function expectDareCard(page, ordinal) {
-  const duel = duelFor(ordinal);
+  const duel = dareFor(ordinal);
   const card = page.locator('.dare-card');
   await expect(card).toBeVisible();
   await expect(card.locator('.dare-name')).toHaveText(duel.name);
-  await expect(card.locator('.dare-taunt')).toHaveText(`"${duel.taunt}"`);
+  await expect(card.locator('.dare-taunt')).toHaveText(`"${lineFor(duel.taunt, 'en')}"`);
   return duel;
 }
 
@@ -124,12 +126,12 @@ export async function answerTheDare(page) {
 // gesture, so Enter is used here — a real, working input path for the same
 // affordance, not a bypass of it.
 export async function resolveCeremony(page, { ordinal }) {
-  const duel = duelFor(ordinal);
+  const duel = yieldFor(ordinal);
   const overlay = page.locator('.ceremony-overlay');
 
   if (duel) {
     await expect(overlay).toBeVisible();
-    await expect(overlay.locator('.ceremony-line')).toHaveText(duel.yield);
+    await expect(overlay.locator('.ceremony-line')).toHaveText(lineFor(duel.yield, 'en'));
     await page.keyboard.press('Enter');
   }
 

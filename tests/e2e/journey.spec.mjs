@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 import {
   gotoAutotest, makeShotter, beginFromThreshold, openLockFromLid,
   expectDareCard, expectNoDareCard, answerTheDare, resolveCeremony,
-  drivers, owAnswerAndInstance, owLockMeta, DUEL_ORDER, duelFor,
+  drivers, owAnswerAndInstance, owLockMeta, DUEL_ORDER, DARE_ORDER, dareFor, GAUNTLETS,
 } from './helpers.mjs';
 
 test('full journey: threshold -> fifteen locks -> finale -> credits', async ({ page }, testInfo) => {
@@ -44,18 +44,20 @@ test('full journey: threshold -> fifteen locks -> finale -> credits', async ({ p
   for (const lock of locks) {
     const { ordinal, id } = lock;
     await test.step(`lock ${ordinal} — ${id}`, async () => {
-      const isDuel = DUEL_ORDER.includes(ordinal);
+      // gauntlet cadence (docs/JARLS.md v3): dare opens a chapter, yield closes it
+      const isDare = DARE_ORDER.includes(ordinal);
+      const isYield = DUEL_ORDER.includes(ordinal);
 
-      if (isDuel) {
+      if (isYield) {
         await expect(page.locator('.duel-banner')).toBeVisible();
         await shot(`lid-duel-banner-${ordinal}`);
       }
 
       await openLockFromLid(page, ordinal);
 
-      if (isDuel) {
+      if (isDare) {
         const duel = await expectDareCard(page, ordinal);
-        expect(duel.name).toBe(duelFor(ordinal).name);
+        expect(duel.name).toBe(dareFor(ordinal).name);
         await shot(`dare-${String(ordinal).padStart(2, '0')}-${id}`);
         await answerTheDare(page);
       } else {
@@ -130,7 +132,7 @@ test('full journey: threshold -> fifteen locks -> finale -> credits', async ({ p
     await expect(scroll.locator('.credits-title')).toHaveText('VALHALLA');
     await expect(scroll.getByText('THE CHALLENGERS', { exact: true })).toBeVisible();
 
-    const expectedChallengers = DUEL_ORDER.map((ord) => duelFor(ord).name);
+    const expectedChallengers = GAUNTLETS.map((g) => g.name);
     const names = await scroll.locator('.credits-challengers figcaption').allTextContents();
     expect(names).toEqual(expectedChallengers);
 

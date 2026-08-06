@@ -1,11 +1,15 @@
-// The Lid (hub). docs/SHELL.md #2, docs/JARLS.md "Banner".
+// The Lid (hub). docs/SHELL.md #2, docs/JARLS.md v3 "Chapters": five jarls own
+// five 3-lock gauntlets — each jarl's blood-red banner spans THEIR three
+// medallions (ownership at a glance), with a small-caps chapter label. The
+// armed gauntlet's label carries the .duel-banner class (e2e contract).
 
 import { el } from '../dom.js';
 import { lockState, isAccessible, nextLockId, progressFraction } from '../progress.js';
 import { pushJournal } from '../journal.js';
 import { ordinalWord } from '../numerals.js';
-import { duelFor, isDuelOrdinal } from '../duels.js';
+import { gauntletFor, lineFor, journalHasLine, WAGER } from '../duels.js';
 import { rng } from '../../kernel/rng.js';
+import { resolveLang } from '../../kernel/i18n.js';
 
 // Fallback layout, used only when the art module predates art.chestLayout.
 // Generic N-lock layout (not hardcoded to 15) so the same code serves the
@@ -35,12 +39,38 @@ function medallionLayout(n, w, h) {
   return out;
 }
 
+// Presentation-only styles for this screen (same pattern as lockroom.js's
+// roomStyle): #app prefix outranks style.js at equal source order without
+// touching the shell-owned stylesheet. The armed gauntlet's label reuses the
+// .duel-banner CLASS (e2e visibility contract) but not its CSS recipe — the
+// blood field is painted on the ribbon canvas underneath, so every visual
+// property the old rule set is overridden here.
+const LID_STYLE = `
+#app .lid-deco{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#app .chapter-label{position:absolute;transform:translate(-50%,-50%);pointer-events:none;
+  background:none;background-image:none;clip-path:none;filter:none;padding:0 6px;max-width:none;
+  white-space:nowrap;overflow:visible;text-overflow:clip;
+  font-family:var(--font-display);font-variant-caps:small-caps;font-weight:600;
+  letter-spacing:.13em;font-size:clamp(.6rem,.35vw + .52rem,.72rem);line-height:1;
+  color:var(--bone);text-shadow:0 1px 0 rgba(12,9,6,.9),0 0 8px rgba(12,9,6,.55)}
+#app .chapter-label.chapter-done{color:var(--boneDim)}
+#app .chapter-label.duel-banner{color:var(--bone);
+  text-shadow:0 1px 0 rgba(12,9,6,.9),0 0 10px rgba(238,207,109,.28);
+  animation:chapter-breathe 3.4s ease-in-out infinite}
+@keyframes chapter-breathe{0%,100%{opacity:1}50%{opacity:.84}}
+@media (prefers-reduced-motion: reduce){#app .chapter-label.duel-banner{animation:none}}
+#app.reduced-motion .chapter-label.duel-banner{animation:none}`;
+
 export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpenedId, onOpenLock, onOpenJournal, onOpenSettings }) {
   const p = art.palette;
+  const lang = resolveLang(save && save.settings && save.settings.lang,
+    typeof navigator !== 'undefined' ? navigator.language : '');
   const screen = el('div', { class: 'screen screen-lid' });
   const medallionsLayer = el('div', { class: 'lid-medallions' });
   const haspWrap = el('div', { class: 'hasp-wrap' });
-  const duelBanner = el('div', { class: 'duel-banner', style: 'display:none' });
+
+  const lidStyle = el('style');
+  lidStyle.textContent = LID_STYLE;
 
   const journalBtn = el('button', {
     type: 'button', class: 'btn-icon journal-handle', 'aria-label': 'Open the journal',
@@ -52,24 +82,57 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   }, '⚙');
   const chrome = el('div', { class: 'lid-chrome' }, [journalBtn, settingsBtn]);
 
-  medallionsLayer.append(duelBanner);
-  screen.append(medallionsLayer, haspWrap, chrome);
+  screen.append(lidStyle, medallionsLayer, haspWrap, chrome);
   root.append(screen);
 
   const nextId = nextLockId(locks, save);
   const nextLock = locks.find((l) => l.id === nextId) || null;
 
-  // Announce a duel lock the first time it's seen as armed. Idempotent via a
-  // content check against the journal (no new save fields, per docs/JARLS.md).
-  if (nextLock && isDuelOrdinal(nextLock.ordinal)) {
-    const duel = duelFor(nextLock.ordinal);
-    const marker = `${duel.name} bars the`;
-    if (!save.journal.some((line) => line.includes(marker))) {
-      pushJournal(save, `${duel.name} bars the ${ordinalWord(nextLock.ordinal)} lock.`);
-    }
-    duelBanner.textContent = duel.name;
-    duelBanner.style.display = '';
+  // Journal echo of the wager framing card (docs/JARLS.md "The wager"): the
+  // card itself is shown by the threshold after the begin gesture; the lid —
+  // which owns the live save — records the text mirror. Idempotent across
+  // languages via journalHasLine (no new save fields).
+  if (!journalHasLine(save, WAGER)) {
+    pushJournal(save, lineFor(WAGER, lang));
   }
+
+  // Gauntlet bookkeeping: group this chest's locks by owning jarl (guarded so
+  // dev fixtures with n≠15 locks still mount — partial gauntlets just render
+  // whatever medallions exist).
+  const gauntletGroups = [];
+  locks.forEach((lock, i) => {
+    const g = gauntletFor(lock.ordinal);
+    if (!g) return;
+    let group = gauntletGroups.find((entry) => entry.g === g);
+    if (!group) { group = { g, items: [] }; gauntletGroups.push(group); }
+    group.items.push({ index: i, ordinal: lock.ordinal, id: lock.id });
+  });
+  gauntletGroups.forEach((group) => {
+    group.items.sort((a, b) => a.ordinal - b.ordinal);
+    group.done = group.items.every((it) => save.opened.includes(it.id));
+    group.active = !!nextLock && group.g === gauntletFor(nextLock.ordinal);
+  });
+
+  // Announce the armed gauntlet's jarl the first time it is seen. Idempotent
+  // via a content check against the journal (no new save fields).
+  const activeGroup = gauntletGroups.find((group) => group.active) || null;
+  if (activeGroup) {
+    const marker = `${activeGroup.g.name} bars the`;
+    if (!save.journal.some((line) => line.includes(marker))) {
+      pushJournal(save, `${activeGroup.g.name} bars the ${ordinalWord(activeGroup.g.dareAt)} lock.`);
+    }
+  }
+
+  // One small-caps chapter label per gauntlet, seated on its painted ribbon.
+  // The armed gauntlet's label keeps the .duel-banner class — journey/floors
+  // assert its visibility before entering a duel lock.
+  gauntletGroups.forEach((group) => {
+    const cls = ['chapter-label'];
+    if (group.active) cls.push('duel-banner');
+    if (group.done) cls.push('chapter-done');
+    group.label = el('div', { class: cls.join(' ') }, lineFor(group.g.title, lang));
+    medallionsLayer.append(group.label);
+  });
 
   const buttons = locks.map((lock) => {
     const state = lockState(locks, save, lock.id);
@@ -88,6 +151,14 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   let cur = art.makeCanvas(1, 1);
   cur.canvas.className = 'lid-canvas';
   screen.prepend(cur.canvas);
+  // Static decoration overlay above the animated chest canvas and below the
+  // hit targets: gauntlet ribbons, the wordmark echo, and the dead-zone tool
+  // history. Painted on resize only — zero per-frame cost (QUALITY.md
+  // latency law).
+  let deco = art.makeCanvas(1, 1);
+  deco.canvas.className = 'lid-deco';
+  deco.canvas.setAttribute('aria-hidden', 'true');
+  cur.canvas.after(deco.canvas);
   let hasp = art.makeCanvas(1, 1);
   hasp.canvas.className = 'hasp-canvas';
   haspWrap.append(hasp.canvas);
@@ -148,6 +219,284 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     });
   }
 
+  // ---- gauntlet ribbons -----------------------------------------------------
+
+  const rgbaOf = (hex, a) => {
+    const v = parseInt(hex.slice(1), 16);
+    return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`;
+  };
+
+  // Split a gauntlet's medallions into contiguous row runs (the 5-wide desktop
+  // grid wraps gauntlets II and IV across rows; the 3-wide portrait grid keeps
+  // each gauntlet to exactly one row).
+  function segmentsOf(group) {
+    const segs = [];
+    let segItems = [];
+    for (const item of group.items) {
+      const pos = layout[item.index];
+      if (!pos) continue;
+      const prev = segItems[segItems.length - 1];
+      if (prev && (Math.abs(pos.y - prev.pos.y) > pos.r * 0.9 || pos.x < prev.pos.x)) {
+        segs.push(segItems);
+        segItems = [];
+      }
+      segItems.push({ ...item, pos });
+    }
+    if (segItems.length) segs.push(segItems);
+    const first = group.g.locks[0];
+    const last = group.g.locks[group.g.locks.length - 1];
+    return segs.map((items) => ({
+      items,
+      // gonfalon ends: a swallow-tail V where the banner truly ends, a plain
+      // fold-under cut where it wraps to the next row of the grid
+      outerLeft: items[0].ordinal === first,
+      outerRight: items[items.length - 1].ordinal === last,
+    }));
+  }
+
+  function bannerGeometry(seg, w) {
+    const sockets = seg.items.map((it) => it.pos);
+    const r = sockets[0].r;
+    const bandH = Math.max(11, Math.min(19, r * 0.52));
+    const gapBelow = Math.max(4, r * 0.16);
+    // extend past the end sockets into the column gap / chest margin, clamped
+    // against the viewport and the neighbouring gauntlet's reach
+    let colGap = r * 4;
+    for (let i = 1; i < sockets.length; i++) colGap = Math.min(colGap, sockets[i].x - sockets[i - 1].x);
+    const ext = Math.max(r * 0.55, Math.min(r + 24, colGap / 2 - r - 5));
+    const x0 = Math.max(8, sockets[0].x - r - (seg.outerLeft ? ext : Math.max(2, ext * 0.4)));
+    const x1 = Math.min(w - 8, sockets[sockets.length - 1].x + r + (seg.outerRight ? ext : Math.max(2, ext * 0.4)));
+    const topAt = (x) => {
+      // follow the row's dome bow: piecewise-linear through the socket tops
+      if (x <= sockets[0].x) return sockets[0].y - r - gapBelow - bandH;
+      const lastS = sockets[sockets.length - 1];
+      if (x >= lastS.x) return lastS.y - r - gapBelow - bandH;
+      for (let i = 1; i < sockets.length; i++) {
+        const a = sockets[i - 1]; const b = sockets[i];
+        if (x <= b.x) {
+          const t = (x - a.x) / Math.max(1, b.x - a.x);
+          return (a.y + (b.y - a.y) * t) - r - gapBelow - bandH;
+        }
+      }
+      return lastS.y - r - gapBelow - bandH;
+    };
+    return { x0, x1, bandH, topAt, r };
+  }
+
+  function traceBanner(ctx, geo, seg) {
+    const { x0, x1, bandH, topAt } = geo;
+    const notch = bandH * 0.62;
+    const steps = 14;
+    ctx.beginPath();
+    ctx.moveTo(x0 + (seg.outerLeft ? 0 : 0), topAt(x0));
+    for (let i = 1; i <= steps; i++) {
+      const x = x0 + ((x1 - x0) * i) / steps;
+      ctx.lineTo(x, topAt(x));
+    }
+    if (seg.outerRight) {
+      ctx.lineTo(x1 - notch, topAt(x1) + bandH / 2); // swallow-tail V into the end
+      ctx.lineTo(x1, topAt(x1) + bandH);
+    } else {
+      ctx.lineTo(x1, topAt(x1) + bandH); // fold-under cut (continues next row)
+    }
+    for (let i = steps; i >= 0; i--) {
+      const x = x0 + ((x1 - x0) * i) / steps;
+      ctx.lineTo(x, topAt(x) + bandH);
+    }
+    if (seg.outerLeft) {
+      ctx.lineTo(x0 + notch, topAt(x0) + bandH / 2);
+    }
+    ctx.closePath();
+  }
+
+  // A short pennant flap hanging from a true banner end — only drawn where it
+  // clears the neighbouring medallion and the screen edge.
+  function drawFlap(ctx, xEdge, yBot, bandH, dir, nearestSocket, w, shade) {
+    const fw = bandH * 0.95;
+    const fl = bandH * 1.55;
+    const xIn = xEdge + dir * 2;
+    const xOut = xEdge + dir * (2 + fw);
+    if (xOut < 6 || xOut > w - 6) return;
+    if (nearestSocket) {
+      const clear = Math.min(Math.abs(xIn - nearestSocket.x), Math.abs(xOut - nearestSocket.x));
+      if (clear < nearestSocket.r + 4) return;
+    }
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(xIn, yBot - bandH * 0.55);
+    ctx.lineTo(xOut, yBot - bandH * 0.35);
+    ctx.lineTo(xOut - dir * fw * 0.08, yBot + fl * 0.62);
+    ctx.lineTo((xIn + xOut) / 2, yBot + fl * 0.3); // swallow notch
+    ctx.lineTo(xIn + dir * fw * 0.06, yBot + fl);
+    ctx.closePath();
+    ctx.fillStyle = p.blood;
+    ctx.fill();
+    ctx.fillStyle = `rgba(12,9,6,${0.3 + shade * 0.2})`; // turned-away fold, darker
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(12,9,6,.75)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,241,199,.14)';
+    ctx.beginPath();
+    ctx.moveTo(xIn, yBot - bandH * 0.5);
+    ctx.lineTo(xIn, yBot + fl * 0.85);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Abstract interlace device (docs/JARLS.md: knot devices, no new
+  // iconography) — a small seeded closed cross-loop, distinct per jarl.
+  function drawDevice(ctx, key, cx, cy, dia) {
+    if (typeof art.drawKnot !== 'function') return;
+    const r2 = rng(`banner-device:${key}`);
+    const n = 4 + r2.int(2);
+    const pts = [];
+    const rot = r2() * Math.PI;
+    for (let i = 0; i < n * 2; i++) {
+      const k = (i * (n - 1)) % (n * 2); // star-order visit forces crossings
+      const a = rot + (k / (n * 2)) * Math.PI * 2;
+      const rad = (dia / 2) * (i % 2 ? 0.55 : 1);
+      pts.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad]);
+    }
+    pts.push(pts[0].slice(), pts[1].slice());
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    art.drawKnot(ctx, pts, { width: Math.max(1.6, dia * 0.14), color: p.gold, gapAtCrossings: dia * 0.2 });
+    ctx.restore();
+  }
+
+  function paintBanner(ctx, group, w) {
+    const segs = segmentsOf(group);
+    if (!segs.length) return;
+    const alpha = group.active ? 1 : group.done ? 0.52 : 0.8;
+    const r3 = rng(`banner-folds:${group.g.key}`);
+    // the label sits on the longest run (ties -> the run holding the dare lock)
+    let labelSeg = segs[0];
+    for (const s of segs) {
+      if (s.items.length > labelSeg.items.length) labelSeg = s;
+      else if (s.items.length === labelSeg.items.length
+        && s.items.some((it) => it.ordinal === group.g.dareAt)) labelSeg = s;
+    }
+    for (const seg of segs) {
+      const geo = bannerGeometry(seg, w);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      // seating shadow first, then the cloth
+      ctx.save();
+      ctx.shadowColor = 'rgba(12,9,6,.65)';
+      ctx.shadowBlur = 5;
+      ctx.shadowOffsetY = 3;
+      traceBanner(ctx, geo, seg);
+      ctx.fillStyle = p.blood;
+      ctx.fill();
+      ctx.restore();
+      // layered field: gilded lip, daylight fade, tar-weighted hem
+      traceBanner(ctx, geo, seg);
+      ctx.save();
+      ctx.clip();
+      const yRef = geo.topAt((geo.x0 + geo.x1) / 2);
+      const g1 = ctx.createLinearGradient(0, yRef, 0, yRef + geo.bandH);
+      g1.addColorStop(0, 'rgba(238,207,109,.30)');
+      g1.addColorStop(0.14, 'rgba(255,241,199,.10)');
+      g1.addColorStop(0.45, 'rgba(12,9,6,.06)');
+      g1.addColorStop(1, 'rgba(12,9,6,.42)');
+      ctx.fillStyle = g1;
+      ctx.fillRect(geo.x0 - 2, yRef - geo.bandH, geo.x1 - geo.x0 + 4, geo.bandH * 3);
+      // cloth undulation: seeded vertical fold shadows + counter-lights
+      const folds = 2 + Math.round((geo.x1 - geo.x0) / 90);
+      for (let k = 0; k < folds; k++) {
+        const fx = geo.x0 + (geo.x1 - geo.x0) * ((k + 0.35 + r3() * 0.4) / folds);
+        const fwd = geo.bandH * (0.5 + r3() * 0.5);
+        const gf = ctx.createLinearGradient(fx - fwd, 0, fx + fwd, 0);
+        gf.addColorStop(0, 'rgba(12,9,6,0)');
+        gf.addColorStop(0.45, 'rgba(12,9,6,.16)');
+        gf.addColorStop(0.62, 'rgba(255,241,199,.05)');
+        gf.addColorStop(1, 'rgba(12,9,6,0)');
+        ctx.fillStyle = gf;
+        ctx.fillRect(fx - fwd, yRef - geo.bandH, fwd * 2, geo.bandH * 3);
+      }
+      if (!seg.outerRight) { // fold-under mark at a wrap cut
+        ctx.fillStyle = 'rgba(12,9,6,.3)';
+        ctx.fillRect(geo.x1 - 3, yRef - geo.bandH, 3, geo.bandH * 3);
+      }
+      if (!seg.outerLeft) {
+        ctx.fillStyle = 'rgba(12,9,6,.3)';
+        ctx.fillRect(geo.x0, yRef - geo.bandH, 3, geo.bandH * 3);
+      }
+      ctx.restore();
+      // edge: tar outline + a thin inner gold thread on the armed gauntlet
+      traceBanner(ctx, geo, seg);
+      ctx.strokeStyle = 'rgba(12,9,6,.8)';
+      ctx.lineWidth = 1.1;
+      ctx.stroke();
+      if (group.active || group.done) {
+        traceBanner(ctx, geo, seg);
+        ctx.strokeStyle = rgbaOf(p.goldBright, group.active ? 0.35 : 0.22);
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+      // hanging pennant flaps at the true ends — but only at row edges: two
+      // gauntlets meeting inside a row keep clean swallow-tail cuts instead
+      // (the flap pair crowded the shared column gap)
+      const rowEdgeClear = (xEdge, dir, sock) => !layout.some((s2) => s2 && s2 !== sock
+        && Math.abs(s2.y - sock.y) < sock.r
+        && (dir < 0 ? s2.x < sock.x : s2.x > sock.x)
+        && Math.abs(s2.x - xEdge) < sock.r + geo.bandH * 1.4 + 10);
+      const yB0 = geo.topAt(geo.x0) + geo.bandH;
+      const yB1 = geo.topAt(geo.x1) + geo.bandH;
+      const firstPos = seg.items[0].pos;
+      const lastPos = seg.items[seg.items.length - 1].pos;
+      if (seg.outerLeft && rowEdgeClear(geo.x0, -1, firstPos)) drawFlap(ctx, geo.x0, yB0, geo.bandH, -1, firstPos, w, r3());
+      if (seg.outerRight && rowEdgeClear(geo.x1, 1, lastPos)) drawFlap(ctx, geo.x1, yB1, geo.bandH, 1, lastPos, w, r3());
+      ctx.restore();
+      if (seg === labelSeg) {
+        const cx = (geo.x0 + geo.x1) / 2;
+        const cy = geo.topAt(cx) + geo.bandH / 2;
+        drawDevice(ctx, group.g.key, geo.x0 + geo.bandH * 1.5, cy, geo.bandH * 0.82);
+        if (group.label) {
+          const halfW = group.label.offsetWidth / 2 || 60;
+          const clampedX = Math.max(halfW + 6, Math.min(w - halfW - 6, cx));
+          group.label.style.left = `${clampedX}px`;
+          group.label.style.top = `${cy}px`;
+        }
+      }
+    }
+  }
+
+  function paintDeco() {
+    const w = deco.w;
+    const h = deco.h;
+    deco.ctx.clearRect(0, 0, w, h);
+    if (useChestLayout) {
+      const L = art.chestLayout(w, h, locks.length);
+      // quiet tool history in the dead zones around the chest — never on it
+      // (two seeded passes: the surround is the largest empty field on the
+      // screen and carries the density rubric's dead-zone law)
+      if (typeof art.wear === 'function') {
+        const avoid = { x: L.left - 12, y: L.top - 12, w: L.chestW + 24, h: L.chestH + 24 };
+        art.wear(deco.ctx, w, h, 'lid-hall', { avoid });
+        art.wear(deco.ctx, w, h, 'lid-hall-2', { avoid });
+      }
+      // chip-carved run just inside the screen edge (density law: the empty
+      // border carries carving, subordinate to the chest)
+      if (typeof art.chipBorder === 'function' && w > 360) {
+        art.chipBorder(deco.ctx, 10, 10, w - 20, h - 20, { size: 8, alpha: 0.7 });
+      }
+      if (typeof art.rosette === 'function') {
+        for (const [rx, ry] of [[30, 30], [w - 30, 30], [30, h - 30], [w - 30, h - 30]]) {
+          art.rosette(deco.ctx, rx, ry, 11, { alpha: 0.55 });
+        }
+      }
+      // the wordmark echo in the top strip, small — the hall remembers whose
+      // roof this is without competing with the chest
+      if (typeof art.wordmark === 'function' && L.top > 56) {
+        const size = Math.max(15, Math.min(24, L.top * 0.2));
+        art.wordmark(deco.ctx, w / 2, Math.max(34, L.top * 0.44), size, { maxWidth: w * 0.7, depth: 0.75 });
+      }
+    }
+    for (const group of gauntletGroups) paintBanner(deco.ctx, group, w);
+  }
+
   function layoutMedallions() {
     const w = screen.clientWidth;
     const h = screen.clientHeight;
@@ -161,18 +510,6 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       btn.style.top = `${pos.y}px`;
       btn.style.setProperty('--mr', `${Math.max(44, pos.r * 2)}px`);
     });
-    if (nextLock) {
-      const idx = locks.indexOf(nextLock);
-      const pos = layout[idx];
-      if (pos) {
-        // Keep the (translate(-50%)) banner fully inside the viewport — anchored
-        // dead on a rightmost medallion it hung off the screen edge at 390px.
-        const halfW = duelBanner.offsetWidth / 2 || 80;
-        const clampedX = Math.max(halfW + 8, Math.min(w - halfW - 8, pos.x));
-        duelBanner.style.left = `${clampedX}px`;
-        duelBanner.style.top = `${pos.y - pos.r - 14}px`;
-      }
-    }
   }
 
   function resize() {
@@ -182,6 +519,12 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     fresh.canvas.className = 'lid-canvas';
     screen.replaceChild(fresh.canvas, cur.canvas);
     cur = fresh;
+    const freshDeco = art.makeCanvas(w, h);
+    freshDeco.canvas.className = 'lid-deco';
+    freshDeco.canvas.setAttribute('aria-hidden', 'true');
+    screen.replaceChild(freshDeco.canvas, deco.canvas);
+    deco = freshDeco;
+    cur.canvas.after(deco.canvas);
     // Sit the shard tally on the carved hasp rail of the painted chest rather
     // than at a fixed offset from the bottom of the viewport, where it floated
     // on bare board below the chest.
@@ -198,6 +541,7 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     haspWrap.replaceChild(freshHasp.canvas, hasp.canvas);
     hasp = freshHasp;
     layoutMedallions();
+    paintDeco();
     paint(reducedMotion ? 0 : performance.now() - mountedAt);
     paintHasp();
   }

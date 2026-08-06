@@ -1,0 +1,132 @@
+[
+ {
+  "vp": "desk",
+  "box": {
+   "w": 820,
+   "h": 1380
+  },
+  "scrollH": 1380,
+  "occupancy": 0.472,
+  "largestVoid": 0.22,
+  "gap": 0,
+  "nCanvas": 20,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 880,
+    "h": 1044,
+    "cssW": 440,
+    "cssH": 522,
+    "ink": 918720,
+    "cover": 1
+   },
+   {
+    "w": 880,
+    "h": 1044,
+    "cssW": 440,
+    "cssH": 522,
+    "ink": 165187,
+    "cover": 0.18
+   },
+   {
+    "w": 400,
+    "h": 52,
+    "cssW": 200,
+    "cssH": 26,
+    "ink": 20800,
+    "cover": 1
+   },
+   {
+    "w": 720,
+    "h": 1072,
+    "cssW": 360,
+    "cssH": 536,
+    "ink": 771840,
+    "cover": 1
+   },
+   {
+    "w": 152,
+    "h": 160,
+    "cssW": 76,
+    "cssH": 80,
+    "ink": 23003,
+    "cover": 0.946
+   },
+   {
+    "w": 152,
+    "h": 160,
+    "cssW": 76,
+    "cssH": 80,
+    "ink": 23003,
+    "cover": 0.946
+   }
+  ],
+  "under44": [],
+  "consoleErrors": []
+ },
+ {
+  "vp": "phone",
+  "box": {
+   "w": 366,
+   "h": 932
+  },
+  "scrollH": 932,
+  "occupancy": 0.923,
+  "largestVoid": 0.043,
+  "gap": 1,
+  "nCanvas": 20,
+  "blankCanvas": 0,
+  "canvases": [
+   {
+    "w": 724,
+    "h": 600,
+    "cssW": 362,
+    "cssH": 300,
+    "ink": 434400,
+    "cover": 1
+   },
+   {
+    "w": 724,
+    "h": 600,
+    "cssW": 362,
+    "cssH": 300,
+    "ink": 80656,
+    "cover": 0.186
+   },
+   {
+    "w": 340,
+    "h": 44,
+    "cssW": 170,
+    "cssH": 22,
+    "ink": 14960,
+    "cover": 1
+   },
+   {
+    "w": 716,
+    "h": 764,
+    "cssW": 358,
+    "cssH": 382,
+    "ink": 547024,
+    "cover": 1
+   },
+   {
+    "w": 158,
+    "h": 120,
+    "cssW": 79,
+    "cssH": 60,
+    "ink": 17779,
+    "cover": 0.938
+   },
+   {
+    "w": 158,
+    "h": 120,
+    "cssW": 79,
+    "cssH": 60,
+    "ink": 17779,
+    "cover": 0.938
+   }
+  ],
+  "under44": [],
+  "consoleErrors": []
+ }
+]

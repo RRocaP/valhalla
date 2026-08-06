@@ -1,0 +1,200 @@
+[
+ {
+  "vp": "motion",
+  "showing": {
+   "up": true,
+   "moved": true
+  },
+  "contrast": [
+   {
+    "label": "plank name",
+    "fg": [
+     233,
+     220,
+     195
+    ],
+    "bg": [
+     51,
+     32,
+     15
+    ],
+    "size": "13.5px",
+    "ratio": 11.44
+   },
+   {
+    "label": "tally-board line",
+    "fg": [
+     233,
+     220,
+     195
+    ],
+    "bg": [
+     55,
+     35,
+     18
+    ],
+    "size": "13px",
+    "ratio": 10.97
+   },
+   {
+    "label": "tally-board rivets",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": [
+     47,
+     29,
+     14
+    ],
+    "size": "12px",
+    "ratio": 6.96
+   },
+   {
+    "label": "sheer/keel label",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": null,
+    "size": "11.5px",
+    "ratio": null
+   },
+   {
+    "label": "tally text",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": null,
+    "size": "14px",
+    "ratio": null
+   },
+   {
+    "label": "law",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": null,
+    "size": "12px",
+    "ratio": null
+   },
+   {
+    "label": "help",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": null,
+    "size": "12px",
+    "ratio": null
+   }
+  ],
+  "errors": []
+ },
+ {
+  "vp": "calm",
+  "showing": {
+   "up": true,
+   "moved": false
+  },
+  "contrast": [
+   {
+    "label": "plank name",
+    "fg": [
+     233,
+     220,
+     195
+    ],
+    "bg": [
+     51,
+     32,
+     15
+    ],
+    "size": "13.5px",
+    "ratio": 11.44
+   },
+   {
+    "label": "tally-board line",
+    "fg": [
+     233,
+     220,
+     195
+    ],
+    "bg": [
+     55,
+     35,
+     18
+    ],
+    "size": "13px",
+    "ratio": 10.97
+   },
+   {
+    "label": "tally-board rivets",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": [
+     47,
+     29,
+     14
+    ],
+    "size": "12px",
+    "ratio": 6.96
+   },
+   {
+    "label": "sheer/keel label",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": null,
+    "size": "11.5px",
+    "ratio": null
+   },
+   {
+    "label": "tally text",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": null,
+    "size": "14px",
+    "ratio": null
+   },
+   {
+    "label": "law",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": null,
+    "size": "12px",
+    "ratio": null
+   },
+   {
+    "label": "help",
+    "fg": [
+     183,
+     169,
+     140
+    ],
+    "bg": null,
+    "size": "12px",
+    "ratio": null
+   }
+  ],
+  "errors": []
+ }
+]

@@ -1,0 +1,18 @@
+motion: showing up=true moved=true errors=0
+   plank name           13.5px  ratio=11.44 OK
+   tally-board line     13px    ratio=10.97 OK
+   tally-board rivets   12px    ratio=6.96 OK
+   sheer/keel label     11.5px  ratio=null (no painted bg sampled)
+   tally text           14px    ratio=null (no painted bg sampled)
+   law                  12px    ratio=null (no painted bg sampled)
+   help                 12px    ratio=null (no painted bg sampled)
+calm: showing up=true moved=false errors=0
+   plank name           13.5px  ratio=11.44 OK
+   tally-board line     13px    ratio=10.97 OK
+   tally-board rivets   12px    ratio=6.96 OK
+   sheer/keel label     11.5px  ratio=null (no painted bg sampled)
+   tally text           14px    ratio=null (no painted bg sampled)
+   law                  12px    ratio=null (no painted bg sampled)
+   help                 12px    ratio=null (no painted bg sampled)
+MOTION LAW: drifts with motion, holds still under reduce
+CONTRAST: all sampled runs >= 4.5

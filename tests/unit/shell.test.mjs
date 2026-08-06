@@ -10,7 +10,7 @@ import {
 } from '../../src/shell/progress.js';
 import { formatTimestamp, journalLine, pushJournal, hintTakenLine } from '../../src/shell/journal.js';
 import { toRoman, ordinalWord } from '../../src/shell/numerals.js';
-import { DUELS, DUEL_ORDER, DUEL_CAST, duelFor, isDuelOrdinal } from '../../src/shell/duels.js';
+import { GAUNTLETS, DUEL_CAST, dareFor, heckleFor, yieldFor, lineFor, WAGER } from '../../src/shell/duels.js';
 
 // In-memory localStorage-shaped mock.
 function mockStorage(initial = {}) {
@@ -195,31 +195,32 @@ describe('progress: lock gating (sealed/next/open)', () => {
   });
 });
 
-describe('duels (docs/JARLS.md, frozen mapping)', () => {
-  test('exactly locks 3/6/9/12/15 are duels; everything else is not', () => {
+describe('gauntlets (docs/JARLS.md v3, frozen chapters)', () => {
+  test('five gauntlets of three: dare 1/4/7/10/13, heckle 2/5/8/11/14, yield 3/6/9/12/15', () => {
+    assert.deepEqual(GAUNTLETS.map((g) => g.dareAt), [1, 4, 7, 10, 13]);
+    assert.deepEqual(GAUNTLETS.map((g) => g.heckleAt), [2, 5, 8, 11, 14]);
+    assert.deepEqual(GAUNTLETS.map((g) => g.yieldAt), [3, 6, 9, 12, 15]);
     for (let ord = 1; ord <= 15; ord++) {
-      assert.equal(isDuelOrdinal(ord), [3, 6, 9, 12, 15].includes(ord));
+      assert.equal(!!dareFor(ord), [1, 4, 7, 10, 13].includes(ord), `dare at ${ord}`);
+      assert.equal(!!heckleFor(ord), [2, 5, 8, 11, 14].includes(ord), `heckle at ${ord}`);
+      assert.equal(!!yieldFor(ord), [3, 6, 9, 12, 15].includes(ord), `yield at ${ord}`);
     }
   });
 
-  test('duelFor returns the frozen challenger for a duel ordinal, null otherwise', () => {
-    assert.equal(duelFor(3).name, 'JARL BOURJ');
-    assert.equal(duelFor(15).key, 'arya');
-    assert.equal(duelFor(1), null);
-    assert.equal(duelFor(7), null);
-  });
-
-  test('every duel entry has a key, name, taunt, and yield line', () => {
-    for (const ord of DUEL_ORDER) {
-      const d = DUELS[ord];
-      assert.equal(typeof d.key, 'string');
-      assert.equal(typeof d.name, 'string');
-      assert.ok(d.taunt.length > 0);
-      assert.ok(d.yield.length > 0);
+  test('the cast holds: Bourj first, Ärya last; lines are trilingual and non-empty', () => {
+    assert.equal(dareFor(1).name, 'JARL BOURJ');
+    assert.equal(yieldFor(15).key, 'arya');
+    for (const g of GAUNTLETS) {
+      for (const line of [g.taunt, g.heckle, g.yield, g.title]) {
+        for (const lang of ['en', 'es', 'ca']) {
+          assert.ok(lineFor(line, lang).length > 0, `${g.key} ${lang}`);
+        }
+      }
     }
+    for (const lang of ['en', 'es', 'ca']) assert.ok(lineFor(WAGER, lang).length > 40);
   });
 
-  test('DUEL_CAST is in duel order (matches the credits "THE CHALLENGERS" order)', () => {
+  test('DUEL_CAST is in gauntlet order (matches the credits "THE CHALLENGERS" order)', () => {
     assert.deepEqual(DUEL_CAST.map((c) => c.key), ['bourj', 'rois', 'andreas', 'folklore', 'arya']);
   });
 });

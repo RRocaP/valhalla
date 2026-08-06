@@ -47,6 +47,7 @@
 // wins inside the limit; the generator guarantees there is only one.
 
 import { SHARDS } from '../kernel/shards.js';
+import { localizeNear } from '../kernel/i18n.js';
 
 const ID = '07-tafl';
 const SIZE = 7;
@@ -521,13 +522,92 @@ function wrongAnswers(instance) {
   return out.slice(0, 10);
 }
 
+// ---- canonical near-lines --------------------------------------------------
+// `verify` stays pure and returns English (CONTRACT §4.1 amendment); these
+// builders restate its templates verbatim so `i18n.nearMap` can key every line
+// it can emit. `line.length <= instance.limit`, so the move index runs 1..LIMIT.
+
+const NEAR_ILLEGAL = (m) => `Move ${m} is not a move the king's side can make.`;
+const NEAR_LOST = (m) => `The king was lost on move ${m}.`;
+const NEAR_TAKEN = (m) => `The attackers took the king after move ${m}.`;
+const NEAR_SHORT = 'The line runs out and the king still stands short of a corner.';
+
+export const NEAR_LINES = Object.freeze([
+  ...Array.from({ length: LIMIT }, (_, k) => NEAR_ILLEGAL(k + 1)),
+  ...Array.from({ length: LIMIT }, (_, k) => NEAR_LOST(k + 1)),
+  ...Array.from({ length: LIMIT }, (_, k) => NEAR_TAKEN(k + 1)),
+  NEAR_SHORT,
+]);
+
 // ---- view ------------------------------------------------------------------
+
+// Board copy. English is the source; es/ca live in the additive i18n block
+// (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
+// Artifact-tongue law: the board's own cell names (a1..g7) never translate.
+const BOARD_EN = {
+  ask: 'March the king to a corner within the counted moves. The attackers answer every step.',
+  // the law reads as one paragraph; each segment is a separate <b>/<span> run
+  lawGame: 'Brandubh. ',
+  lawYours: 'Yours are the ',
+  lawKing: 'gold king',
+  lawAnd: ' and the ',
+  lawDefenders: 'pale defenders',
+  lawThe: '; the ',
+  lawAttackers: 'dark attackers',
+  lawPolicy: ' answer each of your moves by a fixed published policy — they take if they can, otherwise they play whatever lengthens the king’s road. Every piece slides like a rook: any distance along a rank or file, through empty squares only. Only the king may stand on or pass through the four marked corners or the centre throne. A piece is taken when enemies close on it from both sides; walking between two enemies of your own accord is safe. ',
+  lawGoal: 'Stand the king on any corner within {limit} moves.',
+  lawTap: ' Tap or Enter on a piece of yours to lift it — the squares it may take are marked.',
+  ariaBoard: 'brandubh board, 7 by 7',
+  undo: 'Take back',
+  submit: 'Swear the road',
+  statusMove: 'Move {n} of {limit}. ',
+  statusFallen: 'The king has fallen — take the move back.',
+  statusKing: 'King on {cell}; {road}.',
+  roadNone: 'no road to a corner',
+  roadOne: '1 move of open road',
+  roadMany: '{n} moves of open road',
+  attacker: 'Attacker {from}–{to}',
+  kingSide: "King's side {from}–{to}",
+  taking: ', taking {cells}',
+  and: ' and ',
+  kingOut: 'The king stands on {cell}. The road is open.',
+  sayOut: 'The king is out.',
+  saySpent: 'The last move is spent.',
+  sayBack: 'Taken back.',
+  noteBack: 'The move is taken back.',
+  lifted: 'Lifted the {what} on {cell}; it may go to {list}.',
+  pieceKing: 'king',
+  pieceDefender: 'defender',
+  nowhere: 'nowhere',
+  noteOpen: "Brandubh endgame. The king's side moves first; the attackers answer by their published policy. The king must stand on a corner within {limit} moves.",
+  notePos: 'King on {king}; defenders on {defenders}; attackers on {attackers}.',
+  none: 'none',
+  fallback: 'That road does not open the corner.',
+};
+
+/** the law paragraph, segment by segment: [copy key, rendered bold?] */
+const LAW_RUN = Object.freeze([
+  ['lawGame', 1], ['lawYours', 0], ['lawKing', 1], ['lawAnd', 0], ['lawDefenders', 1],
+  ['lawThe', 0], ['lawAttackers', 1], ['lawPolicy', 0], ['lawGoal', 1], ['lawTap', 0],
+]);
 
 function mount(ctx) {
   const { root, instance, art, audio } = ctx;
   const P = art.palette;
   const reduced = typeof matchMedia === 'function'
     && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Board copy resolves against ctx.lang; en falls through to the frozen source
+  // (and #autotest pins the shell to en, so the driver label contracts hold).
+  const lang = ctx.lang || 'en';
+  const LOC = I18N[lang] || {};
+  const L = LOC.board || {};
+  const T = (key, params) => {
+    let s = key in L ? L[key] : BOARD_EN[key];
+    if (params) for (const k of Object.keys(params)) s = s.split(`{${k}}`).join(String(params[k]));
+    return s;
+  };
+  const nearOf = (near) => localizeNear(near, LOC.nearMap || {});
 
   // every listener is tracked so unmount can take them all back down
   const bound = [];
@@ -558,25 +638,28 @@ function mount(ctx) {
   .ow-tafl .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch;align-self:center}
   .ow-tafl .law b{color:${P.bone};font-weight:600}
   .ow-tafl .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
+  /* the carved plate: one plain sentence saying what the lock asks, always visible */
+  .ow-tafl .ask{margin:0;align-self:center;max-width:64ch;font-size:.92rem;line-height:1.4;
+    color:${P.goldBright};background:linear-gradient(180deg,${P.oak},${P.oakDeep});
+    border:1px solid ${P.tar};border-left:3px solid ${P.gold};border-radius:4px;
+    padding:.5rem .65rem;box-shadow:inset 0 1px 0 rgba(233,220,195,.1),0 1px 2px rgba(12,9,6,.5)}
   #app .ow-tafl button{min-width:44px}`;
   wrap.appendChild(style);
 
   // Brandubh is not common knowledge. The board's own laws (R1-R7 above) belong
   // on the board, not only in the journal drawer.
+  const ask = document.createElement('p');
+  ask.className = 'ask';
+  ask.textContent = T('ask');
+  wrap.appendChild(ask);
+
   const law = document.createElement('p');
   law.className = 'law';
-  for (const [text, strong] of [
-    ['Brandubh. ', 1],
-    ['Yours are the ', 0],
-    ['gold king', 1],
-    [' and the ', 0],
-    ['pale defenders', 1],
-    ['; the ', 0],
-    ['dark attackers', 1],
-    [' answer each of your moves by a fixed published policy — they take if they can, otherwise they play whatever lengthens the king’s road. Every piece slides like a rook: any distance along a rank or file, through empty squares only. Only the king may stand on or pass through the four marked corners or the centre throne. A piece is taken when enemies close on it from both sides; walking between two enemies of your own accord is safe. ', 0],
-    [`Stand the king on any corner within ${instance.limit} moves.`, 1],
-    [' Tap or Enter on a piece of yours to lift it — the squares it may take are marked.', 0],
-  ]) law.appendChild(Object.assign(document.createElement(strong ? 'b' : 'span'), { textContent: text }));
+  for (const [key, strong] of LAW_RUN) {
+    law.appendChild(Object.assign(document.createElement(strong ? 'b' : 'span'), {
+      textContent: T(key, { limit: instance.limit }),
+    }));
+  }
 
   const SQ = 40;
   const PAD = 8;
@@ -585,7 +668,7 @@ function mount(ctx) {
   holder.className = 'board';
   holder.tabIndex = 0;
   holder.setAttribute('role', 'application');
-  holder.setAttribute('aria-label', 'brandubh board, 7 by 7');
+  holder.setAttribute('aria-label', T('ariaBoard'));
   wrap.appendChild(holder);
 
   const say = document.createElement('div');
@@ -597,11 +680,11 @@ function mount(ctx) {
   bar.className = 'bar';
   const undo = document.createElement('button');
   undo.type = 'button';
-  undo.textContent = 'Take back';
+  undo.textContent = T('undo');
   const send = document.createElement('button');
   send.type = 'button';
   send.className = 'btn-carved'; // one primary-action language: the carved gold plate
-  send.textContent = 'Swear the road';
+  send.textContent = T('submit');
   bar.appendChild(undo);
   bar.appendChild(send);
   wrap.appendChild(bar);
@@ -621,10 +704,12 @@ function mount(ctx) {
   let raf = 0;
   let anim = null;
 
+  // artifact tongue: the board's own cell names never translate
   const cellName = (i) => {
     const [r, c] = rc(i);
     return `${'abcdefg'[c]}${SIZE - r}`;
   };
+  const listOf = (cells) => cells.map(cellName).join(T('and'));
 
   function targets() {
     if (selected < 0) return [];
@@ -790,17 +875,20 @@ function mount(ctx) {
 
   function status(extra) {
     const road = kingRoad(state);
-    say.textContent = `${extra ? extra + ' ' : ''}Move ${line.length} of ${instance.limit}. `
-      + (state.king < 0 ? 'The king has fallen — take the move back.'
-        : `King on ${cellName(state.king)}; ${road === -1 ? 'no road to a corner' : `${road} move${road === 1 ? '' : 's'} of open road`}.`);
+    const roadLine = road === -1 ? T('roadNone')
+      : (road === 1 ? T('roadOne') : T('roadMany', { n: road }));
+    say.textContent = `${extra ? extra + ' ' : ''}`
+      + T('statusMove', { n: line.length, limit: instance.limit })
+      + (state.king < 0 ? T('statusFallen')
+        : T('statusKing', { cell: cellName(state.king), road: roadLine }));
   }
 
   function playAttacker(after) {
     const reply = attackerReply(after);
     if (!reply) { state = after; finish(''); return; }
     const step = applyMove(after, reply[0], reply[1], 'attacker');
-    const tell = `Attacker ${cellName(reply[0])}–${cellName(reply[1])}`
-      + (step.taken.length ? `, taking ${step.taken.map(cellName).join(' and ')}` : '') + '.';
+    const tell = T('attacker', { from: cellName(reply[0]), to: cellName(reply[1]) })
+      + (step.taken.length ? T('taking', { cells: listOf(step.taken) }) : '') + '.';
     const commit = () => {
       state = step.state;
       ctx.note(tell);
@@ -827,16 +915,16 @@ function mount(ctx) {
     const step = applyMove(state, from, to, 'king');
     line = line.concat([[from, to]]);
     selected = -1;
-    ctx.note(`King's side ${cellName(from)}–${cellName(to)}`
-      + (step.taken.length ? `, taking ${step.taken.map(cellName).join(' and ')}` : '') + '.');
+    ctx.note(T('kingSide', { from: cellName(from), to: cellName(to) })
+      + (step.taken.length ? T('taking', { cells: listOf(step.taken) }) : '') + '.');
     audio.ui('knock');
     if (step.state.king >= 0 && isCorner(step.state.king)) {
       state = step.state;
-      ctx.note(`The king stands on ${cellName(state.king)}. The road is open.`);
-      finish('The king is out.');
+      ctx.note(T('kingOut', { cell: cellName(state.king) }));
+      finish(T('sayOut'));
       return;
     }
-    if (line.length >= instance.limit) { state = step.state; finish('The last move is spent.'); return; }
+    if (line.length >= instance.limit) { state = step.state; finish(T('saySpent')); return; }
     playAttacker(step.state);
   }
 
@@ -856,7 +944,11 @@ function mount(ctx) {
     selected = mine && selected !== cell ? cell : -1;
     if (selected >= 0) {
       audio.ui('tick');
-      ctx.note(`Lifted the ${selected === state.king ? 'king' : 'defender'} on ${cellName(selected)}; it may go to ${targets().map(cellName).join(', ') || 'nowhere'}.`);
+      ctx.note(T('lifted', {
+        what: selected === state.king ? T('pieceKing') : T('pieceDefender'),
+        cell: cellName(selected),
+        list: targets().map(cellName).join(', ') || T('nowhere'),
+      }));
     }
     draw();
     status('');
@@ -886,19 +978,23 @@ function mount(ctx) {
     line = back.line;
     selected = -1;
     audio.ui('flip');
-    ctx.note('The move is taken back.');
-    finish('Taken back.');
+    ctx.note(T('noteBack'));
+    finish(T('sayBack'));
   });
 
   on(send, 'click', () => {
     if (!line.length) return;
     const res = ctx.submit({ line: line.map(([from, to]) => [rc(from), rc(to)]) }) || {};
-    if (!res.ok) { tell.textContent = res.near || 'That road does not open the corner.'; if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
+    if (!res.ok) { tell.textContent = nearOf(res.near) || T('fallback'); if (tell.scrollIntoView) tell.scrollIntoView({ block: 'nearest' }); }
   });
 
   root.appendChild(wrap);
-  ctx.note(`Brandubh endgame. The king's side moves first; the attackers answer by their published policy. The king must stand on a corner within ${instance.limit} moves.`);
-  ctx.note(`King on ${cellName(instance.king)}; defenders on ${instance.defenders.map(cellName).join(', ') || 'none'}; attackers on ${instance.attackers.map(cellName).join(', ')}.`);
+  ctx.note(T('noteOpen', { limit: instance.limit }));
+  ctx.note(T('notePos', {
+    king: cellName(instance.king),
+    defenders: instance.defenders.map(cellName).join(', ') || T('none'),
+    attackers: instance.attackers.map(cellName).join(', '),
+  }));
   if (ctx.solved) {
     send.disabled = true;
     undo.disabled = true;
@@ -914,6 +1010,133 @@ function mount(ctx) {
     },
   };
 }
+
+// ---------------------------------------------------------------------- i18n
+// Additive per-lock block (docs/CONTRACT.md §4.1 amendment). English lives in
+// the frozen fields below; `nearMap` keys are the canonical English near-lines.
+// The board's cell names (a1..g7) and the game's own name keep their tongue.
+const I18N = {
+  es: {
+    title: 'El Camino del Rey',
+    epigraph: 'El tablero es pequeño y las esquinas quedan lejos. Todo camino menos uno es una trampa.',
+    hints: [
+      'Los atacantes no piensan. Capturan cuando pueden, y si no, alargan tu camino — siempre del mismo modo, siempre igual.',
+      'La jugada que más acorta el camino del rey es la que les regala una captura. Cuenta lo que hay más allá de la casilla en que te posas.',
+      'Juega la jugada que su norma no sabe responder, no la que más terreno gana. Su respuesta es fija — léela entera antes de comprometerte.',
+    ],
+    nearMap: {
+      [NEAR_ILLEGAL(1)]: 'La jugada 1 no es una jugada que el bando del rey pueda hacer.',
+      [NEAR_ILLEGAL(2)]: 'La jugada 2 no es una jugada que el bando del rey pueda hacer.',
+      [NEAR_ILLEGAL(3)]: 'La jugada 3 no es una jugada que el bando del rey pueda hacer.',
+      [NEAR_LOST(1)]: 'El rey se perdió en la jugada 1.',
+      [NEAR_LOST(2)]: 'El rey se perdió en la jugada 2.',
+      [NEAR_LOST(3)]: 'El rey se perdió en la jugada 3.',
+      [NEAR_TAKEN(1)]: 'Los atacantes tomaron al rey tras la jugada 1.',
+      [NEAR_TAKEN(2)]: 'Los atacantes tomaron al rey tras la jugada 2.',
+      [NEAR_TAKEN(3)]: 'Los atacantes tomaron al rey tras la jugada 3.',
+      [NEAR_SHORT]: 'La línea se agota y el rey sigue lejos de una esquina.',
+    },
+    board: {
+      ask: 'Lleva al rey a una esquina dentro de las jugadas contadas. Los atacantes responden a cada paso.',
+      lawGame: 'Brandubh. ',
+      lawYours: 'Tuyos son el ',
+      lawKing: 'rey de oro',
+      lawAnd: ' y los ',
+      lawDefenders: 'defensores pálidos',
+      lawThe: '; los ',
+      lawAttackers: 'atacantes oscuros',
+      lawPolicy: ' responden a cada jugada tuya con una norma fija y publicada: toman si pueden, y si no, juegan lo que más alargue el camino del rey. Toda pieza corre como una torre: cualquier distancia por su fila o su columna, y solo por casillas vacías. Únicamente el rey puede posarse en las cuatro esquinas marcadas o en el trono del centro, o pasar por ellas. Una pieza cae cuando los enemigos la cierran por ambos lados; entrar por tu propia voluntad entre dos enemigos es seguro. ',
+      lawGoal: 'Pon al rey en cualquier esquina en {limit} jugadas.',
+      lawTap: ' Toca o pulsa Intro sobre una pieza tuya para alzarla — las casillas que puede tomar quedan marcadas.',
+      ariaBoard: 'tablero de brandubh, 7 por 7',
+      undo: 'Retirar la jugada',
+      submit: 'Jurar el camino',
+      statusMove: 'Jugada {n} de {limit}. ',
+      statusFallen: 'El rey ha caído — retira la jugada.',
+      statusKing: 'Rey en {cell}; {road}.',
+      roadNone: 'sin camino a esquina alguna',
+      roadOne: '1 jugada de camino abierto',
+      roadMany: '{n} jugadas de camino abierto',
+      attacker: 'Atacante {from}–{to}',
+      kingSide: 'El bando del rey {from}–{to}',
+      taking: ', tomando {cells}',
+      and: ' y ',
+      kingOut: 'El rey se alza en {cell}. El camino queda abierto.',
+      sayOut: 'El rey ha salido.',
+      saySpent: 'La última jugada está gastada.',
+      sayBack: 'Jugada retirada.',
+      noteBack: 'La jugada queda retirada.',
+      lifted: 'Alzado el {what} en {cell}; puede ir a {list}.',
+      pieceKing: 'rey',
+      pieceDefender: 'defensor',
+      nowhere: 'ningún sitio',
+      noteOpen: 'Final de brandubh. El bando del rey mueve primero; los atacantes responden con su norma publicada. El rey ha de alzarse en una esquina en {limit} jugadas.',
+      notePos: 'Rey en {king}; defensores en {defenders}; atacantes en {attackers}.',
+      none: 'ninguno',
+      fallback: 'Ese camino no abre la esquina.',
+    },
+  },
+  ca: {
+    title: 'El Camí del Rei',
+    epigraph: 'El tauler és petit i les cantonades queden lluny. Tot camí llevat d’un és un parany.',
+    hints: [
+      'Els atacants no pensen. Capturen quan poden, i si no, allarguen el teu camí — sempre de la mateixa manera, sempre igual.',
+      'La jugada que més escurça el camí del rei és la que els regala una captura. Compta què hi ha més enllà de la casella on et poses.',
+      'Juga la jugada que la seva norma no sap respondre, no la que més terreny guanya. La seva resposta és fixa — llegeix-la sencera abans de comprometre’t.',
+    ],
+    nearMap: {
+      [NEAR_ILLEGAL(1)]: 'La jugada 1 no és una jugada que el bàndol del rei pugui fer.',
+      [NEAR_ILLEGAL(2)]: 'La jugada 2 no és una jugada que el bàndol del rei pugui fer.',
+      [NEAR_ILLEGAL(3)]: 'La jugada 3 no és una jugada que el bàndol del rei pugui fer.',
+      [NEAR_LOST(1)]: 'El rei es va perdre a la jugada 1.',
+      [NEAR_LOST(2)]: 'El rei es va perdre a la jugada 2.',
+      [NEAR_LOST(3)]: 'El rei es va perdre a la jugada 3.',
+      [NEAR_TAKEN(1)]: 'Els atacants van prendre el rei després de la jugada 1.',
+      [NEAR_TAKEN(2)]: 'Els atacants van prendre el rei després de la jugada 2.',
+      [NEAR_TAKEN(3)]: 'Els atacants van prendre el rei després de la jugada 3.',
+      [NEAR_SHORT]: 'La línia s’exhaureix i el rei encara resta lluny d’una cantonada.',
+    },
+    board: {
+      ask: 'Mena el rei a una cantonada dins les jugades comptades. Els atacants responen a cada passa.',
+      lawGame: 'Brandubh. ',
+      lawYours: 'Teus són el ',
+      lawKing: 'rei d’or',
+      lawAnd: ' i els ',
+      lawDefenders: 'defensors pàl·lids',
+      lawThe: '; els ',
+      lawAttackers: 'atacants foscos',
+      lawPolicy: ' responen a cada jugada teva amb una norma fixa i publicada: prenen si poden, i si no, juguen allò que més allargui el camí del rei. Tota peça corre com una torre: qualsevol distància per la seva fila o la seva columna, i només per caselles buides. Només el rei pot posar-se a les quatre cantonades marcades o al tron del centre, o passar-hi. Una peça cau quan els enemics la tanquen pels dos costats; entrar per voluntat pròpia entre dos enemics és segur. ',
+      lawGoal: 'Posa el rei a qualsevol cantonada en {limit} jugades.',
+      lawTap: ' Toca o prem Retorn sobre una peça teva per alçar-la — les caselles que pot prendre queden marcades.',
+      ariaBoard: 'tauler de brandubh, 7 per 7',
+      undo: 'Retirar la jugada',
+      submit: 'Jurar el camí',
+      statusMove: 'Jugada {n} de {limit}. ',
+      statusFallen: 'El rei ha caigut — retira la jugada.',
+      statusKing: 'Rei a {cell}; {road}.',
+      roadNone: 'sense camí a cap cantonada',
+      roadOne: '1 jugada de camí obert',
+      roadMany: '{n} jugades de camí obert',
+      attacker: 'Atacant {from}–{to}',
+      kingSide: 'El bàndol del rei {from}–{to}',
+      taking: ', prenent {cells}',
+      and: ' i ',
+      kingOut: 'El rei s’alça a {cell}. El camí queda obert.',
+      sayOut: 'El rei ha sortit.',
+      saySpent: 'La darrera jugada és gastada.',
+      sayBack: 'Jugada retirada.',
+      noteBack: 'La jugada queda retirada.',
+      lifted: 'Alçat el {what} a {cell}; pot anar a {list}.',
+      pieceKing: 'rei',
+      pieceDefender: 'defensor',
+      nowhere: 'enlloc',
+      noteOpen: 'Final de brandubh. El bàndol del rei mou primer; els atacants responen amb la seva norma publicada. El rei s’ha d’alçar en una cantonada en {limit} jugades.',
+      notePos: 'Rei a {king}; defensors a {defenders}; atacants a {attackers}.',
+      none: 'cap',
+      fallback: 'Aquest camí no obre la cantonada.',
+    },
+  },
+};
 
 export default {
   id: ID,
@@ -935,6 +1158,8 @@ export default {
     'The move that shortens the king’s road most is the move that hands them a capture. Count what stands beyond the square you land on.',
     'Play the move their policy cannot answer, not the move that gains the most ground. Their reply is fixed — read it out before you commit to anything.',
   ],
+
+  i18n: I18N,
 
   mount,
 };
