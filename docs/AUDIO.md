@@ -71,7 +71,7 @@ Two same-origin files: `./music.mp3` (gameplay, **loops exquisitely**) and
 - Autoplay discipline unchanged: nothing before `enable()`.
 
 Scale discipline: everything melodic lives in A minor pentatonic (A2–A4 range)
-so overlapping cues never clash. `deny` is non-musical (dull wood thud + short
+so overlapping cues never clash. `deny` is non-musical (LOW felted thud + brief sub drop — never a buzz; amended 2026-08-07 with the felted rework; no square/saw waves in any UI voice, unit-enforced). It was: (dull wood thud + short
 low buzz), never a "wrong answer" jingle.
 
 Determinism not required here (view layer), but keep every voice allocated per
