@@ -17,7 +17,9 @@ import lock04 from '../../src/locks/04-strakes.js';
 import lock05, { buildLinks, traceBand } from '../../src/locks/05-knotwork.js';
 
 const LOCKS = [lock01, lock02, lock03, lock04, lock05];
-const FLOORS = { 1: [6, 2], 2: [8, 3], 3: [10, 4], 4: [12, 5], 5: [14, 6] };
+// ENTRY-CURVE AMENDMENT (docs/LOCKS.md, scripts/verify.mjs): estMinutes floors
+// for 02–05 lowered by one; minSteps floors unchanged; both still non-decreasing.
+const FLOORS = { 1: [6, 2], 2: [8, 2], 3: [10, 3], 4: [12, 4], 5: [14, 5] };
 const SEEDS = 40;
 
 const inst = (lock, s) => lock.makePuzzle(rng(`ut-${lock.id}-${s}`));
@@ -256,8 +258,8 @@ test('01 — every player-facing string ships in es and ca', () => {
 test('02 — every pouch is sworn to one weight and the pans are even', () => {
   for (let s = 0; s < SEEDS; s++) {
     const i = inst(lock02, s);
-    assert.equal(i.pouches.length, 9);
-    assert.equal(new Set(i.pouches.map((p) => p.seal)).size, 9);
+    assert.equal(i.pouches.length, 6);
+    assert.equal(new Set(i.pouches.map((p) => p.seal)).size, 6);
     for (const p of i.pouches) {
       assert.equal(p.mark * 24 + p.ore * 3 + p.ertog, i.swornErtog, 'a label does not convert to the sworn weight');
       assert.ok(Number.isInteger(p.mark) && p.mark >= 0);
@@ -269,20 +271,25 @@ test('02 — every pouch is sworn to one weight and the pans are even', () => {
     assert.ok(forms.size >= 2, `seed ${s}: every label is written the same way`);
     assert.equal(i.weighings.length, 2);
     for (const w of i.weighings) {
-      assert.equal(w.left.length, 3);
-      assert.equal(w.right.length, 3);
-      assert.equal(w.aside.length, 3);
-      assert.equal(new Set([...w.left, ...w.right, ...w.aside]).size, 9);
+      assert.equal(w.left.length, 2);
+      assert.equal(w.right.length, 2);
+      assert.equal(w.aside.length, 2);
+      assert.equal(new Set([...w.left, ...w.right, ...w.aside]).size, 6);
       assert.ok(['left', 'right', 'level'].includes(w.tilt));
     }
+    // the six role pairs must be distinct — that is what makes two tilts enough
+    const roleOf = (k) => i.weighings
+      .map((w) => (w.left.indexOf(k) >= 0 ? 'L' : w.right.indexOf(k) >= 0 ? 'R' : 'A')).join('');
+    assert.equal(new Set(i.pouches.map((_, k) => roleOf(k))).size, 6,
+      `seed ${s}: two pouches share a role pair`);
   }
 });
 
-test('02 — exactly one pouch answers the ledger (sweep of nine)', () => {
+test('02 — exactly one pouch answers the ledger (sweep of six)', () => {
   for (let s = 0; s < SEEDS; s++) {
     const i = inst(lock02, s);
     const ok = [];
-    for (let p = 0; p < 9; p++) if (lock02.verify(i, { pouch: p }).ok) ok.push(p);
+    for (let p = 0; p < 6; p++) if (lock02.verify(i, { pouch: p }).ok) ok.push(p);
     assert.equal(ok.length, 1, `seed ${s}: ${ok.length} consistent pouches`);
     assert.equal(ok[0], lock02.solve(i).pouch);
   }
@@ -292,7 +299,7 @@ test('02 — exactly one pouch answers the ledger (sweep of nine)', () => {
 
 const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
 
-test('03 — cycles are pairwise coprime and the dial caps at their product', () => {
+test('03 — the three shortest reckonings, and a dial shorter than their repeat', () => {
   for (let s = 0; s < SEEDS; s++) {
     const i = inst(lock03, s);
     const c = i.beacons.map((b) => b.cycle);
@@ -300,8 +307,11 @@ test('03 — cycles are pairwise coprime and the dial caps at their product', ()
     assert.equal(gcd(c[0], c[1]), 1);
     assert.equal(gcd(c[0], c[2]), 1);
     assert.equal(gcd(c[1], c[2]), 1);
-    assert.equal(i.dialMax, c[0] * c[1] * c[2]);
-    assert.ok(i.dialMax >= 250);
+    // ENTRY-CURVE AMENDMENT: cycles {3,4,5}, dial 24 — strictly under the
+    // 60-night repeat, which is what leaves room for at most one answer.
+    assert.deepEqual(c.slice().sort((a, b) => a - b), [3, 4, 5]);
+    assert.equal(i.dialMax, 24);
+    assert.ok(i.dialMax < c[0] * c[1] * c[2]);
     assert.equal(new Set(i.beacons.map((b) => b.name)).size, 3);
     for (const b of i.beacons) assert.ok(b.lastBurned >= 0 && b.lastBurned < b.cycle);
   }
@@ -316,6 +326,7 @@ test('03 — exactly one night on the whole dial, and it is not near at hand', (
     const night = lock03.solve(i).night;
     assert.equal(ok[0], night);
     assert.ok(night > 2 * Math.max(...i.beacons.map((b) => b.cycle)), `seed ${s}: night ${night} is too near`);
+    assert.ok(night <= 20, `seed ${s}: night ${night} sits past the gentle window`);
     assert.notEqual(lock03.verify(i, { night: night + i.dialMax }).ok, true, 'the dial must cap');
     for (const h of lock03.hints) assert.ok(!h.includes(String(night)), 'a hint names the night');
   }
@@ -346,11 +357,12 @@ function eachPermutation(n, fn) {
 test('04 — exactly one testimony breaks the rivet law', () => {
   for (let s = 0; s < SEEDS; s++) {
     const i = inst(lock04, s);
-    assert.equal(i.planks.length, 9);
-    assert.equal(i.testimonies.length, 9);
-    assert.equal(new Set(i.planks.map((p) => p.rivets)).size, 9, 'rivet counts must be distinct');
-    assert.equal(new Set(i.planks.map((p) => p.mark)).size, 9);
-    assert.equal(new Set(i.testimonies.map((t) => t.by)).size, 9);
+    assert.equal(i.planks.length, 7);
+    assert.equal(i.testimonies.length, 7);
+    assert.equal(i.planks.length % 2, 1, 'the ring-closing lie is only lawless on an odd stack');
+    assert.equal(new Set(i.planks.map((p) => p.rivets)).size, 7, 'rivet counts must be distinct');
+    assert.equal(new Set(i.planks.map((p) => p.mark)).size, 7);
+    assert.equal(new Set(i.testimonies.map((t) => t.by)).size, 7);
 
     const lawless = i.testimonies.filter(
       (t) => i.planks[t.over].rivets % 2 === i.planks[t.under].rivets % 2,
@@ -360,18 +372,18 @@ test('04 — exactly one testimony breaks the rivet law', () => {
   }
 });
 
-test('04 — exactly one (stack, liar) pair over all 9! stacks', () => {
-  for (let s = 0; s < 3; s++) {
+test('04 — exactly one (stack, liar) pair over all 7! stacks', () => {
+  for (let s = 0; s < 6; s++) {
     const i = inst(lock04, s);
-    const pos = new Array(9);
+    const pos = new Array(7);
     const found = [];
-    eachPermutation(9, (order) => {
-      for (let k = 1; k < 9; k++) {
+    eachPermutation(7, (order) => {
+      for (let k = 1; k < 7; k++) {
         if (i.planks[order[k]].rivets % 2 === i.planks[order[k - 1]].rivets % 2) return;
       }
       order.forEach((p, k) => { pos[p] = k; });
       let bad = -1;
-      for (let t = 0; t < 9; t++) {
+      for (let t = 0; t < 7; t++) {
         const c = i.testimonies[t];
         if (pos[c.over] === pos[c.under] + 1) continue;
         if (bad >= 0) return; // two broken testimonies: no single liar can explain it
@@ -392,7 +404,7 @@ test('04 — the rivet law is needed: several testimonies could be struck for th
     // Each decoy keeps the lap law and fails only on the rivets.
     const decoys = lock04.wrongAnswers(i).filter((a) => a.liar !== right.liar);
     assert.ok(decoys.length >= 2, `seed ${s}: only ${decoys.length} rival stacks`);
-    const pos = new Array(9);
+    const pos = new Array(7);
     let lapLawful = 0;
     for (const d of decoys) {
       d.order.forEach((p, k) => { pos[p] = k; });
@@ -406,7 +418,7 @@ test('04 — the rivet law is needed: several testimonies could be struck for th
 
 // ---------------------------------------------------------------- 05 knotwork
 
-test('05 — one closed band over every port, twelve free tiles, a carved crossing to anchor', () => {
+test('05 — one closed band over every port, six to eight free tiles, a carved crossing to anchor', () => {
   for (let s = 0; s < SEEDS; s++) {
     const i = inst(lock05, s);
     assert.equal(i.cells.length, 16);
@@ -417,8 +429,7 @@ test('05 — one closed band over every port, twelve free tiles, a carved crossi
     const crossings = i.cells.filter((c) => c.kind === 'cross');
     assert.equal(seq.length, crossings.length * 2, 'the band meets each crossing twice');
 
-    assert.equal(i.free.length, 12);
-    assert.ok(i.free.length >= 8 && i.free.length <= 12);
+    assert.ok(i.free.length >= 6 && i.free.length <= 8, `seed ${s}: ${i.free.length} free tiles`);
     for (const cell of i.free) {
       assert.equal(i.cells[cell].kind, 'cross');
       assert.equal(i.cells[cell].carved, false);
@@ -427,10 +438,10 @@ test('05 — one closed band over every port, twelve free tiles, a carved crossi
     assert.ok(carvedCrossings.length >= 1, `seed ${s}: nothing pins the weave`);
     for (const c of carvedCrossings) assert.ok(['ns', 'we'].includes(c.over));
 
-    assert.equal(i.initial.length, 12);
+    assert.equal(i.initial.length, i.free.length);
     const answer = lock05.solve(i).states;
     const wrongAtStart = i.initial.filter((v, k) => v !== answer[k]).length;
-    assert.equal(wrongAtStart, 11, `seed ${s}: ${wrongAtStart} tiles laid wrong at the start`);
+    assert.equal(wrongAtStart, i.free.length - 1, `seed ${s}: ${wrongAtStart} tiles laid wrong at the start`);
   }
 });
 

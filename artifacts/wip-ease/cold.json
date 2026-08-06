@@ -1,0 +1,108 @@
+{
+  "errors": [],
+  "report": {
+    "02-bismer": {
+      "hand": {
+        "pouchAt": 4
+      },
+      "derived": {
+        "pouch": 4
+      },
+      "truth": {
+        "pouch": 4
+      },
+      "agrees": true,
+      "openedInMs": 45
+    },
+    "03-beacons": {
+      "hand": {
+        "night": 19
+      },
+      "derived": {
+        "night": 19
+      },
+      "truth": {
+        "night": 19
+      },
+      "agrees": true,
+      "openedInMs": 458
+    },
+    "04-strakes": {
+      "hand": {
+        "stackMarks": [
+          "the burnt plank",
+          "the scarfed plank",
+          "the green plank",
+          "the tarred plank",
+          "the salt-white plank",
+          "the resined plank",
+          "the pale plank"
+        ],
+        "liarWright": "Ketil"
+      },
+      "derived": {
+        "order": [
+          0,
+          1,
+          4,
+          6,
+          5,
+          2,
+          3
+        ],
+        "liar": 0
+      },
+      "truth": {
+        "liar": 0,
+        "order": [
+          0,
+          1,
+          4,
+          6,
+          5,
+          2,
+          3
+        ]
+      },
+      "agrees": false,
+      "openedInMs": 902
+    },
+    "05-knotwork": {
+      "hand": {
+        "over": {
+          "0": "we",
+          "1": "ns",
+          "2": "we",
+          "4": "ns",
+          "5": "we",
+          "8": "we",
+          "9": "ns"
+        }
+      },
+      "derived": {
+        "states": [
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          true
+        ]
+      },
+      "truth": {
+        "states": [
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          true
+        ]
+      },
+      "agrees": true,
+      "openedInMs": 129
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "errors": [],
+  "report": {
+    "02-bismer": {
+      "text": "Two weighings are sworn. Name the light pouch.\nEvery pouch is sworn to the same weight: 27 ertog — one mark is eight øre, one øre three ertog. One pouch was clipped, and runs light. The pan that sinks holds the heavier silver.\nFirst weighing — the beam hangs level\nSecond weighing — the right pan sinks\nReckon the labels in ertog\nSkip the showing\nLift a pouch from the rack to name it. By key: arrows walk the rack, space names one, X strikes one out.\n2 øre 21 ertog\n1 mark 3 ertog\n1 mark 1 øre\n1 øre 24 ertog\n6 øre 9 ertog\n1 mark 1 øre\nName the pouch\nWatch once: a pouch is lifted from the rack, and set back.",
+      "aria": [
+        "The First weighing: left pan þurs, óss; right pan fé, kaun; set aside úr, reið; the beam hangs level.",
+        "The Second weighing: left pan reið, kaun; right pan úr, óss; set aside fé, þurs; the right pan sinks.",
+        "The carved reckoning rule: one mark is eight øre, one øre three ertog, so one mark is twenty-four ertog.",
+        "The six pouches on the merchant’s rack",
+        "Pouch under the fé seal, sworn 2 øre 21 ertog",
+        "Pouch under the úr seal, sworn 1 mark 3 ertog",
+        "Pouch under the þurs seal, sworn 1 mark 1 øre",
+        "Pouch under the óss seal, sworn 1 øre 24 ertog",
+        "Pouch under the reið seal, sworn 6 øre 9 ertog",
+        "Pouch under the kaun seal, sworn 1 mark 1 øre"
+      ],
+      "openedInMs": 43
+    },
+    "03-beacons": {
+      "text": "Turn the dial to the next night all three fires burn together.\nTonight is night nought; the dial runs to night 24. Drag the wheel, or use the arrow keys.\nSet the dial\nSkip the showing\nNight 2 — Vindstad is dark, Nordfell is dark, Grimsholm is dark.",
+      "aria": [
+        "The beacon coast. Vindstad, every 4 nights, burned 1 night ago; Nordfell, every 3 nights, burned 2 nights ago; Grimsholm, every 5 nights, burned 1 night ago",
+        "The night dial"
+      ],
+      "openedInMs": 455
+    },
+    "04-strakes": {
+      "text": "SHEER\nthe burnt plank\n28 rivets\nthe scarfed plank\n27 rivets\nthe resined plank\n15 rivets\nthe pale plank\n14 rivets\nthe green plank\n18 rivets\nthe salt-white plank\n22 rivets\nthe tarred plank\n17 rivets\nKEEL\nKetil swears: the burnt plank laps the pale plank. 28 over 14\nBjorn swears: the resined plank laps the salt-white plank. 15 over 22\nOzurr swears: the scarfed plank laps the burnt plank. 27 over 28\nHallvard swears: the salt-white plank laps the tarred plank. 22 over 17\nSteinn swears: the tarred plank laps the green plank. 17 over 18\nOnund swears: the green plank laps the scarfed plank. 18 over 27\nGrim swears: the pale plank laps the resined plank. 14 over 15\n1 of eight joints lie fair\nLap law: a strake laps the one below it and no other. Seven planks, one stack. Rivet law: where two strakes lap, one rivet count is odd and the other even. One testimony is false.\nDrag a plank to move it, or lift it with space and move it with the up and down arrows. Tap a tally-board to brand that oath false.\nRaise the stack\nSkip the showing\nWatch once: a plank is lifted and set one place higher.",
+      "aria": [
+        "The building cradle: the stack, sheer strake at the top, keel at the foot",
+        "the burnt plank, 28 rivets, seventh strake from the keel",
+        "the scarfed plank, 27 rivets, sixth strake from the keel",
+        "the resined plank, 15 rivets, fifth strake from the keel",
+        "the pale plank, 14 rivets, fourth strake from the keel",
+        "the green plank, 18 rivets, third strake from the keel",
+        "the salt-white plank, 22 rivets, second strake from the keel",
+        "the tarred plank, 17 rivets, first strake from the keel, its lap lies fair",
+        "The seven testimonies, hung on the rail — brand the false one",
+        "Ketil swears: the burnt plank laps the pale plank. Rivets: 28 over 14.",
+        "Bjorn swears: the resined plank laps the salt-white plank. Rivets: 15 over 22.",
+        "Ozurr swears: the scarfed plank laps the burnt plank. Rivets: 27 over 28.",
+        "Hallvard swears: the salt-white plank laps the tarred plank. Rivets: 22 over 17.",
+        "Steinn swears: the tarred plank laps the green plank. Rivets: 17 over 18.",
+        "Onund swears: the green plank laps the scarfed plank. Rivets: 18 over 27.",
+        "Grim swears: the pale plank laps the resined plank. Rivets: 14 over 15."
+      ],
+      "openedInMs": 937
+    },
+    "05-knotwork": {
+      "text": "Turn the free crossings until one unbroken band runs the whole panel, over-under all the way.\nFollow the band\nBind the knot\nSkip the showing\nWatch once: one crossing turns, and the gleam runs further along the band.\nThe weave reads as 6 bands.\nOne band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same. Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band.",
+      "aria": [
+        "The knot panel, four rows of four",
+        "row 1, stave 1: a crossing, the standing band lies over.",
+        "row 1, stave 2: a crossing, the running band lies over.",
+        "row 1, stave 3: a crossing, the standing band lies over.",
+        "row 1, stave 4: a carved crossing, the standing band lies over.",
+        "row 2, stave 1: a crossing, the running band lies over.",
+        "row 2, stave 2: a crossing, the running band lies over.",
+        "row 2, stave 3: a carved crossing, the standing band lies over.",
+        "row 2, stave 4: a carved crossing, the running band lies over.",
+        "row 3, stave 1: a crossing, the standing band lies over.",
+        "row 3, stave 2: a crossing, the standing band lies over.",
+        "row 3, stave 3: a carved bend.",
+        "row 3, stave 4: a carved bend.",
+        "row 4, stave 1: a carved crossing, the standing band lies over.",
+        "row 4, stave 2: a carved crossing, the running band lies over.",
+        "row 4, stave 3: a carved crossing, the standing band lies over.",
+        "row 4, stave 4: a carved crossing, the running band lies over."
+      ],
+      "openedInMs": 125
+    }
+  }
+}

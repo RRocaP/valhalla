@@ -6,6 +6,13 @@
 > originally specced; mechanics, answer shapes, uniqueness guarantees, and the
 > non-decreasing ramp all stand. Gauntlet I (01–03) should feel winnable by
 > anyone in minutes; the teeth arrive from gauntlet II onward.
+>
+> Floor consequence (2026-08-07): floors are a ramp guarantee, not a difficulty
+> trophy. The **estMinutes** floors for 02–05 drop by one each — 3/4/5/6 becomes
+> 2/3/4/5 — so those locks can declare honest times. **minSteps** floors are
+> unchanged (8/10/12/14), and both columns remain non-decreasing across all
+> fifteen ordinals. `scripts/verify.mjs` FLOORS and this file are the two places
+> that carry the table; they must move together.
 
 Each lock below is frozen in: mechanic, answer semantics, shard, difficulty
 floors. The assigned worker has creative latitude in: instance generation,
@@ -62,35 +69,53 @@ minSteps 6, estMinutes 2. Near-diagnostics name positions ("the third stave
 stands true; its neighbour is turned").
 
 ## 02 — `02-bismer` · The Bismer Scales · tier 1 · LOCKS-A
-Nine sealed pouches of hacksilver, one light (clipped). Two balance weighings
-are already carved into the ledger (pans + tilt). Deduce the clipped pouch.
-Silver counted in mark/øre/ertog (1 mark = 8 øre = 24 ertog) — conversions
-dress the pouch labels. **Answer:** `{ pouch: i }` — unique by ternary logic.
-Floors: minSteps 8, estMinutes 3.
+ENTRY-CURVE AMENDMENT 2026-08-07: **six** sealed pouches (was nine), and the
+sworn weight is drawn small (27/30/33 ertog, so at most one mark) — the labels
+stay a one-step reckoning. Each pouch still takes a distinct role pair across
+the two weighings; the six pairs are the 3×3 grid less one permutation's cells,
+so both pans hold two pouches and two stand aside. One light (clipped). Two
+balance weighings are already carved into the ledger (pans + tilt). Deduce the
+clipped pouch. Silver counted in mark/øre/ertog (1 mark = 8 øre = 24 ertog) —
+conversions dress the pouch labels. **Answer:** `{ pouch: i }` — unique by
+ternary logic, still swept exhaustively in `makePuzzle`.
+Floors: minSteps 8, estMinutes 2 (estMinutes floor lowered from 3 by the
+amendment; minSteps unchanged).
 
 ## 03 — `03-beacons` · The Beacon Nights · tier 1 · LOCKS-A
-Three coastal beacons burn on cycles of a, b, c nights (pairwise coprime, from
-{3,4,5,7,9,11,13}), with given offsets ("Skarvholm burned two nights ago").
-All three burned together once; set the dial to the next night all three burn.
-CRT-lite. **Answer:** `{ night: t }` — unique minimal positive t, dial range
-caps at lcm. Floors: minSteps 10, estMinutes 4.
+ENTRY-CURVE AMENDMENT 2026-08-07: cycles are **{3,4,5} only** (was
+{3,4,5,7,9,11,13}) and the dial carries **24 nights** with the answer drawn in
+12–20 — the wheel-turning discovery is the puzzle, the arithmetic stays small.
+Three coastal beacons burn on cycles of a, b, c nights (pairwise coprime), with
+given offsets ("Skarvholm burned two nights ago"). All three burned together
+once; set the dial to the next night all three burn. CRT-lite. **Answer:**
+`{ night: t }` — unique minimal positive t. The dial no longer runs to the lcm;
+it is deliberately SHORTER than the 60-night repeat, which is what bounds the
+dial to at most one answer — still proven by the exhaustive sweep over the whole
+dial in `makePuzzle`. Floors: minSteps 10, estMinutes 3 (estMinutes floor
+lowered from 4 by the amendment; minSteps unchanged).
 
 ## 04 — `04-strakes` · The Clinker Strakes · tier 2 · LOCKS-A
-Nine ship planks; shipwrights' testimonies give lap-order constraints ("keel
-strake laps the garboard"). One testimony is false, and the false one is
-identifiable deterministically: each plank shows rivet counts, and exactly one
-testimony contradicts rivet parity law (laps must alternate parity — spec the
-law plainly in the journal). Discard it; the remaining DAG admits exactly one
-topological order. **Answer:** `{ order: [9], liar: k }`. Floors: minSteps 12,
-estMinutes 5. Generator must verify topo-order uniqueness by counting.
+ENTRY-CURVE AMENDMENT 2026-08-07: **seven** ship planks and seven testimonies
+closing the ring (was nine and nine). The plank count must stay ODD so the
+ring-closing lie joins two planks an even distance apart and is therefore the
+one claim that breaks rivet parity. Shipwrights' testimonies give lap-order
+constraints ("keel strake laps the garboard"). One testimony is false, and the
+false one is identifiable deterministically: each plank shows rivet counts, and
+exactly one testimony contradicts rivet parity law (laps must alternate parity —
+spec the law plainly in the journal). Discard it; the remaining DAG admits
+exactly one topological order. **Answer:** `{ order: [7], liar: k }`. Floors:
+minSteps 12, estMinutes 4 (estMinutes floor lowered from 5 by the amendment;
+minSteps unchanged). Generator must verify topo-order uniqueness by counting.
 
 ## 05 — `05-knotwork` · The Oseberg Knot · tier 2 · LOCKS-A
-A 4×4 panel of strand tiles; some tiles frozen (carved), 8–12 free. Each free
-tile toggles between its two crossing states. Goal: the whole panel traces
+ENTRY-CURVE AMENDMENT 2026-08-07: **6–8 free tiles** (was 8–12). The panel stays
+4×4. A 4×4 panel of strand tiles; some tiles frozen (carved), 6–8 free. Each
+free tile toggles between its two crossing states. Goal: the whole panel traces
 **one closed strand** whose crossings alternate over/under along its run — true
 knotwork law. **Answer:** `{ states: [bools] }` — generator guarantees exactly
-one valid configuration (≤ 2^12 sweep). Verify traces strands + alternation.
-Floors: minSteps 14, estMinutes 6.
+one valid configuration (≤ 2^8 sweep). Verify traces strands + alternation.
+Floors: minSteps 14, estMinutes 5 (estMinutes floor lowered from 6 by the
+amendment; minSteps unchanged).
 
 ## 06 — `06-jotunvillur` · The Jötunvillur Cipher · tier 2 · LOCKS-B
 The historical rune-name cipher (decoded only in 2014): each letter is written

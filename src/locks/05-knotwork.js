@@ -4,6 +4,11 @@
 // tiles are crossings, and each may be laid either way — the standing band over
 // the running band, or under it. Lay the panel so the whole weave is knotwork.
 //
+// ENTRY-CURVE AMENDMENT (docs/LOCKS.md): six to eight free crossings, not eight
+// to twelve. The panel stays four-by-four and the aha is the same one — the
+// weave law fixes every remaining tile once you find the band — but there are
+// fewer toggles between seeing it and having it.
+//
 // THE TWO LAWS (stated plainly to the player in the journal):
 //   band law  — one band, unbroken, runs the whole panel and returns to itself.
 //   weave law — following that band, every crossing goes over, then under, then
@@ -20,9 +25,10 @@
 // exactly one laying of the free tiles answers both laws. Checked by the literal
 // 2^free sweep.
 //
-// Difficulty accounting: twelve free tiles, of which eleven are laid wrong at
-// the start, plus tracing the band from a carved crossing and the closing
-// oath — fourteen acts, and no fewer.
+// Difficulty accounting: the band must be walked through all sixteen tiles of
+// the panel before a single crossing can be laid with confidence, and then the
+// free tiles are laid (all but one start wrong) and the oath sworn — fourteen
+// acts, and no fewer.
 
 import { SHARDS } from '../kernel/shards.js';
 import { rng } from '../kernel/rng.js';
@@ -31,7 +37,8 @@ const SIDE = 4;
 const CELLS = SIDE * SIDE;
 const PORTS = CELLS * 4;
 const N = 0, E = 1, S = 2, W = 3;
-const FREE_TILES = 12;
+const FREE_MIN = 6;   // ENTRY-CURVE AMENDMENT: one aha, fewer toggles
+const FREE_MAX = 8;
 const REROLL_CAP = 4000;
 
 const portId = (cell, dir) => cell * 4 + dir;
@@ -166,14 +173,15 @@ function makePuzzle(rng) {
     if (!lawful) continue;
 
     const crossCells = cells.map((c, i) => (c.kind === 'cross' ? i : -1)).filter((i) => i >= 0);
-    if (crossCells.length <= FREE_TILES) continue; // at least one carved crossing
+    const freeCount = rng.range(FREE_MIN, FREE_MAX);
+    if (crossCells.length <= freeCount) continue; // at least one carved crossing
 
     // One of the two alternating layings is the truth.
     const g = rng.int(2);
     const truth = new Array(CELLS).fill(null);
     seq.forEach((s, q) => { if (q % 2 === g) truth[s.cell] = s.band; });
 
-    const free = rng.shuffle(crossCells).slice(0, FREE_TILES).sort((a, b) => a - b);
+    const free = rng.shuffle(crossCells).slice(0, freeCount).sort((a, b) => a - b);
     for (const i of crossCells) {
       if (free.indexOf(i) >= 0) continue;
       cells[i] = { kind: 'cross', carved: true, over: truth[i] };
@@ -181,7 +189,7 @@ function makePuzzle(rng) {
 
     // Laid wrong at the start in every place but one — never the plain inverse.
     const answer = free.map((cell) => truth[cell] === 'ns');
-    const kept = rng.int(FREE_TILES);
+    const kept = rng.int(freeCount);
     const initial = answer.map((v, i) => (i === kept ? v : !v));
 
     const instance = { border, cells, free, initial };
@@ -1850,9 +1858,9 @@ export default {
   shard: () => ({ ...SHARDS['05-knotwork'] }),
 
   difficulty: {
-    searchSpace: 4096, // 2^12 layings of the free tiles
-    minSteps: 14,
-    estMinutes: 6,
+    searchSpace: 256, // 2^8 layings of the free tiles, at the widest
+    minSteps: 14,   // sixteen tiles walked to find the band, then the tiles laid and sworn
+    estMinutes: 5,  // ENTRY-CURVE AMENDMENT: measured cold at about four minutes
   },
 
   hints: [

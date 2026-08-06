@@ -28,8 +28,13 @@ if (args.includes('--only') && !ONLY) {
 }
 
 // minSteps / estMinutes floors per ordinal (docs/LOCKS.md)
+// ENTRY-CURVE AMENDMENT (2026-08-07): the estMinutes floors for 02–05 drop by
+// one each (3/4/5/6 -> 2/3/4/5) so the gentler gauntlet-I instances can declare
+// honest times. minSteps floors are unchanged, and both columns stay
+// non-decreasing across all fifteen. Keep this table in lockstep with
+// docs/LOCKS.md.
 const FLOORS = {
-  1: [6, 2], 2: [8, 3], 3: [10, 4], 4: [12, 5], 5: [14, 6],
+  1: [6, 2], 2: [8, 2], 3: [10, 3], 4: [12, 4], 5: [14, 5],
   6: [16, 8], 7: [18, 10], 8: [20, 12], 9: [22, 13], 10: [24, 15],
   11: [26, 16], 12: [28, 18], 13: [30, 20], 14: [32, 22], 15: [34, 25],
 };

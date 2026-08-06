@@ -5,9 +5,17 @@
 //
 // Pure half: no DOM, no globals, no Math.random, no Date. Only the seeded rng.
 //
-// Uniqueness: the three cycles are pairwise coprime, so the dial (which caps at
-// their product, the lcm) holds exactly one night satisfying all three
-// congruences. makePuzzle sweeps every night on the dial and requires one.
+// ENTRY-CURVE AMENDMENT (docs/LOCKS.md): the reckonings are the three shortest
+// — 3, 4 and 5 nights — and the wheel carries twenty-four nights, well inside
+// the sixty on which the whole pattern repeats. The arithmetic is now small
+// enough to do while turning; the discovery that three separate rhythms come
+// round together IS the lock. Mechanic, answer shape and the uniqueness
+// guarantee are untouched.
+//
+// Uniqueness: the three cycles are pairwise coprime, so all-burn nights repeat
+// only every sixty nights — and the dial is shorter than that, so it can hold
+// at most one. makePuzzle sweeps every night on the dial and requires exactly
+// one.
 //
 // Difficulty accounting: three cycles to read, three offsets to turn into
 // congruences, and the dial to walk — ten deliberate actions before the answer
@@ -15,12 +23,15 @@
 
 import { SHARDS } from '../kernel/shards.js';
 
-const CYCLES = [3, 4, 5, 7, 9, 11, 13];
-const MIN_DIAL = 250;
+const CYCLES = [3, 4, 5];
+const DIAL = 24;        // nights the wheel carries — shorter than the 60-night repeat
+const NIGHT_LO = 12;    // the answer never sits under the player's nose…
+const NIGHT_HI = 20;    // …and never past the wheel's last notch
 
 const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
 
-// Every pairwise-coprime triple whose product makes a dial worth walking.
+// Every pairwise-coprime triple the coast can be built from (the law, checked,
+// not assumed): with these three reckonings that is [3, 4, 5] alone.
 const TRIPLES = (() => {
   const out = [];
   for (let i = 0; i < CYCLES.length; i++) {
@@ -28,7 +39,7 @@ const TRIPLES = (() => {
       for (let k = j + 1; k < CYCLES.length; k++) {
         const [a, b, c] = [CYCLES[i], CYCLES[j], CYCLES[k]];
         if (gcd(a, b) !== 1 || gcd(a, c) !== 1 || gcd(b, c) !== 1) continue;
-        if (a * b * c < MIN_DIAL) continue;
+        if (a * b * c <= DIAL) continue; // the repeat must outrun the wheel
         out.push([a, b, c]);
       }
     }
@@ -47,12 +58,12 @@ const allBurn = (instance, night) => instance.beacons.every((b) => burnsOn(b, ni
 function makePuzzle(rng) {
   const cycles = rng.shuffle(rng.pick(TRIPLES));
   const names = rng.shuffle(HEADLANDS).slice(0, 3);
-  const dialMax = cycles[0] * cycles[1] * cycles[2];
+  const dialMax = DIAL;
 
   // The night is drawn first, then the offsets are derived from it, so the
   // answer is never tomorrow and never inside the first turn of the longest cycle.
-  const lo = Math.max(31, 2 * Math.max(...cycles) + 1);
-  const night = rng.range(lo, dialMax);
+  const lo = Math.max(NIGHT_LO, 2 * Math.max(...cycles) + 1);
+  const night = rng.range(lo, NIGHT_HI);
 
   const beacons = cycles.map((cycle, i) => ({
     name: names[i],
@@ -1627,7 +1638,7 @@ const I18N = {
     hints: [
       'Un fuego que ardió hace tres noches con una cuenta de cinco vuelve a arder dentro de dos.',
       'Toma primero la cuenta más larga. Cuenta solo sus noches, luego prueba cada una contra la segunda, y lo que sobreviva contra la tercera.',
-      'Pasadas las tres cuentas multiplicadas, el patrón entero vuelve a empezar. La noche que buscas cae dentro de una vuelta de esa rueda.',
+      'La rueda lleva todas las noches que necesitas. Gírala y mira las brasas: la noche que buscas es aquella en que las tres pistas prenden a la vez.',
     ],
     nearMap: {
       'The dial does not reach that night.': 'El disco no llega hasta esa noche.',
@@ -1675,7 +1686,7 @@ const I18N = {
     hints: [
       'Un foc que va cremar fa tres nits amb un compte de cinc torna a cremar d’aquí a dues.',
       'Pren primer el compte més llarg. Compta’n només les nits, després prova cadascuna contra el segon, i el que sobrevisqui contra el tercer.',
-      'Passats els tres comptes multiplicats, el patró sencer torna a començar. La nit que busques cau dins d’una volta d’aquella roda.',
+      'La roda porta totes les nits que et calen. Fes-la girar i mira les brases: la nit que busques és aquella en què les tres pistes s’encenen alhora.',
     ],
     nearMap: {
       'The dial does not reach that night.': 'El disc no arriba fins aquella nit.',
@@ -1733,15 +1744,15 @@ export default {
   shard: () => ({ ...SHARDS['03-beacons'] }),
 
   difficulty: {
-    searchSpace: 1287, // the longest dial: 9 x 11 x 13 nights
-    minSteps: 10,
-    estMinutes: 4,
+    searchSpace: 24,  // ENTRY-CURVE AMENDMENT: the whole wheel is twenty-four nights
+    minSteps: 10,     // three reckonings read + three offsets turned + the wheel walked
+    estMinutes: 3,    // measured cold at about two and a half minutes
   },
 
   hints: [
     'A fire that burned three nights past on a reckoning of five burns again in two.',
     'Take the longest reckoning first. Count only its nights, then try each against the second, and what survives against the third.',
-    'Past the three reckonings multiplied the whole pattern comes round again. The night you want lies within one turn of that wheel.',
+    'The wheel carries every night you need. Turn it and watch the embers: the night you want is the one where all three tracks catch at once.',
   ],
 
   i18n: I18N,

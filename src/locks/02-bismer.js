@@ -1,28 +1,38 @@
 // 02 — THE BISMER SCALES (tier 1, teaching)
 //
-// Nine sealed pouches of hacksilver, sworn to one weight. One was clipped and
+// Six sealed pouches of hacksilver, sworn to one weight. One was clipped and
 // runs light. Two weighings are already carved into the ledger; name the pouch.
+//
+// ENTRY-CURVE AMENDMENT (docs/LOCKS.md): six pouches, not nine, and the sworn
+// weights are small enough to reckon in the head. The mechanic, the answer
+// shape and the uniqueness guarantee are untouched — only the instance is
+// gentler, so a first-timer reads two tilts and names the pouch in about a
+// minute and a half.
 //
 // Pure half: no DOM, no globals, no Math.random, no Date. Only the seeded rng.
 //
-// Uniqueness: each pouch is given a distinct role pair from {left, aside,
+// Uniqueness: each pouch is given a DISTINCT role pair from {left, aside,
 // right} x {left, aside, right} across the two weighings, so the two recorded
-// tilts separate all nine hypotheses. makePuzzle sweeps the nine candidates and
-// requires exactly one to reproduce the ledger.
+// tilts separate every hypothesis. The six pairs are the nine-square grid minus
+// one permutation's worth of cells, which leaves exactly two pouches in each
+// pan and two set aside in each weighing — even pans, as a balance demands.
+// makePuzzle still sweeps the candidates and requires exactly one to reproduce
+// the ledger.
 //
-// Difficulty accounting: nine sworn labels must be converted to ertog and two
+// Difficulty accounting: six sworn labels must be converted to ertog and two
 // weighings read against them before the single naming — eight comparisons at
 // the very least.
 
 import { BY_CH, ORDER } from '../kernel/futhark.js';
 import { SHARDS } from '../kernel/shards.js';
 
-const COUNT = 9;
+const COUNT = 6;
 const ERTOG_PER_ORE = 3;
 const ORE_PER_MARK = 8;
 const ERTOG_PER_MARK = ERTOG_PER_ORE * ORE_PER_MARK; // 24
 const SEALS = ORDER.slice(0, COUNT);
-const SWORN = [36, 39, 42, 45, 48, 51];
+// Small sworn weights: at most one mark, so every label is a one-step reckoning.
+const SWORN = [27, 30, 33];
 const ORD_WORD = ['first', 'second'];
 
 // left = -1, aside = 0, right = +1
@@ -47,8 +57,23 @@ function makePuzzle(rng) {
     return { seal, mark, ore, ertog };
   });
 
+  // The labels must not all be written the same way — the mixed forms are the
+  // reckoning this lock teaches.
+  const forms = new Set(pouches.map((p) => `${p.mark}/${p.ore}/${p.ertog}`));
+  if (forms.size < 2) return makePuzzle(rng);
+
+  // Six distinct role pairs: the full 3x3 grid less one permutation's cells.
+  // Row sums and column sums are then 2 apiece, so each weighing puts two
+  // pouches in each pan and sets two aside.
+  const sides = [-1, 0, 1];
+  const dropped = rng.shuffle(sides);
   const pairs = [];
-  for (const a of [-1, 0, 1]) for (const b of [-1, 0, 1]) pairs.push([a, b]);
+  for (let a = 0; a < 3; a++) {
+    for (let b = 0; b < 3; b++) {
+      if (dropped[a] === sides[b]) continue;
+      pairs.push([sides[a], sides[b]]);
+    }
+  }
   const roles = rng.shuffle(pairs);
   const light = rng.int(COUNT);
 
@@ -64,7 +89,7 @@ function makePuzzle(rng) {
 
   const instance = { swornErtog, pouches, weighings };
 
-  // Exhaustive uniqueness over the nine hypotheses.
+  // Exhaustive uniqueness over the six hypotheses.
   let hits = 0;
   for (let i = 0; i < COUNT; i++) if (consistent(instance, i)) hits++;
   if (hits !== 1) return makePuzzle(rng);
@@ -96,6 +121,10 @@ function wrongAnswers(instance) {
   const right = solve(instance).pouch;
   const out = [];
   for (let i = 0; i < COUNT; i++) if (i !== right) out.push({ pouch: i });
+  // Six pouches leave only five namings that are wrong by deduction. The other
+  // two ways a naming can miss are off the rack altogether — before the first
+  // seal and past the last — and verify must refuse those just as flatly.
+  out.push({ pouch: -1 }, { pouch: COUNT });
   return out;
 }
 
@@ -103,7 +132,7 @@ function wrongAnswers(instance) {
 //
 // The board is a merchant's weighing corner, not a diagram: two carved beams
 // pivoting on turned posts over a counter, verdigris chains, hammered bronze
-// pans holding sealed pouches, and the nine pouches themselves hanging in a
+// pans holding sealed pouches, and the six pouches themselves hanging in a
 // carved rack. Everything static is baked once per layout and blitted; only
 // pans, pouches and marks repaint per interaction (docs/QUALITY.md latency).
 
@@ -134,17 +163,17 @@ const BOARD_EN = {
   sankLevel: 'the beam hung level',
   ariaWeighing: 'The {ord} weighing: left pan {left}; right pan {right}; set aside {aside}; {sink}.',
   ariaRule: 'The carved reckoning rule: one mark is eight øre, one øre three ertog, so one mark is twenty-four ertog.',
-  ariaGroup: 'The nine pouches on the merchant’s rack',
+  ariaGroup: 'The six pouches on the merchant’s rack',
   ariaPouch: 'Pouch under the {name} seal, sworn {label}',
   ariaStruck: ', struck out',
   ariaNamed: ', named',
   namedLine: 'The pouch under the {name} seal is named.',
   struckLine: 'The {name} pouch is struck from the reckoning.',
-  backLine: 'The {name} pouch is set back among the nine.',
+  backLine: 'The {name} pouch is set back among the six.',
   reckonedLine: 'Reckoned in ertog, every pouch is sworn at {n}.',
   carvedLine: 'The labels stand as they were carved.',
   keysNote: 'By key: arrows walk the pouches; space or Enter names one; X strikes one from the reckoning.',
-  openNine: 'Nine pouches, each sworn at {n} ertog — one mark is eight øre, one øre three ertog.',
+  openNine: 'Six pouches, each sworn at {n} ertog — one mark is eight øre, one øre three ertog.',
   openClip: 'One pouch was clipped and runs light. The pan that sinks holds the heavier silver.',
   openWeigh: '{ord} weighing — left: {left}; right: {right}; aside: {aside}. And {sank}.',
   solvedLine: 'The clipped silver lay under the {name} seal.',
@@ -1166,7 +1195,7 @@ function mount(ctx) {
     rule.canvas.setAttribute('aria-label', T('ariaRule'));
     paintRule();
 
-    // the rack: nine niches on one shelf where there is room, else three by three
+    // the rack: six niches on one shelf where there is room, else three by three
     const cols = inner >= 660 ? COUNT : 3;
     const gap = cols === COUNT ? 6 : 10;
     const cellW = Math.max(64, Math.floor((inner - gap * (cols - 1)) / cols));
@@ -1480,11 +1509,11 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'La Balanza del Bismer',
-    epigraph: 'Nueve bolsas, un solo peso jurado — y una corre ligera. La balanza ya ha hablado dos veces.',
+    epigraph: 'Seis bolsas, un solo peso jurado — y una corre ligera. La balanza ya ha hablado dos veces.',
     hints: [
       'Todas las bolsas están juradas al mismo peso. Convierte las etiquetas a ertog antes de fiarte del ojo: ocho øre al marco, tres ertog al øre.',
       'El platillo que baja lleva la plata más pesada. Una balanza nivelada dice que la bolsa cercenada quedó apartada de esa pesada.',
-      'Cada pesada corta las nueve en tres: platillo izquierdo, platillo derecho, apartadas. Dos cortes dejan una sola bolsa en pie.',
+      'Cada pesada corta las seis en tres: platillo izquierdo, platillo derecho, apartadas. Dos cortes dejan una sola bolsa en pie.',
     ],
     nearMap: {
       'The first weighing already clears that pouch.': 'La primera pesada ya deja limpia esa bolsa.',
@@ -1513,17 +1542,17 @@ const I18N = {
       sankLevel: 'el astil quedó nivelado',
       ariaWeighing: 'La {ord} pesada: platillo izquierdo {left}; platillo derecho {right}; apartadas {aside}; {sink}.',
       ariaRule: 'La regla tallada de la cuenta: un marco son ocho øre, un øre tres ertog, así que un marco son veinticuatro ertog.',
-      ariaGroup: 'Las nueve bolsas en el estante del mercader',
+      ariaGroup: 'Las seis bolsas en el estante del mercader',
       ariaPouch: 'Bolsa bajo el sello de {name}, jurada en {label}',
       ariaStruck: ', tachada',
       ariaNamed: ', nombrada',
       namedLine: 'Queda nombrada la bolsa bajo el sello de {name}.',
       struckLine: 'La bolsa de {name} queda tachada de la cuenta.',
-      backLine: 'La bolsa de {name} vuelve entre las nueve.',
+      backLine: 'La bolsa de {name} vuelve entre las seis.',
       reckonedLine: 'Contadas en ertog, todas las bolsas están juradas en {n}.',
       carvedLine: 'Las etiquetas quedan como fueron talladas.',
       keysNote: 'Con el teclado: las flechas recorren las bolsas; el espacio o Intro nombra una; X la tacha de la cuenta.',
-      openNine: 'Nueve bolsas, cada una jurada en {n} ertog — un marco son ocho øre, un øre tres ertog.',
+      openNine: 'Seis bolsas, cada una jurada en {n} ertog — un marco son ocho øre, un øre tres ertog.',
       openClip: 'Una bolsa fue cercenada y corre ligera. El platillo que baja lleva la plata más pesada.',
       openWeigh: '{ord} pesada — izquierda: {left}; derecha: {right}; apartadas: {aside}. Y {sank}.',
       solvedLine: 'La plata cercenada estaba bajo el sello de {name}.',
@@ -1534,11 +1563,11 @@ const I18N = {
   },
   ca: {
     title: 'La Balança del Bismer',
-    epigraph: 'Nou bosses, un sol pes jurat — i una corre lleugera. La balança ja ha parlat dues vegades.',
+    epigraph: 'Sis bosses, un sol pes jurat — i una corre lleugera. La balança ja ha parlat dues vegades.',
     hints: [
       'Totes les bosses estan jurades al mateix pes. Passa les etiquetes a ertog abans de fiar-te de l’ull: vuit øre al marc, tres ertog a l’øre.',
       'El plat que baixa duu l’argent més pesant. Una balança anivellada diu que la bossa escapçada va quedar a part d’aquella pesada.',
-      'Cada pesada talla les nou en tres: plat esquerre, plat dret, a part. Dos talls deixen una sola bossa dempeus.',
+      'Cada pesada talla les sis en tres: plat esquerre, plat dret, a part. Dos talls deixen una sola bossa dempeus.',
     ],
     nearMap: {
       'The first weighing already clears that pouch.': 'La primera pesada ja deixa neta aquella bossa.',
@@ -1567,7 +1596,7 @@ const I18N = {
       sankLevel: 'la biga va quedar anivellada',
       ariaWeighing: 'La {ord} pesada: plat esquerre {left}; plat dret {right}; a part {aside}; {sink}.',
       ariaRule: 'La regla tallada del compte: un marc són vuit øre, un øre tres ertog, així que un marc són vint-i-quatre ertog.',
-      ariaGroup: 'Les nou bosses al prestatge del mercader',
+      ariaGroup: 'Les sis bosses al prestatge del mercader',
       ariaPouch: 'Bossa sota el segell de {name}, jurada en {label}',
       ariaStruck: ', ratllada',
       ariaNamed: ', anomenada',
@@ -1577,7 +1606,7 @@ const I18N = {
       reckonedLine: 'Comptades en ertog, totes les bosses estan jurades en {n}.',
       carvedLine: 'Les etiquetes queden tal com van ser tallades.',
       keysNote: 'Amb el teclat: les fletxes recorren les bosses; l’espai o Retorn n’anomena una; X la ratlla del compte.',
-      openNine: 'Nou bosses, cadascuna jurada en {n} ertog — un marc són vuit øre, un øre tres ertog.',
+      openNine: 'Sis bosses, cadascuna jurada en {n} ertog — un marc són vuit øre, un øre tres ertog.',
       openClip: 'Una bossa va ser escapçada i corre lleugera. El plat que baixa duu l’argent més pesant.',
       openWeigh: '{ord} pesada — esquerra: {left}; dreta: {right}; a part: {aside}. I {sank}.',
       solvedLine: 'L’argent escapçat era sota el segell de {name}.',
@@ -1593,7 +1622,7 @@ export default {
   ordinal: 2,
   tier: 1,
   title: 'The Bismer Scales',
-  epigraph: 'Nine pouches, one sworn weight — and one runs light. The beam has already spoken twice.',
+  epigraph: 'Six pouches, one sworn weight — and one runs light. The beam has already spoken twice.',
 
   makePuzzle,
   solve,
@@ -1602,15 +1631,15 @@ export default {
   shard: () => ({ ...SHARDS['02-bismer'] }),
 
   difficulty: {
-    searchSpace: 9, // nine hypotheses; the work is in the ledger, not the search
-    minSteps: 8,
-    estMinutes: 3,
+    searchSpace: 6, // six hypotheses; the work is in the ledger, not the search
+    minSteps: 8,   // six labels reckoned in ertog + two weighings read
+    estMinutes: 2, // ENTRY-CURVE AMENDMENT: measured cold at about ninety seconds
   },
 
   hints: [
     'Every pouch is sworn to the same weight. Read the labels in ertog before you trust your eye: eight øre to the mark, three ertog to the øre.',
     'The pan that sinks holds the heavier silver. A level beam says the clipped pouch stood aside from that weighing.',
-    'Each weighing cuts the nine into three — left pan, right pan, set aside. Two cuts leave one pouch standing alone.',
+    'Each weighing cuts the six into three — left pan, right pan, set aside. Two cuts leave one pouch standing alone.',
   ],
 
   i18n: I18N,

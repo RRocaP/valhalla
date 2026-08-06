@@ -1,32 +1,39 @@
 // 04 — THE CLINKER STRAKES (tier 2, combination)
 //
-// Nine planks, nine sworn testimonies of the form "X laps Y" — X rests directly
-// upon Y. One shipwright swears falsely. Name the false testimony and raise the
-// stack from keel to sheer.
+// Seven planks, seven sworn testimonies of the form "X laps Y" — X rests
+// directly upon Y. One shipwright swears falsely. Name the false testimony and
+// raise the stack from keel to sheer.
+//
+// ENTRY-CURVE AMENDMENT (docs/LOCKS.md): seven planks and seven testimonies,
+// not nine. The liar-hunt insight is untouched — the ring still closes, the
+// rivet law is still the only thing that breaks the tie — but the sort that
+// follows it is shorter.
 //
 // THE TWO LAWS (stated plainly to the player in the journal):
-//   lap law   — a strake laps the one below it and no other; nine planks, one stack.
+//   lap law   — a strake laps the one below it and no other; seven planks, one stack.
 //   rivet law — where two strakes lap, one rivet count is odd and the other even.
 //
 // Pure half: no DOM, no globals, no Math.random, no Date. Only the seeded rng.
 //
-// CONSTRUCTION. The eight true adjacencies are given, plus one false claim that
+// CONSTRUCTION. The six true adjacencies are given, plus one false claim that
 // closes the ring: the keel-most plank is sworn to lap the sheer strake. The
-// nine claims therefore form a nine-cycle, so *any* one of them may be struck
-// out to leave exactly one legal stack — nine structurally identical
+// seven claims therefore form a seven-cycle, so *any* one of them may be struck
+// out to leave exactly one legal stack — seven structurally identical
 // candidates. Only the rivet law separates them: rivet counts alternate parity
-// along the true stack, so the false claim joins two planks eight apart (even
+// along the true stack, so the false claim joins two planks six apart (even
 // distance, same parity — lawless), every true claim joins planks of opposite
-// parity, and each of the eight decoy stacks is a rotation of the truth that
+// parity, and each of the six decoy stacks is a rotation of the truth that
 // breaks parity exactly at its wrap. Exactly one (order, liar) pair survives.
+// (The ring-closing lie is lawless only when the plank count is odd — seven is.)
 //
-// Difficulty accounting: nine testimonies each weighed against the rivet law,
-// the false one marked, then the stack raised — never fewer than twelve acts.
+// Difficulty accounting: seven testimonies each weighed against the rivet law,
+// the false one marked, then seven planks raised into the stack — never fewer
+// than twelve acts.
 
 import { SHARDS } from '../kernel/shards.js';
 
-const COUNT = 9;
-const PERM_CAP = 5040;
+const COUNT = 7;
+const PERM_CAP = 5040; // 7! — the whole space, so the sweep is never truncated
 
 const MARKS = [
   'the tarred plank', 'the pale plank', 'the knotted plank',
@@ -107,7 +114,7 @@ function sweep(instance) {
 }
 
 function makePuzzle(rng) {
-  const chain = rng.shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8]); // keel -> sheer
+  const chain = rng.shuffle([0, 1, 2, 3, 4, 5, 6]); // keel -> sheer
   const marks = rng.shuffle(MARKS);
   const odd = rng.shuffle(ODD_RIVETS);
   const even = rng.shuffle(EVEN_RIVETS);
@@ -188,7 +195,7 @@ function wrongAnswers(instance) {
   const same = (a) => JSON.stringify(a.order) === JSON.stringify(right.order) && a.liar === right.liar;
   const out = [];
 
-  // The eight rotations: each strikes a true testimony and keeps the lie, which
+  // The six rotations: each strikes a true testimony and keeps the lie, which
   // is legal by the lap law and lawless by the rivets.
   instance.testimonies.forEach((t, i) => {
     if (i === right.liar) return;
@@ -214,10 +221,10 @@ function wrongAnswers(instance) {
 
 // ------------------------------------------------------------------ the view
 //
-// THE SHIPWRIGHT'S BAY. The nine strakes stand in a building cradle — two
+// THE SHIPWRIGHT'S BAY. The seven strakes stand in a building cradle — two
 // carved stocks, cross-battens, wedges — with the finished hull ghosted behind
-// them: stem and stern gathering the nine strake lines up out of the keel. The
-// shape of the boat is the instruction; the plate only names the act. The nine
+// them: stem and stern gathering the seven strake lines up out of the keel. The
+// shape of the boat is the instruction; the plate only names the act. The seven
 // testimonies hang from a wall rail as carved tally-boards, and the one the
 // player calls false is BRANDED — blood pigment sunk into a struck gouge.
 // Shavings, adze facets and scribe lines carry the dead stretches.
@@ -232,8 +239,8 @@ const MONO = "ui-monospace,'SF Mono',Menlo,monospace";
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and resolve through it at mount.
 const BOARD_EN = {
-  plate: 'Stack the nine strakes as the true testimonies demand — and brand the false oath.',
-  law: 'Lap law: a strake laps the one below it and no other. Nine planks, one stack. '
+  plate: 'Stack the seven strakes as the true testimonies demand — and brand the false oath.',
+  law: 'Lap law: a strake laps the one below it and no other. Seven planks, one stack. '
     + 'Rivet law: where two strakes lap, one rivet count is odd and the other even. One testimony is false.',
   help: 'Drag a plank to move it, or lift it with space and move it with the up and down arrows. '
     + 'Tap a tally-board to brand that oath false.',
@@ -244,10 +251,10 @@ const BOARD_EN = {
   demoSay: 'Watch once: a plank is lifted and set one place higher.',
   sheer: 'sheer',
   keel: 'keel',
-  tally: '{n} of eight joints lie fair',
+  tally: '{n} of {j} joints lie fair',
   tallyNone: 'No joint lies fair yet',
-  tallyAll: 'All eight joints lie fair.',
-  saysLabel: 'The nine testimonies, hung on the rail — brand the false one',
+  tallyAll: 'All {j} joints lie fair.',
+  saysLabel: 'The seven testimonies, hung on the rail — brand the false one',
   stackLabel: 'The building cradle: the stack, sheer strake at the top, keel at the foot',
   swears: '{by} swears: {over} laps {under}.',
   rivets: '{a} over {b}',
@@ -605,7 +612,7 @@ function mount(ctx) {
     const cx = w / 2;
     const halfSpan = w * 0.455;
     // The ghost is a whole boat, not a copy of the stack: its sheer runs ABOVE
-    // the top plank and its keel BELOW the bottom one, so the nine planks sit
+    // the top plank and its keel BELOW the bottom one, so the seven planks sit
     // inside the shape they are going to become.
     const midTop = stackBox.y - 17;
     const midBot = stackBox.y + stackBox.h + 15;
@@ -622,7 +629,7 @@ function mount(ctx) {
     };
 
     // THE GHOSTED HULL — the shape of the finished boat, cut faint. Stem and
-    // stern gather all nine strakes up out of the keel; this is the silent
+    // stern gather all seven strakes up out of the keel; this is the silent
     // instruction, subordinate to every real thing on the board.
     c.save();
     c.lineCap = 'round';
@@ -1338,7 +1345,7 @@ function mount(ctx) {
     }
   }
 
-  // ---- the tally: eight notches on the wright's stick ----------------------
+  // ---- the tally: one notch per joint on the wright's stick ----------------
   function paintTally() {
     const c = tallyGfx.ctx;
     const { w, h } = tallyGfx;
@@ -1359,7 +1366,7 @@ function mount(ctx) {
     c.lineWidth = 1;
     c.beginPath(); c.moveTo(4, h - 5); c.lineTo(w - 4, h - 5); c.stroke();
     c.restore();
-    // eight notches, cut when a joint lies fair
+    // one notch per joint, cut when that joint lies fair
     for (let i = 0; i < JOINTS; i++) {
       const x = 12 + i * ((w - 24) / (JOINTS - 1));
       c.save();
@@ -1380,7 +1387,8 @@ function mount(ctx) {
       }
       c.restore();
     }
-    tallyText.textContent = n === JOINTS ? T('tallyAll') : (n === 0 ? T('tallyNone') : T('tally', { n }));
+    tallyText.textContent = n === JOINTS ? T('tallyAll', { j: JOINTS })
+      : (n === 0 ? T('tallyNone') : T('tally', { n, j: JOINTS }));
   }
 
   // Reordering must never cost the player their grip (CONTRACT §8): leave the
@@ -1777,11 +1785,11 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'Las Tracas a Tingladillo',
-    epigraph: 'Nueve tablas, y nueve hombres que juran. Uno jura en falso.',
+    epigraph: 'Siete tablas, y siete hombres que juran. Uno jura en falso.',
     hints: [
-      'Una traca solapa la de debajo y ninguna otra. Nueve tablas hacen una sola pila, de la quilla a la regala — y estos nueve testimonios cierran un anillo, cosa que ninguna pila puede.',
+      'Una traca solapa la de debajo y ninguna otra. Siete tablas hacen una sola pila, de la quilla a la regala — y estos siete testimonios cierran un anillo, cosa que ninguna pila puede.',
       'Cuenta los roblones. Donde dos tracas solapan, una cuenta es impar y la otra par. Pesa cada testimonio contra esa ley.',
-      'Tacha del registro el testimonio sin ley y jura por los otros ocho. Lo que dejan es una pila y ninguna más.',
+      'Tacha del registro el testimonio sin ley y jura por los otros seis. Lo que dejan es una pila y ninguna más.',
     ],
     nearMap: {
       [NEAR_KEEPS]: 'Ese testimonio respeta la ley de los roblones. No es mentira.',
@@ -1797,8 +1805,8 @@ const I18N = {
       [nearRun(8)]: 'Ocho tracas desde la quilla se sostienen. La siguiente no.',
     },
     board: {
-      plate: 'Apila las nueve tracas como exigen los testimonios verdaderos — y marca el juramento falso.',
-      law: 'Ley del solape: una traca solapa la de debajo y ninguna otra. Nueve tablas, una pila. '
+      plate: 'Apila las siete tracas como exigen los testimonios verdaderos — y marca el juramento falso.',
+      law: 'Ley del solape: una traca solapa la de debajo y ninguna otra. Siete tablas, una pila. '
         + 'Ley del roblón: donde dos tracas solapan, una cuenta es impar y la otra par. Un testimonio es falso.',
       help: 'Arrastra una traca para moverla, o álzala con el espacio y muévela con las flechas arriba y abajo. '
         + 'Toca una tabla de cuentas para marcar ese juramento como falso.',
@@ -1809,10 +1817,10 @@ const I18N = {
       demoSay: 'Mira una vez: una traca se alza y se posa un lugar más arriba.',
       sheer: 'regala',
       keel: 'quilla',
-      tally: '{n} de ocho juntas asientan bien',
+      tally: '{n} de {j} juntas asientan bien',
       tallyNone: 'Ninguna junta asienta aún',
-      tallyAll: 'Las ocho juntas asientan bien.',
-      saysLabel: 'Los nueve testimonios, colgados del listón — marca el falso',
+      tallyAll: 'Las {j} juntas asientan bien.',
+      saysLabel: 'Los siete testimonios, colgados del listón — marca el falso',
       stackLabel: 'La cuna de armar: la pila, la regala arriba y la quilla al pie',
       swears: '{by} jura: {over} solapa {under}.',
       rivets: '{a} sobre {b}',
@@ -1847,11 +1855,11 @@ const I18N = {
   },
   ca: {
     title: 'Les Traques a Tingladell',
-    epigraph: 'Nou taules, i nou homes que juren. Un jura en fals.',
+    epigraph: 'Set taules, i set homes que juren. Un jura en fals.',
     hints: [
-      'Una traca encavalca la de sota i cap altra. Nou taules fan una sola pila, de la quilla a la regala — i aquests nou testimonis tanquen un anell, cosa que cap pila no pot.',
+      'Una traca encavalca la de sota i cap altra. Set taules fan una sola pila, de la quilla a la regala — i aquests set testimonis tanquen un anell, cosa que cap pila no pot.',
       'Compta els reblons. Allà on dues traques encavalquen, un compte és senar i l’altre parell. Pesa cada testimoni contra aquesta llei.',
-      'Ratlla del registre el testimoni sense llei i jura pels altres vuit. El que deixen és una pila i cap altra.',
+      'Ratlla del registre el testimoni sense llei i jura pels altres sis. El que deixen és una pila i cap altra.',
     ],
     nearMap: {
       [NEAR_KEEPS]: 'Aquest testimoni respecta la llei dels reblons. No és cap mentida.',
@@ -1867,8 +1875,8 @@ const I18N = {
       [nearRun(8)]: 'Vuit traques des de la quilla s’aguanten. La següent no.',
     },
     board: {
-      plate: 'Apila les nou traques com exigeixen els testimonis verdaders — i marca el jurament fals.',
-      law: 'Llei de l’encavalcament: una traca encavalca la de sota i cap altra. Nou taules, una pila. '
+      plate: 'Apila les set traques com exigeixen els testimonis verdaders — i marca el jurament fals.',
+      law: 'Llei de l’encavalcament: una traca encavalca la de sota i cap altra. Set taules, una pila. '
         + 'Llei del rebló: allà on dues traques encavalquen, un compte és senar i l’altre parell. Un testimoni és fals.',
       help: 'Arrossega una traca per moure-la, o alça-la amb l’espai i mou-la amb les fletxes amunt i avall. '
         + 'Toca una post de comptes per marcar aquell jurament com a fals.',
@@ -1879,10 +1887,10 @@ const I18N = {
       demoSay: 'Mira-ho un cop: una traca s’alça i es posa un lloc més amunt.',
       sheer: 'regala',
       keel: 'quilla',
-      tally: '{n} de vuit juntes seuen bé',
+      tally: '{n} de {j} juntes seuen bé',
       tallyNone: 'Cap junta no seu bé encara',
-      tallyAll: 'Les vuit juntes seuen bé.',
-      saysLabel: 'Els nou testimonis, penjats del llistó — marca el fals',
+      tallyAll: 'Les {j} juntes seuen bé.',
+      saysLabel: 'Els set testimonis, penjats del llistó — marca el fals',
       stackLabel: 'El bressol d’armar: la pila, la regala a dalt i la quilla al peu',
       swears: '{by} jura: {over} encavalca {under}.',
       rivets: '{a} sobre {b}',
@@ -1922,7 +1930,7 @@ export default {
   ordinal: 4,
   tier: 2,
   title: 'The Clinker Strakes',
-  epigraph: 'Nine planks, and nine men who swear. One swears falsely.',
+  epigraph: 'Seven planks, and seven men who swear. One swears falsely.',
 
   makePuzzle,
   solve,
@@ -1931,15 +1939,15 @@ export default {
   shard: () => ({ ...SHARDS['04-strakes'] }),
 
   difficulty: {
-    searchSpace: 3265920, // 9! stacks x 9 testimonies
-    minSteps: 12,
-    estMinutes: 5,
+    searchSpace: 35280, // 7! stacks x 7 testimonies
+    minSteps: 12,   // seven testimonies weighed + the false one marked + the stack raised
+    estMinutes: 4,  // ENTRY-CURVE AMENDMENT: measured cold at about three and a half minutes
   },
 
   hints: [
-    'A strake laps the one below it and no other. Nine planks make one stack, keel to sheer — and these nine testimonies make a ring, which no stack can.',
+    'A strake laps the one below it and no other. Seven planks make one stack, keel to sheer — and these seven testimonies make a ring, which no stack can.',
     'Count the rivets. Where two strakes lap, one count is odd and the other even. Weigh every testimony against that.',
-    'Strike the lawless testimony from the ledger and swear by the other eight. What they leave is one stack and no other.',
+    'Strike the lawless testimony from the ledger and swear by the other six. What they leave is one stack and no other.',
   ],
 
   i18n: I18N,

@@ -37,7 +37,7 @@ test('floors: console, horizontal scroll, touch targets, contrast, offline reloa
     // drone — that failed *fetch* is itself expected and is not a thrown
     // error; only genuine application errors should fail this floor.
     const url = m.location() && m.location().url || '';
-    if (/\/(music|credits)\.mp3(\?|$)/.test(url)) return;
+    if (/\/(music|credits|act\d+)\.mp3(\?|$)/.test(url)) return;
     errors.push(`[console] ${m.text()}`);
   });
   page.on('pageerror', (e) => errors.push(`[pageerror] ${e}`));

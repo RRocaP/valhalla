@@ -19,7 +19,7 @@ test('full journey: threshold -> fifteen locks -> finale -> credits', async ({ p
     // fetch/decode (e.g. blocked autoplay) and must degrade silently — that
     // is not a thrown application error.
     const url = m.location() && m.location().url || '';
-    if (/\/(music|credits)\.mp3(\?|$)/.test(url)) return;
+    if (/\/(music|credits|act\d+)\.mp3(\?|$)/.test(url)) return;
     errors.push(`[console] ${m.text()}`);
   });
   page.on('pageerror', (e) => errors.push(`[pageerror] ${e}`));
