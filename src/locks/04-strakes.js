@@ -581,10 +581,28 @@ function mount(ctx) {
     }
   }
 
+  // Reordering must never cost the player their grip (CONTRACT §8): leave the
+  // DOM alone when the stack already stands in order; when it must move,
+  // re-appending drops focus and pointer capture in a real browser, so
+  // restore both onto the same plank afterwards.
+  function syncStack() {
+    const want = stack.map((id) => plankViews[id].btn);
+    const have = Array.from(stackList.children || []);
+    if (have.length === want.length && want.every((b, i) => have[i] === b)) return;
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    for (const b of want) stackList.append(b);
+    if (active && want.indexOf(active) >= 0) {
+      try { active.focus({ preventScroll: true }); } catch (e) { try { active.focus(); } catch (e2) { /* headless */ } }
+    }
+    if (drag && drag.pointerId != null) {
+      try { plankViews[drag.id].btn.setPointerCapture(drag.pointerId); } catch (e) { /* pointer gone */ }
+    }
+  }
+
   function render() {
+    syncStack();
     stack.forEach((id, place) => {
       const v = plankViews[id];
-      stackList.append(v.btn);
       const plank = instance.planks[id];
       const fromKeel = stack.length - place;
       v.text.textContent = `${plank.mark} · ${plank.rivets} rivets`;
@@ -627,7 +645,7 @@ function mount(ctx) {
   plankViews.forEach((v) => {
     on(v.btn, 'pointerdown', (ev) => {
       if (ctx.solved) return;
-      drag = { id: v.id, y: ev.clientY, moved: false };
+      drag = { id: v.id, y: ev.clientY, moved: false, pointerId: ev.pointerId };
       try { v.btn.setPointerCapture(ev.pointerId); } catch (e) { /* mouse without capture */ }
     });
     on(v.btn, 'pointermove', (ev) => {

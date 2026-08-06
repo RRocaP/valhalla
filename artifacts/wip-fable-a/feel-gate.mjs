@@ -58,7 +58,19 @@ class El {
       this.getContext = () => (this.__ctx || (this.__ctx = ctx2d()));
     }
   }
-  append(...kids) { for (const k of kids) { if (k.parentNode) k.parentNode.removeChild(k); k.parentNode = this; this.children.push(k); } }
+  // Browser-accurate on the two behaviours QA hit: re-appending a connected
+  // node momentarily disconnects it, which BLURS it and DROPS pointer capture.
+  append(...kids) {
+    for (const k of kids) {
+      if (k.parentNode) {
+        if (doc.activeElement === k) doc.activeElement = null;
+        k.__captured = null;
+        k.parentNode.removeChild(k);
+      }
+      k.parentNode = this;
+      this.children.push(k);
+    }
+  }
   removeChild(k) { const i = this.children.indexOf(k); if (i >= 0) this.children.splice(i, 1); k.parentNode = null; return k; }
   setAttribute(k, v) { this.attrs[k] = String(v); }
   getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; }
@@ -77,8 +89,8 @@ class El {
   getBoundingClientRect() { return this.__rect; }
   focus() { doc.activeElement = this; this.dispatchEvent(evt('focus', { bubbles: false })); }
   click() { this.dispatchEvent(evt('click')); }
-  setPointerCapture() {}
-  releasePointerCapture() {}
+  setPointerCapture(id) { this.__captured = id; }
+  releasePointerCapture(id) { if (this.__captured === id) this.__captured = null; }
 }
 const evt = (type, extra = {}) => Object.assign({ type, bubbles: true, preventDefault() {}, stopPropagation() {} }, extra);
 const doc = { activeElement: null, createElement: (tag) => new El(tag) };
@@ -288,11 +300,71 @@ run('05 — bands defined in journal; toggle pulse timer cleaned; near fault pat
   check(c.root.children.length === 0, 'unmount clears the root');
 });
 
+// --------------------------------------------- grip: focus + pointer capture
+run('01 — grip survives re-render: focus restored, capture re-established', () => {
+  const instance = lock01.makePuzzle(rng('grip-01'));
+  const c = makeCtx(lock01, instance);
+  const h = lock01.mount(c);
+  const rowOf = () => findAll(c.root, (e) => e.getAttribute && e.getAttribute('role') === 'list')[0].children;
+
+  // keyboard: lift a tile and walk it — the reorder must not shed focus
+  const walker = rowOf()[0];
+  walker.focus();
+  key(walker, ' ');           // lift (no reorder)
+  key(walker, 'ArrowRight');  // move (reorders the DOM)
+  check(doc.activeElement === walker, 'keyboard mover keeps focus across the reorder');
+  key(walker, ' ');           // set down
+  check(doc.activeElement === walker, 'focus still held after set-down');
+
+  // pointer: mid-drag re-renders must re-establish capture and keep focus
+  rowOf().forEach((b, i) => { b.__rect = { left: i * 50, top: 0, width: 46, height: 60 }; });
+  const dragged = rowOf()[15];
+  dragged.focus();
+  dragged.dispatchEvent(evt('pointerdown', { clientX: 15 * 50 + 20, clientY: 30, pointerId: 7 }));
+  check(dragged.__captured === 7, 'capture taken on pointerdown');
+  dragged.dispatchEvent(evt('pointermove', { clientX: 400, clientY: 30, pointerId: 7 }));
+  dragged.dispatchEvent(evt('pointermove', { clientX: 10, clientY: 30, pointerId: 7 }));
+  check(dragged.__captured === 7, 'capture re-established after the reorder re-append');
+  check(doc.activeElement === dragged, 'focus survives the mid-drag reorder');
+  dragged.dispatchEvent(evt('pointerup', { clientX: 10, clientY: 30, pointerId: 7 }));
+  check(rowOf().indexOf(dragged) === 0, 'the drag landed at the head');
+  h.unmount();
+  check(c.root.children.length === 0, 'unmount clears the root');
+});
+
+run('04 — grip survives re-render: plank drag keeps capture and focus', () => {
+  const instance = lock04.makePuzzle(rng('grip-04'));
+  const c = makeCtx(lock04, instance);
+  const h = lock04.mount(c);
+  const listOf = () => findAll(c.root, (e) => e.getAttribute && e.getAttribute('role') === 'list')[0].children;
+  listOf().forEach((b, i) => { b.__rect = { left: 0, top: i * 36, width: 200, height: 34 }; });
+
+  const dragged = listOf()[8];
+  dragged.focus();
+  dragged.dispatchEvent(evt('pointerdown', { clientX: 20, clientY: 8 * 36 + 10, pointerId: 3 }));
+  check(dragged.__captured === 3, 'capture taken on pointerdown');
+  dragged.dispatchEvent(evt('pointermove', { clientX: 20, clientY: 5, pointerId: 3 }));
+  check(dragged.__captured === 3, 'capture re-established after the stack reorder');
+  check(doc.activeElement === dragged, 'focus survives the mid-drag reorder');
+  dragged.dispatchEvent(evt('pointerup', { clientX: 20, clientY: 5, pointerId: 3 }));
+  check(listOf().indexOf(dragged) < 8, 'the plank moved up the stack');
+
+  // keyboard: lift + move, focus must stay on the moved plank
+  const kb = listOf()[4];
+  kb.focus();
+  key(kb, ' ');
+  key(kb, 'ArrowUp');
+  check(doc.activeElement === kb, 'keyboard mover keeps focus across the reorder');
+  key(kb, ' ');
+  h.unmount();
+  check(c.root.children.length === 0, 'unmount clears the root');
+});
+
 realSetTimeout(() => {
   console.log('');
   if (failures) {
     console.error(`FEEL GATE FAILED — ${failures} problem(s)`);
     process.exit(1);
   }
-  console.log('FEEL GATE GREEN — fairness notes, near-marks, flicker lifecycle, clean unmounts');
+  console.log('FEEL GATE GREEN — fairness notes, near-marks, flicker lifecycle, grip, clean unmounts');
 }, 700);

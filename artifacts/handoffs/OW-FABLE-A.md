@@ -58,3 +58,15 @@ npm test                                                             exit 0  272
    in-situ contrast, 44px targets, flicker inside the 32ms idle budget) stays with QA/ART.
 3. 05's "doubles over in one place" near branch is unreachable (break count is always even on
    a closed band); kept for verify totality.
+
+## Addendum — grip fix (coordinator follow-up, post-integration)
+QA found `render()` in 01/04 re-appended every button on reorder, which in a real browser
+blurs the focused tile and drops pointer capture mid-drag (CONTRACT §8). Fixed in
+`src/locks/01-runerow.js` / `04-strakes.js`: `syncRow()`/`syncStack()` now leave the DOM
+untouched when order already matches (flips/lifts no longer disturb focus at all); on a real
+reorder they restore focus to the same button (`focus({preventScroll})`) and re-establish
+`setPointerCapture(drag.pointerId)` on the captured element. feel-gate's stub now emulates the
+browser (re-append blurs + drops capture) and two new grip tests pass only through the fix —
+real input, not the e2e driver workaround. Gates re-run: unit 47/47 = 0; verify 60-seed 01 and
+04 = 0; lane view-harness = 0; feel-gate = 0; npm test 272/272 = 0. Evidence refreshed in
+`artifacts/wip-fable-a/`.

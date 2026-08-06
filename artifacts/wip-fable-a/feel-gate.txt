@@ -9,4 +9,8 @@
 
 — 05 — bands defined in journal; toggle pulse timer cleaned; near fault path
 
-FEEL GATE GREEN — fairness notes, near-marks, flicker lifecycle, clean unmounts
+— 01 — grip survives re-render: focus restored, capture re-established
+
+— 04 — grip survives re-render: plank drag keeps capture and focus
+
+FEEL GATE GREEN — fairness notes, near-marks, flicker lifecycle, grip, clean unmounts

@@ -358,10 +358,28 @@ function mount(ctx) {
     }
   }
 
+  // Reordering must never cost the player their grip (CONTRACT §8): leave the
+  // DOM alone when the order already stands; when it must move, re-appending
+  // drops focus and pointer capture in a real browser, so restore both onto
+  // the same tile afterwards.
+  function syncRow() {
+    const want = row.map((id) => tiles[id].btn);
+    const have = Array.from(rowWrap.children || []);
+    if (have.length === want.length && want.every((b, i) => have[i] === b)) return;
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    for (const b of want) rowWrap.append(b);
+    if (active && want.indexOf(active) >= 0) {
+      try { active.focus({ preventScroll: true }); } catch (e) { try { active.focus(); } catch (e2) { /* headless */ } }
+    }
+    if (drag && drag.pointerId != null) {
+      try { tiles[drag.id].btn.setPointerCapture(drag.pointerId); } catch (e) { /* pointer gone */ }
+    }
+  }
+
   function render() {
+    syncRow();
     row.forEach((id, place) => {
       const tile = tiles[id];
-      rowWrap.append(tile.btn);
       const t = instance.tiles[id];
       const facing = t.wend !== flip[id] ? 'facing backwards' : 'standing upright';
       tile.btn.dataset.held = held === id ? '1' : '0';
@@ -419,7 +437,7 @@ function mount(ctx) {
   tiles.forEach((tile) => {
     on(tile.btn, 'pointerdown', (ev) => {
       if (ctx.solved) return;
-      drag = { id: tile.id, x: ev.clientX, y: ev.clientY, moved: false, from: row.indexOf(tile.id) };
+      drag = { id: tile.id, x: ev.clientX, y: ev.clientY, moved: false, from: row.indexOf(tile.id), pointerId: ev.pointerId };
       try { tile.btn.setPointerCapture(ev.pointerId); } catch (e) { /* mouse without capture */ }
     });
 
