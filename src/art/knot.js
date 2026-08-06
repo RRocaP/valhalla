@@ -6,7 +6,7 @@
 // fully continuous through the same point, so which strand reads as on top
 // falls out of the geometry — no draw-order bookkeeping needed.
 import { segIntersect } from './util.js';
-import { palette, rgba } from './palette.js';
+import { palette, rgba, mix } from './palette.js';
 
 export function computeInterlace(points) {
   const n = points.length;
@@ -38,19 +38,36 @@ function lerpPoint(a, b, t) {
 
 export function drawKnot(ctx, points, opts = {}) {
   const width = opts.width || 10;
-  const color = opts.color || palette.gold;
+  const baseColor = opts.color || palette.gold;
   const gapHalf = (opts.gapAtCrossings ?? width * 1.4) / 2;
   const n = points.length;
   if (n < 2) return;
   const { perSeg } = computeInterlace(points);
 
+  // One gradient across the whole strand's bounding box (not a flat fill)
+  // so it reads as a rounded, lit cord rather than a solid-colour ribbon.
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const [px, py] of points) {
+    if (px < minX) minX = px;
+    if (px > maxX) maxX = px;
+    if (py < minY) minY = py;
+    if (py > maxY) maxY = py;
+  }
+  const cordGrad = ctx.createLinearGradient(minX, minY, maxX, maxY);
+  cordGrad.addColorStop(0, mix(baseColor, palette.goldBright, 0.55));
+  cordGrad.addColorStop(0.5, baseColor);
+  cordGrad.addColorStop(1, mix(baseColor, palette.tar, 0.35));
+
   const drawSub = (a, b) => {
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.translate(0.8, 1.0);
-    ctx.strokeStyle = rgba(palette.tar, 0.65);
-    ctx.lineWidth = width * 1.25;
+    ctx.translate(0.9, 1.2);
+    ctx.strokeStyle = rgba(palette.tar, 0.68);
+    ctx.lineWidth = width * 1.3;
     ctx.beginPath();
     ctx.moveTo(a[0], a[1]);
     ctx.lineTo(b[0], b[1]);
@@ -60,11 +77,22 @@ export function drawKnot(ctx, points, opts = {}) {
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = cordGrad;
     ctx.lineWidth = width;
     ctx.beginPath();
     ctx.moveTo(a[0], a[1]);
     ctx.lineTo(b[0], b[1]);
+    ctx.stroke();
+    ctx.restore();
+
+    // thin specular streak so the cord reads as round, not flat
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = rgba(palette.goldBright, 0.4);
+    ctx.lineWidth = Math.max(1, width * 0.22);
+    ctx.beginPath();
+    ctx.moveTo(a[0] - 0.7, a[1] - 1.1);
+    ctx.lineTo(b[0] - 0.7, b[1] - 1.1);
     ctx.stroke();
     ctx.restore();
   };

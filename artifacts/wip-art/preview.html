@@ -1,0 +1,286 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>OW-ART preview</title>
+<style>
+  body { margin:0; background:#0a0806; color:#e9dcc3; font: 13px/1.4 ui-monospace, 'SF Mono', Menlo, monospace; padding-bottom: 60px; }
+  h2 { font: 600 15px 'Iowan Old Style', Georgia, serif; color:#eecf6d; margin: 26px 12px 8px; border-bottom: 1px solid #3a2412; padding-bottom: 4px; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; padding: 0 12px; align-items:flex-start; }
+  .cell { background:#000; padding:4px; }
+  .cell canvas, .cell img { display:block; }
+  .label { font-size:10px; color:#b7a98c; margin-top:3px; max-width: 220px; }
+  #contrast, #timing { white-space:pre; padding:10px 14px; background:#150e07; border:1px solid #3a2412; margin:8px 12px; font-size:12px; }
+  .pass { color:#8fd18f; } .fail { color:#e37b7b; }
+</style>
+</head>
+<body>
+
+<h2>wood (3 seeds)</h2>
+<div class="row" id="wood"></div>
+
+<h2>paintPanel + numeric contrast gate</h2>
+<div class="row" id="panel"></div>
+<pre id="contrast">computing…</pre>
+
+<h2>runes (16 + 3 mirrored)</h2>
+<div class="row" id="runes"></div>
+
+<h2>knot lattice (over/under interlace)</h2>
+<div class="row" id="knot"></div>
+
+<h2>ornaments (5 kinds)</h2>
+<div class="row" id="ornaments"></div>
+
+<h2>medallions (3 states x 3 ordinals)</h2>
+<div class="row" id="medallions"></div>
+
+<h2>chestScene (progress 0 / 0.5 / 1)</h2>
+<div class="row" id="chest"></div>
+
+<h2>treasureFrame</h2>
+<div class="row" id="treasure"></div>
+
+<h2>portrait — arch (bow 0/0.5/1) + white credits variant</h2>
+<div class="row" id="portrait"></div>
+
+<h2>sticker — die-cut credits rain (60-90px widths, mixed rotation)</h2>
+<div class="row" id="sticker"></div>
+
+<h2>carveText — relief depth ramp + DOM heading relief (reliefShadowCss)</h2>
+<div class="row" id="type"></div>
+<div class="row" id="relief"></div>
+
+<pre id="timing">measuring…</pre>
+
+<img id="src-bourj" src="/assets/jarls/bourj.jpg" style="display:none">
+<img id="src-rois" src="/assets/jarls/rois.jpg" style="display:none">
+<img id="src-andreas" src="/assets/jarls/andreas.jpg" style="display:none">
+<img id="src-ramon" src="/assets/ramon.jpg" style="display:none">
+<img id="src-alano" src="/assets/alano.jpg" style="display:none">
+
+<script type="module">
+import { createArt } from '/src/art/index.js';
+import { contrastRatio, palette } from '/src/art/palette.js';
+
+const art = createArt();
+
+function cell(container, w, h, label) {
+  const wrap = document.createElement('div');
+  wrap.className = 'cell';
+  const { canvas, ctx } = art.makeCanvas(w, h);
+  wrap.appendChild(canvas);
+  const l = document.createElement('div');
+  l.className = 'label';
+  l.textContent = label;
+  wrap.appendChild(l);
+  container.appendChild(wrap);
+  return ctx;
+}
+
+// ---- wood ----
+['a', 'b', 'c'].forEach((seed) => {
+  const ctx = cell(document.getElementById('wood'), 300, 180, `seed=${seed}`);
+  art.paintWood(ctx, 300, 180, seed);
+});
+
+// ---- panel + contrast ----
+{
+  const ctx = cell(document.getElementById('panel'), 340, 220, 'paintPanel title');
+  art.paintWood(ctx, 340, 220, 'panel-bg');
+  art.paintPanel(ctx, 20, 20, 300, 180, { title: 'THE BISMER SCALES' });
+
+  const bg = [['oakDeep', palette.oakDeep], ['oak', palette.oak], ['tar', palette.tar]];
+  const fg = [['bone', palette.bone], ['boneDim', palette.boneDim]];
+  let out = 'WCAG contrast, text vs panel-interior tones. Gate = 4.5:1\n\n';
+  let anyFail = false;
+  for (const [fn, fh] of fg) {
+    for (const [bn, bh] of bg) {
+      const ratio = contrastRatio(fh, bh);
+      const pass = ratio >= 4.5;
+      if (!pass) anyFail = true;
+      out += `${fn.padEnd(8)} on ${bn.padEnd(8)} = ${ratio.toFixed(2)}:1  ${pass ? 'PASS' : 'FAIL'}\n`;
+    }
+  }
+  out += `\nsanity: black/white = ${contrastRatio('#000000', '#ffffff').toFixed(2)}:1 (expect ~21)`;
+  const pre = document.getElementById('contrast');
+  pre.textContent = out;
+  pre.className = anyFail ? 'fail' : 'pass';
+}
+
+// ---- runes ----
+{
+  const runeChars = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚬ', 'ᚱ', 'ᚴ', 'ᚼ', 'ᚾ', 'ᛁ', 'ᛅ', 'ᛋ', 'ᛏ', 'ᛒ', 'ᛘ', 'ᛚ', 'ᛦ'];
+  runeChars.forEach((ch) => {
+    const ctx = cell(document.getElementById('runes'), 64, 74, ch);
+    art.paintWood(ctx, 64, 74, 'rune-bg');
+    art.drawRune(ctx, ch, 8, 6, 48, { color: art.palette.bone });
+  });
+  ['ᚦ', 'ᛒ', 'ᛋ'].forEach((ch) => {
+    const ctx = cell(document.getElementById('runes'), 64, 74, ch + ' mirrored');
+    art.paintWood(ctx, 64, 74, 'rune-bg');
+    art.drawRune(ctx, ch, 8, 6, 48, { color: art.palette.goldBright, mirror: true });
+  });
+}
+
+// ---- knot lattice ----
+{
+  const ctx = cell(document.getElementById('knot'), 260, 260, "ornament('ringknot') raw");
+  art.paintWood(ctx, 260, 260, 'knot-bg');
+  art.ornament(ctx, 'ringknot', 130, 130, 200);
+
+  const ctx2 = cell(document.getElementById('knot'), 280, 160, 'drawKnot: Lissajous (genuinely self-crossing)');
+  art.paintWood(ctx2, 280, 160, 'knot-bg2');
+  const pts = [];
+  const N = 72;
+  for (let i = 0; i <= N; i++) {
+    const tt = (i / N) * Math.PI * 2;
+    pts.push([140 + Math.sin(tt * 3) * 118, 80 + Math.sin(tt * 2) * 58]);
+  }
+  art.drawKnot(ctx2, pts, { width: 11, color: art.palette.gold });
+}
+
+// ---- ornaments ----
+['ringknot', 'dragonhead', 'shieldboss', 'wavebord', 'nailhead'].forEach((kind) => {
+  const ctx = cell(document.getElementById('ornaments'), 170, 170, kind);
+  art.paintWood(ctx, 170, 170, 'orn-bg');
+  if (kind === 'wavebord') art.ornament(ctx, kind, 15, 85, 140);
+  else art.ornament(ctx, kind, 85, 85, 120);
+});
+
+// ---- medallions ----
+['sealed', 'next', 'open'].forEach((state) => {
+  [1, 7, 13].forEach((ordinal) => {
+    const ctx = cell(document.getElementById('medallions'), 110, 110, `${state} #${ordinal}`);
+    art.paintWood(ctx, 110, 110, 'med-bg');
+    art.medallion(ctx, 55, 55, 42, state, ordinal);
+  });
+});
+
+// ---- chestScene ----
+[0, 0.5, 1].forEach((progress) => {
+  const ctx = cell(document.getElementById('chest'), 420, 262, `progress=${progress}`);
+  art.chestScene(ctx, 420, 262, 1400, progress);
+});
+
+// ---- treasureFrame ----
+{
+  const ctx = cell(document.getElementById('treasure'), 320, 400, 'treasureFrame');
+  art.treasureFrame(ctx, 320, 400, 900);
+}
+
+// ---- portrait + sticker + type (need decoded images) ----
+async function decodeAll(ids) {
+  const imgs = {};
+  for (const id of ids) {
+    const el = document.getElementById(`src-${id}`);
+    try { await el.decode(); } catch (e) { /* still usable even if decode() rejects */ }
+    imgs[id] = el;
+  }
+  return imgs;
+}
+
+async function runImageDemos() {
+  const imgs = await decodeAll(['bourj', 'rois', 'andreas', 'ramon', 'alano']);
+
+  [0, 0.5, 1].forEach((bow) => {
+    const ctx = cell(document.getElementById('portrait'), 220, 280, `bourj arch bow=${bow}`);
+    art.paintWood(ctx, 220, 280, 'portrait-bg');
+    art.portrait(ctx, imgs.bourj, 20, 15, 180, 240, { bow });
+  });
+  {
+    const ctx = cell(document.getElementById('portrait'), 220, 280, 'ramon — white (credits)');
+    art.paintWood(ctx, 220, 280, 'portrait-bg2');
+    art.portrait(ctx, imgs.ramon, 20, 15, 180, 240, { white: true });
+  }
+
+  const stickerSrcs = [
+    ['bourj', imgs.bourj], ['rois', imgs.rois], ['andreas', imgs.andreas], ['alano', imgs.alano],
+  ];
+  {
+    const ctx = cell(document.getElementById('sticker'), 340, 220, 'scatter, 60-90px, mixed rotation');
+    art.paintWood(ctx, 340, 220, 'sticker-bg');
+    const spots = [
+      [60, 55, 60, -0.35], [170, 40, 78, 0.5], [270, 70, 66, -0.15],
+      [90, 150, 90, 0.9], [220, 160, 72, -0.6], [300, 150, 64, 0.2],
+    ];
+    spots.forEach(([sx, sy, sw, rot], i) => {
+      const [, img] = stickerSrcs[i % stickerSrcs.length];
+      art.sticker(ctx, img, sx, sy, sw, rot);
+    });
+  }
+  [0, Math.PI / 8, -Math.PI / 6].forEach((rot, i) => {
+    const ctx = cell(document.getElementById('sticker'), 140, 140, `single, rot=${rot.toFixed(2)}`);
+    art.paintWood(ctx, 140, 140, 'sticker-bg2-' + i);
+    art.sticker(ctx, imgs.alano, 70, 70, 84, rot);
+  });
+}
+runImageDemos();
+
+// ---- carveText depth ramp + title wordmark ----
+[0, 0.3, 0.7, 1.0].forEach((depth) => {
+  const ctx = cell(document.getElementById('type'), 300, 90, `carveText depth=${depth}`);
+  art.paintWood(ctx, 300, 90, 'type-bg');
+  art.carveText(ctx, 'VALHALLA', 150, 55, 30, { align: 'center', depth, color: art.palette.bone });
+});
+{
+  const ctx = cell(document.getElementById('type'), 340, 130, 'title wordmark, depth=0.85');
+  art.paintWood(ctx, 340, 130, 'type-title-bg');
+  art.carveText(ctx, 'VALHALLA', 170, 60, 44, { align: 'center', depth: 0.85, color: art.palette.bone });
+  art.carveText(ctx, 'Fifteen Locks of the Northmen', 170, 95, 15, { align: 'center', depth: 0.6, color: art.palette.boneDim });
+}
+{
+  const ctx = cell(document.getElementById('type'), 220, 90, 'left-aligned, maxWidth clamp');
+  art.paintWood(ctx, 220, 90, 'type-left-bg');
+  art.carveText(ctx, 'IV — THE STRAKES', 14, 50, 24, { align: 'left', depth: 0.8, maxWidth: 190 });
+}
+
+// ---- DOM heading relief (reliefShadowCss) ----
+{
+  const container = document.createElement('div');
+  container.className = 'cell';
+  container.style.cssText = 'position:relative; width:340px; height:110px;';
+  const { canvas, ctx } = art.makeCanvas(340, 110);
+  art.paintWood(ctx, 340, 110, 'relief-dom-bg');
+  container.appendChild(canvas);
+  const heading = document.createElement('h2');
+  heading.textContent = 'VALHALLA';
+  heading.style.cssText = `position:absolute; inset:0; margin:0; border:0; padding:0; display:flex; align-items:center; justify-content:center; font: 700 34px 'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif; color:${art.palette.bone}; text-shadow:${art.reliefShadowCss}; letter-spacing:3px;`;
+  container.appendChild(heading);
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = 'DOM <h2> + art.reliefShadowCss over paintWood canvas';
+  container.appendChild(label);
+  document.getElementById('relief').appendChild(container);
+
+  const pre = document.createElement('pre');
+  pre.style.cssText = 'padding:10px 14px; background:#150e07; border:1px solid #3a2412; margin:8px 0; font-size:11px; max-width:500px; white-space:pre-wrap;';
+  pre.textContent = `art.reliefShadowCss = "${art.reliefShadowCss}"`;
+  document.getElementById('relief').appendChild(pre);
+}
+
+// ---- perf harness: chestScene(1280x800) after cache warm ----
+async function measure() {
+  const { ctx } = art.makeCanvas(1280, 800);
+  art.chestScene(ctx, 1280, 800, 0, 0.5); // warm the wood + body caches
+  const N = 24;
+  const samples = [];
+  for (let i = 0; i < N; i++) {
+    const t0 = performance.now();
+    art.chestScene(ctx, 1280, 800, i * 16, 0.5);
+    samples.push(performance.now() - t0);
+  }
+  const avg = samples.reduce((a, b) => a + b, 0) / N;
+  const min = Math.min(...samples);
+  const max = Math.max(...samples);
+  const result = { avgMs: +avg.toFixed(3), minMs: +min.toFixed(3), maxMs: +max.toFixed(3), w: 1280, h: 800, n: N };
+  window.__timing = result;
+  const pass = result.avgMs <= 8;
+  const el = document.getElementById('timing');
+  el.textContent = `chestScene(1280x800) after cache warm, n=${N}\navg ${result.avgMs}ms   min ${result.minMs}ms   max ${result.maxMs}ms   budget <= 8ms  ${pass ? 'PASS' : 'FAIL'}`;
+  el.className = pass ? 'pass' : 'fail';
+}
+measure();
+</script>
+</body>
+</html>

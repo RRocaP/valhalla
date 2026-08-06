@@ -55,10 +55,10 @@ function drawGrainStrand(ctx, r, w, knots) {
   const amp = 3 + r() * 10;
   const freq = 0.004 + r() * 0.01;
   const phase = r() * Math.PI * 2;
-  const lineW = 0.6 + r() * 2.2;
+  const lineW = 0.7 + r() * 2.6;
   const dark = r.chance(0.55);
-  const tone = dark ? mix(palette.oakDeep, palette.oak, r() * 0.5) : mix(palette.oak, palette.oakLight, 0.4 + r() * 0.5);
-  const alpha = 0.035 + r() * 0.09;
+  const tone = dark ? mix(palette.oakDeep, palette.oak, r() * 0.4) : mix(palette.oak, palette.oakLight, 0.55 + r() * 0.45);
+  const alpha = 0.07 + r() * 0.18;
   ctx.strokeStyle = rgba(tone, alpha);
   ctx.lineWidth = lineW;
   ctx.beginPath();
@@ -159,21 +159,22 @@ function renderWoodTexture(w, h, seed) {
     ctx.stroke();
   }
 
-  // 4. 40-70 flow-following grain strands
-  const strandCount = r.range(40, 70);
+  // 4. 40-70(+) flow-following grain strands — bias toward the top of the
+  // floor range since a single alpha pass reads thin at board scale.
+  const strandCount = r.range(58, 82);
   for (let i = 0; i < strandCount; i++) drawGrainStrand(ctx, r, w, knots);
 
   // 5. knots rendered on top so their rings read clearly through the grain
   for (const k of knots) drawKnotFeature(ctx, k);
 
   // 6. pore stipple, density-capped for cache-build performance
-  const poreCount = Math.min(5200, Math.round((w * h) / 55));
+  const poreCount = Math.min(6600, Math.round((w * h) / 42));
   for (let i = 0; i < poreCount; i++) {
     const x = r() * w;
     const y = r() * h;
-    const rad = 0.3 + r() * 0.55;
-    const dark = r.chance(0.75);
-    ctx.fillStyle = rgba(dark ? palette.oakDeep : palette.oakLight, dark ? 0.1 + r() * 0.1 : 0.06 + r() * 0.08);
+    const rad = 0.4 + r() * 0.85;
+    const dark = r.chance(0.72);
+    ctx.fillStyle = rgba(dark ? palette.oakDeep : palette.oakLight, dark ? 0.16 + r() * 0.16 : 0.1 + r() * 0.12);
     ctx.beginPath();
     ctx.arc(x, y, rad, 0, Math.PI * 2);
     ctx.fill();

@@ -60,3 +60,8 @@ export function contrastRatio(hexA, hexB) {
 }
 
 export const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+// The DOM heading relief recipe (material-type mandate, docs/ART.md):
+// paired 1px shadows, tar above-left / goldBright ~18% below-right. A CSS
+// `text-shadow` value string — shell's style.js applies it to headings.
+export const reliefShadowCss = `-1px -1px 0 ${rgba(palette.tar, 0.85)}, 1px 1px 0 ${rgba(palette.goldBright, 0.18)}`;

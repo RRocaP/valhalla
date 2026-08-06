@@ -69,7 +69,7 @@ export function portrait(ctx, img, x, y, w, h, opts = {}) {
   ctx.translate(-pivotX, -pivotY);
   ctx.drawImage(graded, x, y, w, h);
   if (bow > 0) {
-    ctx.fillStyle = rgba(palette.tar, bow * 0.5);
+    ctx.fillStyle = rgba(palette.tar, bow * 0.62);
     ctx.fillRect(x, y, w, h);
   }
   ctx.restore();

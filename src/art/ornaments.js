@@ -26,7 +26,7 @@ function ringPoints(cx, cy, size, points, skip) {
 function ringknot(ctx, x, y, size, opts) {
   const pts = ringPoints(x, y, size, 7, 3);
   drawKnot(ctx, pts, {
-    width: opts.width || size * 0.08,
+    width: opts.width || size * 0.065,
     color: opts.color || palette.gold,
     gapAtCrossings: opts.gapAtCrossings,
   });
@@ -67,29 +67,59 @@ function wavebordPath(c, x, y, size, amp) {
   }
 }
 
+// A real carved channel — two wavy edges (each an incision) with a filled
+// gilded band between them, not a single thin line, so it reads as a border
+// with mass rather than a squiggle.
 function wavebord(ctx, x, y, size, opts) {
-  const amp = size * 0.16;
-  const path = (c) => wavebordPath(c, x, y, size, amp);
-  carveStroke(ctx, path, { width: Math.max(1.5, size * 0.045) });
+  const amp = size * 0.14;
+  const bandW = size * 0.1;
+  const topEdge = (c) => wavebordPath(c, x, y - bandW / 2, size, amp);
+  const botEdge = (c) => wavebordPath(c, x, y + bandW / 2, size, amp);
+
+  carveStroke(ctx, topEdge, { width: Math.max(1.4, size * 0.03) });
+  carveStroke(ctx, botEdge, { width: Math.max(1.4, size * 0.03) });
+
   ctx.save();
-  ctx.strokeStyle = rgba(opts.color || palette.gold, 0.8);
-  ctx.lineWidth = Math.max(1, size * 0.012);
   ctx.beginPath();
-  path(ctx);
+  const steps = 24;
+  for (let i = 0; i <= steps; i++) {
+    const px = x + (size * i) / steps;
+    const py = y - bandW / 2 + Math.sin((i / steps) * Math.PI * 2) * amp;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  for (let i = steps; i >= 0; i--) {
+    const px = x + (size * i) / steps;
+    const py = y + bandW / 2 + Math.sin((i / steps) * Math.PI * 2) * amp;
+    ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  const base = opts.color || palette.gold;
+  const bandGrad = ctx.createLinearGradient(x, y - amp - bandW, x, y + amp + bandW);
+  bandGrad.addColorStop(0, mix(base, palette.tar, 0.3));
+  bandGrad.addColorStop(0.5, mix(base, palette.goldBright, 0.35));
+  bandGrad.addColorStop(1, mix(base, palette.tar, 0.4));
+  ctx.fillStyle = bandGrad;
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = rgba(palette.goldBright, 0.7);
+  ctx.lineWidth = Math.max(1, size * 0.014);
+  ctx.beginPath();
+  wavebordPath(ctx, x, y, size, amp);
   ctx.stroke();
   ctx.restore();
 }
 
-// Stylized prow-curl: a single mirrorable hook silhouette, one eye dot.
-// Deliberately abstract — no teeth, no gore.
-function dragonheadPath(c, size) {
-  c.moveTo(0, size * 0.5);
-  c.bezierCurveTo(size * 0.05, size * 0.1, size * 0.25, -size * 0.05, size * 0.55, -size * 0.02);
-  c.bezierCurveTo(size * 0.8, 0.0, size * 0.92, size * 0.12, size * 0.86, size * 0.24);
-  c.bezierCurveTo(size * 0.8, size * 0.14, size * 0.68, size * 0.1, size * 0.58, size * 0.16);
-  c.bezierCurveTo(size * 0.42, size * 0.26, size * 0.34, size * 0.1, size * 0.22, size * 0.12);
-  c.bezierCurveTo(size * 0.14, size * 0.13, size * 0.08, size * 0.28, 0, size * 0.5);
-  c.closePath();
+// Stylized prow-curl: a thick tapering hook rendered as a carved + gradient
+// stroke (not a thin fill blob, which read as invisible against the wood),
+// one gold trim line, one eye dot. Deliberately abstract — no teeth, no gore.
+function dragonheadSpine(c, size) {
+  c.moveTo(size * 0.06, size * 0.62);
+  c.bezierCurveTo(size * 0.02, size * 0.32, size * 0.16, size * 0.02, size * 0.5, -size * 0.06);
+  c.bezierCurveTo(size * 0.8, -size * 0.13, size * 0.99, size * 0.03, size * 0.93, size * 0.22);
+  c.bezierCurveTo(size * 0.89, size * 0.36, size * 0.72, size * 0.33, size * 0.64, size * 0.18);
 }
 
 function dragonhead(ctx, x, y, size, opts) {
@@ -97,21 +127,38 @@ function dragonhead(ctx, x, y, size, opts) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(mirror, 1);
-  const path = (c) => dragonheadPath(c, size);
-  carveStroke(ctx, path, { width: Math.max(1.4, size * 0.028) });
-  ctx.fillStyle = mix(palette.oakDeep, palette.tar, 0.4);
+  const path = (c) => dragonheadSpine(c, size);
+
+  carveStroke(ctx, path, { width: Math.max(3, size * 0.19) });
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  const bodyGrad = ctx.createLinearGradient(0, -size * 0.13, size * 0.75, size * 0.5);
+  bodyGrad.addColorStop(0, mix(palette.oakLight, palette.gold, 0.15));
+  bodyGrad.addColorStop(0.55, palette.oak);
+  bodyGrad.addColorStop(1, mix(palette.oakDeep, palette.tar, 0.5));
+  ctx.strokeStyle = bodyGrad;
+  ctx.lineWidth = Math.max(4, size * 0.15);
   ctx.beginPath();
   path(ctx);
-  ctx.fill();
-  ctx.strokeStyle = rgba(opts.color || palette.gold, 0.85);
-  ctx.lineWidth = Math.max(1, size * 0.014);
-  ctx.beginPath();
-  ctx.moveTo(size * 0.05, size * 0.08);
-  ctx.bezierCurveTo(size * 0.25, -size * 0.03, size * 0.55, -size * 0.0, size * 0.83, size * 0.14);
   ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = rgba(opts.color || palette.gold, 0.85);
+  ctx.lineWidth = Math.max(1.2, size * 0.022);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(size * 0.09, size * 0.5);
+  ctx.bezierCurveTo(size * 0.07, size * 0.27, size * 0.19, size * 0.03, size * 0.5, -size * 0.03);
+  ctx.bezierCurveTo(size * 0.76, -size * 0.09, size * 0.93, size * 0.04, size * 0.88, size * 0.18);
+  ctx.stroke();
+  ctx.restore();
+
   ctx.fillStyle = palette.goldBright;
   ctx.beginPath();
-  ctx.arc(size * 0.62, size * 0.08, Math.max(1, size * 0.02), 0, Math.PI * 2);
+  ctx.arc(size * 0.855, size * 0.19, Math.max(1.6, size * 0.03), 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -174,16 +221,17 @@ export function medallion(ctx, x, y, r, state, ordinal) {
     return;
   }
 
-  // sealed
+  // sealed — dark and inert, but the carve + a ghost rune must still read as
+  // "something is here, unopened," not as nothing rendered.
   const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
-  g.addColorStop(0, mix(palette.tar, palette.oakDeep, 0.4));
+  g.addColorStop(0, mix(palette.tar, palette.oakDeep, 0.55));
   g.addColorStop(1, palette.tar);
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.arc(x, y, r * 0.86, 0, Math.PI * 2);
   ctx.fill();
   ctx.save();
-  ctx.globalAlpha = 0.22;
-  drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, { color: palette.oakDeep, weight: r * 0.09 });
+  ctx.globalAlpha = 0.32;
+  drawRune(ctx, ch, x - r * 0.55, y - r * 0.55, r * 1.1, { color: palette.boneDim, weight: r * 0.09 });
   ctx.restore();
 }
