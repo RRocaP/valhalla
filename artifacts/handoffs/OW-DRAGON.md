@@ -54,3 +54,24 @@ clean. Gates: `node --test tests/unit/dragon.test.mjs` 5/5 exit 0 · `npm
 test` 289/289 exit 0 twice (one interleaved run flaked audio.test — passes
 standalone, file untouched) · `npm run build` exit 0 (pre-existing 1.51MB
 WARN; dragon.js not yet imported by the bundle).
+
+## Rework v5→v7 (Ramon's reference: horns + scale rows + snarl, still carved oak)
+1. HORNS: two swept-back ring-carved beams off the crown (centreline cubic +
+   tapering width; facet ridge, annuli tightening tipward, root-ring socket,
+   leaf/ember catch on the proud edge); far horn scaled 0.93, offset back,
+   peeking behind. Both join the cast shadow; mane m1 0.52→0.49 clears roots.
+2. SCALE ROWS: quincunx lattice of chip-carved crescent lobes on the neck
+   flank (2 rows lod2 offset half-pitch, 1 row lod1), laid out in arc length,
+   free edges down-neck, shadowed roots, fading toward the throat; replaces
+   the long striations; -0.5 band boundary dropped at lod2 (sliced lobes).
+   Blind alleys kept as v6a-j: 3 micro-rows read corduroy (flank is only
+   ~0.05*size half-wide), single chain read vertebrae.
+3. SNARL: lip/gape rails in (m,u); dark gape wedge, curled upper lip, 5 relief
+   teeth + corner fang (varied oak points, lit tips, never white), lit lower
+   jaw edge, sneer creases, deeper brow 0.043/socket, jaw nick bump at m 0.885
+   (one purposeful silhouette break). 48px reads horned+snarling both facings
+   and grounds (v7-phone.png, v7-final.png) — fiercer and clearer than v5.
+Ink now y0 -1.012 (was -0.958): horn tips graze the box top, FITS (<=-1.02)
+both facings; console clean. Gates: dragon test 5/5 exit 0 · `npm test`
+293/293 exit 0 · `npm run build` exit 0 (same pre-existing WARN). Evidence:
+v6a-j iterate cycles + crops + v7-{big,final,phone}.png in wip-dragon/.
