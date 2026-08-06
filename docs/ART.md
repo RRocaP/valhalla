@@ -55,9 +55,32 @@ export function createArt() => {
   glow(ctx, x, y, r, color, strength),      // radial ember/gold glow
   chestScene(ctx, w, h, t, progress),       // the lid: chest + 15 medallion sockets; t for idle drift
   treasureFrame(ctx, w, h, t),              // finale frame around the Tebi image / placeholder
-  portrait(ctx, img, x, y, w, h, opts?)     // challenger/credits portrait — see below
+  portrait(ctx, img, x, y, w, h, opts?),    // challenger/credits portrait — see below
+  sticker(ctx, img, x, y, w, rot),          // die-cut sticker: white ~4% border, rounded
+                                            // corners, soft drop shadow, light palette grade;
+                                            // rot in radians; deterministic, caller animates
+  carveText(ctx, text, x, y, sizePx, opts?) // chisel-relief lettering — see below
 }
 ```
+
+### `carveText()` and the material-type mandate (FROZEN)
+
+Display lettering must read as **cut into or raised from the wood**, never as
+flat screen text. `carveText` renders text with: dark incision core (tar),
+lit lower-right lip (goldBright at low alpha), faint upper-left shade, and a
+hint of grain breaking through long strokes. `opts`:
+`{ color=bone, depth 0..1 (relief strength), align='left'|'center', maxWidth }`.
+Used by the shell for the title, lock titles, ordinals, ceremony numerals.
+
+**Texture-everywhere mandate:** every player-visible surface at every stage —
+threshold, lid, lock rooms, dare cards, finale, credits — sits on painted
+wood (`paintWood`/`paintPanel`), and DOM panels over it use palette-matched
+translucent fills, never flat opaque hex rectangles. For DOM text, export
+from the art side (via palette) the relief recipe the shell's style.js
+applies: paired 1px shadows (tar above-left, goldBright ~18% below-right) on
+headings; body text stays clean for legibility. "At times even volume": the
+title card, lock headers, and shard numerals get full `carveText` depth ≥0.7
+so the relief is unmistakable at retina.
 
 ### `portrait()` (FROZEN — added for the duels, docs/JARLS.md)
 

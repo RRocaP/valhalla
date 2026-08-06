@@ -9,8 +9,23 @@ import { SHARDS } from '../src/kernel/shards.js';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const PARTIAL = args.includes('--partial');
-const SEEDS = args.includes('--seeds') ? Number(args[args.indexOf('--seeds') + 1]) : 200;
-const ONLY = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
+// a flag's value, or null when absent/missing (never let a typo silently weaken the run)
+const flagValue = (flag) => {
+  const i = args.indexOf(flag);
+  if (i < 0) return null;
+  const v = args[i + 1];
+  return v === undefined || v.startsWith('--') ? null : v;
+};
+const SEEDS = args.includes('--seeds') ? Number(flagValue('--seeds')) : 200;
+const ONLY = flagValue('--only');
+if (!Number.isInteger(SEEDS) || SEEDS < 1) {
+  console.error('verify: --seeds needs a positive integer');
+  process.exit(2);
+}
+if (args.includes('--only') && !ONLY) {
+  console.error('verify: --only needs a lock prefix, e.g. --only 04');
+  process.exit(2);
+}
 
 // minSteps / estMinutes floors per ordinal (docs/LOCKS.md)
 const FLOORS = {
@@ -31,11 +46,23 @@ const fail = (lock, gate, msg) => failures.push(`[${lock}] ${gate}: ${msg}`);
 const G = globalThis;
 const orig = { Math_random: Math.random, Date: G.Date, document: G.document, window: G.window };
 const boom = (what) => () => { throw new Error(`purity violation: ${what} used in pure lock logic`); };
+// trap form: names the exact access (document.querySelector, 'x' in window, …)
+const boomProp = (what) => (_t, prop) => {
+  throw new Error(`purity violation: ${what}.${String(prop)} used in pure lock logic`);
+};
 function sabotage() {
   Math.random = boom('Math.random');
-  G.document = new Proxy({}, { get: boom('document'), has: boom('document') });
-  G.window = new Proxy({}, { get: boom('window'), has: boom('window') });
-  G.Date = new Proxy(orig.Date, { construct: boom('new Date'), apply: boom('Date()') });
+  G.document = new Proxy({}, { get: boomProp('document'), has: boomProp('document') });
+  G.window = new Proxy({}, { get: boomProp('window'), has: boomProp('window') });
+  // construct/apply alone leave the static clock reachable (CONTRACT §4.2 bans Date.now).
+  G.Date = new Proxy(orig.Date, {
+    construct: boom('new Date'),
+    apply: boom('Date()'),
+    get(t, prop, recv) {
+      if (prop === 'now') boomProp('Date')(t, prop);
+      return Reflect.get(t, prop, recv);
+    },
+  });
 }
 function restore() {
   Math.random = orig.Math_random;
@@ -50,21 +77,31 @@ function sortKeys(v) {
   if (v && typeof v === 'object') {
     return Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])]));
   }
+  // JSON.stringify flattens NaN/±Infinity/undefined onto null, which would let two
+  // different answers (or two different instances) compare equal.
+  if (v === undefined) return '\u0000undefined';
+  if (typeof v === 'number' && !Number.isFinite(v)) return `\u0000${String(v)}`;
   return v;
 }
 
-// generic structural mutator: returns a mutated deep copy, or null
+// generic structural mutator: returns a mutated deep copy, or null.
+// Mutants stay inside the answer's own alphabet where possible — an out-of-domain
+// mutant ('a' dropped into a rune string) is trivially rejected and proves nothing.
 function mutate(answer, r) {
-  const copy = JSON.parse(JSON.stringify(answer));
+  let copy;
+  try { copy = JSON.parse(JSON.stringify(answer)); } catch { return null; }
+  if (copy === undefined) return null;
   const leaves = [];
+  const alphabet = new Set();
   (function walk(node, path) {
     if (Array.isArray(node)) {
-      if (node.length > 1) leaves.push({ node, kind: 'swap' });
+      if (node.length > 1) leaves.push({ node, path, kind: 'swap' });
       node.forEach((v, i) => walk(v, path.concat(i)));
     } else if (node && typeof node === 'object') {
       for (const k of Object.keys(node)) walk(node[k], path.concat(k));
     } else {
-      leaves.push({ path, kind: typeof node });
+      if (typeof node === 'string') for (const c of node) alphabet.add(c);
+      leaves.push({ path, kind: node === null ? 'null' : typeof node });
     }
   })(copy, []);
   if (!leaves.length) return null;
@@ -75,16 +112,30 @@ function mutate(answer, r) {
     [t.node[i], t.node[j]] = [t.node[j], t.node[i]];
     return copy;
   }
-  let parent = copy;
-  for (let i = 0; i < t.path.length - 1; i++) parent = parent[t.path[i]];
-  const key = t.path[t.path.length - 1];
-  const val = parent[key];
-  if (t.kind === 'boolean') parent[key] = !val;
-  else if (t.kind === 'number') parent[key] = val + (r.chance(0.5) ? 1 : -1) * r.range(1, 3);
-  else if (t.kind === 'string' && val.length) {
-    const i = r.int(val.length);
-    parent[key] = val.slice(0, i) + String.fromCharCode(97 + r.int(26)) + val.slice(i + 1);
+  // read the leaf (path may be empty: the whole answer is a scalar)
+  let parent = null, key = null, val = copy;
+  if (t.path.length) {
+    parent = copy;
+    for (let i = 0; i < t.path.length - 1; i++) parent = parent[t.path[i]];
+    key = t.path[t.path.length - 1];
+    val = parent[key];
+  }
+  let next;
+  if (t.kind === 'boolean') next = !val;
+  else if (t.kind === 'null') next = 0;
+  else if (t.kind === 'number') {
+    next = val + (r.chance(0.5) ? 1 : -1) * r.range(1, 3);
+    if (!Number.isFinite(next) || next === val) next = val === 0 ? 1 : 0; // huge/imprecise values
+  } else if (t.kind === 'string') {
+    const pool = [...alphabet];
+    const at = val.length ? r.int(val.length) : 0;
+    const choices = pool.filter((c) => c !== val[at]);
+    const ch = choices.length ? r.pick(choices) : String.fromCharCode(97 + r.int(26));
+    next = val.slice(0, at) + ch + val.slice(at + 1);
+    if (next === val) return null;
   } else return null;
+  if (!t.path.length) return next;
+  parent[key] = next;
   return copy;
 }
 
@@ -96,6 +147,7 @@ for (const f of files) {
   if (!lock || typeof lock !== 'object') { fail(id, 'iface', 'no default export object'); continue; }
   if (lock.id !== id) fail(id, 'iface', `id "${lock.id}" != filename "${id}"`);
   if (lock.ordinal !== Number(f.slice(0, 2))) fail(id, 'iface', 'ordinal != filename prefix');
+  if (!(lock.ordinal >= 1 && lock.ordinal <= 15)) fail(id, 'iface', `ordinal ${lock.ordinal} outside 1..15`);
   if (!Array.isArray(lock.hints) || lock.hints.length !== 3) fail(id, 'iface', 'hints must be exactly 3');
   if (![1, 2, 3, 4].includes(lock.tier)) fail(id, 'iface', 'tier must be 1..4');
   for (const fn of ['makePuzzle', 'solve', 'verify', 'wrongAnswers', 'shard', 'mount']) {
@@ -125,6 +177,8 @@ for (const lock of locks) {
       } catch (e) { fail(lock.id, 'purity/make', `seed ${s}: ${e.message}`); broken = true; break; }
       if (canon(inst) !== canon(inst2)) { fail(lock.id, 'determinism', `seed ${s}: unstable instance`); broken = true; break; }
       try { ans = lock.solve(inst); } catch (e) { fail(lock.id, 'solve', `seed ${s}: threw ${e.message}`); broken = true; break; }
+      let cans;
+      try { cans = canon(ans); } catch (e) { fail(lock.id, 'solve', `seed ${s}: answer not JSON-serialisable: ${e.message}`); broken = true; break; }
       let v;
       try { v = lock.verify(inst, ans); } catch (e) { fail(lock.id, 'verify', `seed ${s}: threw on canonical answer: ${e.message}`); broken = true; break; }
       if (!v || v.ok !== true) { fail(lock.id, 'solver-gate', `seed ${s}: canonical answer rejected`); broken = true; break; }
@@ -142,30 +196,40 @@ for (const lock of locks) {
       let wrongs;
       try { wrongs = lock.wrongAnswers(inst); } catch (e) { fail(lock.id, 'wrongs', `threw: ${e.message}`); broken = true; break; }
       if (!Array.isArray(wrongs) || wrongs.length < 6) { fail(lock.id, 'wrongs', `need >=6, got ${wrongs && wrongs.length}`); broken = true; break; }
+      const seen = new Set();
       for (const w of wrongs) {
-        if (canon(w) === canon(ans)) { fail(lock.id, 'wrongs', `seed ${s}: a "wrong" answer equals the solution`); broken = true; break; }
-        const wv = lock.verify(inst, w);
-        if (wv && wv.ok === true) { fail(lock.id, 'rejection-gate', `seed ${s}: wrong answer accepted: ${canon(w).slice(0, 120)}`); broken = true; break; }
+        let cw;
+        try { cw = canon(w); } catch (e) { fail(lock.id, 'wrongs', `seed ${s}: wrong answer not JSON-serialisable: ${e.message}`); broken = true; break; }
+        if (cw === cans) { fail(lock.id, 'wrongs', `seed ${s}: a "wrong" answer equals the solution`); broken = true; break; }
+        seen.add(cw);
+        let wv;
+        try { wv = lock.verify(inst, w); } catch (e) { fail(lock.id, 'totality', `seed ${s}: verify threw on a wrong answer: ${e.message}`); broken = true; break; }
+        if (wv && wv.ok === true) { fail(lock.id, 'rejection-gate', `seed ${s}: wrong answer accepted: ${cw.slice(0, 120)}`); broken = true; break; }
         L.rejected++;
       }
       if (broken) break;
+      if (seen.size < 6) { fail(lock.id, 'wrongs', `seed ${s}: need >=6 distinct wrong answers, got ${seen.size} of ${wrongs.length}`); broken = true; break; }
 
       // mutations of the canonical answer
       const mr = rng(`mut-${lock.id}-${s}`);
       for (let m = 0; m < 3; m++) {
         const mut = mutate(ans, mr);
-        if (!mut || canon(mut) === canon(ans)) continue;
+        if (mut === null || canon(mut) === cans) continue;
         L.mutantsTried++;
-        const mv = lock.verify(inst, mut);
+        let mv;
+        try { mv = lock.verify(inst, mut); } catch (e) { fail(lock.id, 'totality', `seed ${s}: verify threw on a mutated answer: ${e.message}`); broken = true; break; }
         if (mv && mv.ok === true) { fail(lock.id, 'mutation-gate', `seed ${s}: mutated answer accepted: ${canon(mut).slice(0, 120)}`); broken = true; break; }
         L.mutantsRejected++;
       }
+      if (broken) break;
 
       // shard constancy
-      const sh = lock.shard(inst);
+      let sh;
+      try { sh = lock.shard(inst); } catch (e) { fail(lock.id, 'shard', `seed ${s}: threw ${e.message}`); broken = true; break; }
       if (lock.ordinal <= 14) {
         const want = SHARDS[lock.id];
-        if (!sh || sh.rune !== want.rune || sh.value !== want.value) {
+        if (!want) { fail(lock.id, 'shard', `no frozen shard for id "${lock.id}" (docs/LOCKS.md)`); broken = true; }
+        else if (!sh || sh.rune !== want.rune || sh.value !== want.value) {
           fail(lock.id, 'shard', `must equal frozen ${JSON.stringify(want)}, got ${JSON.stringify(sh)}`);
           broken = true;
         }

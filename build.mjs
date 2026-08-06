@@ -43,6 +43,8 @@ const PORTRAIT_FILES = {
   folklore: 'assets/jarls/folklore.jpg',
   arya: 'assets/jarls/arya.jpg',
   ramon: 'assets/ramon.jpg',
+  alano: 'assets/alano.jpg',
+  alanof: 'assets/alanof.jpg',
 };
 const portraits = {};
 for (const [id, rel] of Object.entries(PORTRAIT_FILES)) {

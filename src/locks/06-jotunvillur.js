@@ -196,7 +196,8 @@ function mount(ctx) {
   const P = art.palette;
   const wrap = document.createElement('div');
   wrap.className = 'ow-lock ow-jotun';
-  wrap.innerHTML = `<style>
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
   .ow-jotun{display:flex;flex-direction:column;gap:.7rem;color:${P.bone};font-family:'Iowan Old Style',Palatino,Georgia,serif}
   .ow-jotun .rows{display:flex;flex-direction:column;gap:.4rem}
   .ow-jotun .row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;background:${P.oakDeep};

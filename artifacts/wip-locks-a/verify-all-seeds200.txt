@@ -1,0 +1,9 @@
+01-runerow: solver 200/200 wrongs 1600 mutants 586/586 (14ms)
+02-bismer: solver 200/200 wrongs 1600 mutants 600/600 (5ms)
+03-beacons: solver 200/200 wrongs 2345 mutants 600/600 (10ms)
+04-strakes: solver 200/200 wrongs 2200 mutants 600/600 (13ms)
+05-knotwork: solver 200/200 wrongs 1600 mutants 574/574 (880ms)
+06-jotunvillur: solver 200/200 wrongs 1946 mutants 588/588 (30ms)
+11-skerry: solver 200/200 wrongs 1954 mutants 599/599 (1298ms)
+
+GATES GREEN — 7 lock(s), 200 seeds (partial)

@@ -61,3 +61,55 @@ export function trapFocus(container) {
 export function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
 }
+
+// A timed, tap/Enter/Esc-skippable "beat": renders progress 0..1 via
+// requestAnimationFrame over `duration` ms, then calls onDone. Under
+// reduced motion, renders once at t=1 (no animated motion) and holds
+// briefly before onDone, per the accessibility floor. Shared by the shard
+// ceremony reveal, the duel yield beat, and the finale lid-opening intro.
+// Returns cancel() — tears down without firing onDone (for unmount safety).
+export function playBeat({ el: target, duration, reducedMotion, render, onDone }) {
+  let settled = false;
+  let raf = null;
+  let timer = null;
+
+  function cleanupListeners() {
+    target.removeEventListener('click', trigger);
+    target.removeEventListener('keydown', onKey);
+  }
+  function trigger() {
+    if (settled) return;
+    settled = true;
+    if (raf) cancelAnimationFrame(raf);
+    if (timer) clearTimeout(timer);
+    cleanupListeners();
+    onDone();
+  }
+  function onKey(e) {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') trigger();
+  }
+  target.addEventListener('click', trigger);
+  target.addEventListener('keydown', onKey);
+
+  if (reducedMotion) {
+    render(1);
+    timer = setTimeout(trigger, 550);
+  } else {
+    const start = performance.now();
+    const frame = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      render(t);
+      if (t >= 1) timer = setTimeout(trigger, 150);
+      else raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+  }
+
+  return function cancel() {
+    if (settled) return;
+    settled = true;
+    if (raf) cancelAnimationFrame(raf);
+    if (timer) clearTimeout(timer);
+    cleanupListeners();
+  };
+}

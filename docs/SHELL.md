@@ -34,20 +34,30 @@ placeholder + name).
    inscribed into the hasp strip, `audio.motif('shard')` then `'unlock'`.
 4. **Finale** — after lock 15 (Ärya's yield beat, docs/JARLS.md, runs first):
    lid opens (canvas animation, ≥2.5 s, skippable by tap), hoard glow, then
-   the treasure: `treasureDataUri` in `art.treasureFrame`, titled
-   **TEBI THE OSTEOPATH**, sub-line `The hoard of the fifteen locks.` If the
-   data URI is empty, draw the carved placeholder (shield + crossed axes +
-   question rune) with the same title. Below: `Raise the horns` (→ credits)
-   and `Seal the chest again` (reset with confirm).
+   the TWO treasure reveals in sequence (docs/JARLS.md §The treasures):
+   first `treasureDataUri` in `art.treasureFrame` titled
+   **TEBI THE OSTEOPATH · Snake-in-the-Eye**, sub-line
+   `The hoard of the fifteen locks.`; then, tap-advanced, "from under the
+   false bottom" — **JARL ÅLANØ** (`portraits.alano`),
+   `the Troll-Burster · Friend of the Children`, epithet line per JARLS.md.
+   Any missing image degrades to the carved placeholder (shield + crossed
+   axes + question rune) with the same titles. Final tableau shows both, with
+   `Raise the horns` (→ credits) and `Seal the chest again` (reset, confirm).
 5. **Credits** — enters with `audio.music.credits()`. A slow saga scroll
    (wheel/keys/touch also scrub; fully readable under reduced motion as a
    paged list): OATHWOOD · THE CHALLENGERS (the five, in duel order, small
-   graded portraits + names) · THE HOARD — TEBI THE OSTEOPATH · THE SCORE —
+   graded portraits + names) · THE HOARD — TEBI THE OSTEOPATH ·
+   Snake-in-the-Eye, and JARL ÅLANØ with his epithet · THE SCORE —
    "Frostbound Lullaby" & "Hjá Vindi" · toward the end **JARL RAMON**, his
    portrait through `art.portrait(..., { white: true })` — smallish,
    bone-white border — caption `JARL RAMON` · last line
-   `carved by machine hands · MMXXVI`. Esc/tap-skip returns to the opened
-   chest; gameplay music resumes there.
+   `carved by machine hands · MMXXVI`. Behind and between the text,
+   character **stickers fall** per docs/JARLS.md §Credits stickers
+   (`art.sticker` sprites, ≤8 concurrent, pre-rendered; static scatter under
+   reduced motion). Esc/tap-skip returns to the opened chest; gameplay music
+   resumes there. Headings across ALL screens use `art.carveText` / the
+   relief recipe (ART.md material-type mandate); every screen sits on painted
+   wood — no flat fills.
 
 ## Duels + score plumbing
 

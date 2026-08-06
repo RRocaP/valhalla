@@ -32,7 +32,31 @@ credits (see SHELL.md) and is never a challenger.
    instant swap under reduced motion), yield line shown, `audio.motif('yield')`,
    journal line. Then the normal shard ceremony runs.
 4. **The last bow** — Ärya's yield beat flows directly into the lid-opening
-   finale and the treasure reveal (TEBI THE OSTEOPATH), then credits.
+   finale and the treasure reveals, then credits.
+
+## The treasures (FROZEN)
+
+The chest yields **two** treasures, in sequence:
+
+1. **TEBI THE OSTEOPATH · Snake-in-the-Eye** — portrait = the inlined
+   treasure data URI; sub-line `The hoard of the fifteen locks.`
+2. Then, from under the false bottom: **JARL ÅLANØ** (portrait id `alano`) —
+   `the Troll-Burster · Friend of the Children` — epithet line:
+   *"Praised in every fjord for refusing the trendy Viking sport of impaling
+   toddlers on spears."*
+
+Each reveal is tap/Enter-advanced; a final tableau shows both, then
+`Raise the horns` (credits) and `Seal the chest again`.
+
+## Credits stickers (FROZEN)
+
+During the credits scroll, character **stickers fall** behind and between the
+text: the full cast pool — `bourj, rois, andreas, folklore, arya, ramon,
+alano, alanof` plus the Tebi treasure image — rendered via `art.sticker`
+(die-cut white border, rounded corners, soft shadow). Gentle tumble: slow
+fall, slight rotation and sway; ≤8 concurrent; sprites pre-rendered once per
+character to an offscreen canvas (no per-frame regrade). Reduced motion: no
+falling — a static sticker scatter sits at the foot of the credits instead.
 
 ## Lines (FROZEN)
 

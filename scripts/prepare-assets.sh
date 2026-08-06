@@ -18,6 +18,10 @@ port "$DL/IMG_7992.PNG"                             "1125:1446:0:495"  assets/ja
 port "$DL/3543D667-D8AA-4FF6-BDCA-001F117A49BA 2.PNG" "1086:1396:0:30" assets/jarls/arya.jpg     700 7
 port "$DL/B52E1379-02C0-46D9-BEA5-DEB1E267F20F.PNG" "941:1660:0:6"     assets/tebi.jpg           760 6
 port "$DL/D5EA0854-92D0-495C-9997-C7592EAB7DD4.PNG" "1086:1396:0:20"   assets/ramon.jpg          520 7
+# Jarl Ålanø — second treasure (storm zipline; uniform grey bars y<445, y>1985)
+port "$DL/Ruthless Viking Character.png"            "1125:1540:0:445"  assets/alano.jpg          700 7
+# Ålanø forest variant — sticker pool only
+port "$DL/C28AECF2-E8DB-449B-A4D2-FE02243A76C0.PNG" "1086:1448:0:0"    assets/alanof.jpg         640 7
 
 # Music: gameplay loop = Frostbound Lullaby (measured: clean master, steady RMS);
 # credits = Hjá Vindi. 128k CBR, 44.1k.

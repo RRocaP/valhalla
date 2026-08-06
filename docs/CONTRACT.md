@@ -15,11 +15,14 @@ GitHub Pages. No network requests at runtime. No external fonts, images, audio
 files, CDNs, or analytics. Everything procedural or inlined.
 
 **Non-procedural assets (all supplied by Ramon, all inlined at build time):**
-the five challenger portraits (`assets/jarls/*.jpg` → `src/kernel/portraits.gen.js`),
-the credits portrait (`assets/ramon.jpg`, same module), and the treasure
-(`assets/tebi.jpg` → `src/kernel/treasure.gen.js`) — *Tebi the Osteopath*,
-revealed when all fifteen locks open. Any absent file degrades to a carved
-placeholder; the build never breaks on a missing portrait.
+the five challenger portraits (`assets/jarls/*.jpg`), the credits portrait
+(`assets/ramon.jpg`), the second treasure and its forest variant
+(`assets/alano.jpg`, `assets/alanof.jpg`) — all via
+`src/kernel/portraits.gen.js` — and the first treasure (`assets/tebi.jpg` →
+`src/kernel/treasure.gen.js`) — *Tebi the Osteopath, Snake-in-the-Eye* —
+revealed with *Jarl Ålanø* when all fifteen locks open. Any absent file
+degrades to a carved placeholder; the build never breaks on a missing
+portrait.
 
 **Sound track exception (the roca-airways pattern):** two committed sibling
 files, `music.mp3` (gameplay loop — Frostbound Lullaby) and `credits.mp3`

@@ -1,7 +1,15 @@
 {
-  "when": "2026-08-06T08:13:26.822Z",
-  "seeds": 200,
-  "locks": {},
+  "when": "2026-08-06T08:49:21.691Z",
+  "seeds": 60,
+  "locks": {
+    "11-skerry": {
+      "solverOk": 60,
+      "rejected": 584,
+      "mutantsTried": 180,
+      "mutantsRejected": 180,
+      "ms": 406
+    }
+  },
   "failures": [],
-  "bundleBytes": 5755
+  "bundleBytes": 684950
 }

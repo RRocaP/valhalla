@@ -1,0 +1,3 @@
+02-bismer: solver 60/60 wrongs 480 mutants 180/180 (3ms)
+
+GATES GREEN — 1 lock(s), 60 seeds (partial)
