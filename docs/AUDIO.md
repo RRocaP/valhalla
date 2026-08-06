@@ -30,9 +30,37 @@ export function createAudio() => {
                        // 'unlock' – drum hit + lur swell
                        // 'hint'   – two low lyre notes, falling
                        // 'chest'  – finale: drum triplet, full lur chord, drone blooms
+                       // 'dare'   – low horn challenge, two notes, held (a challenger steps up)
+                       // 'yield'  – drum hit + falling third, resolving (the challenger bows)
   drone: { start(), stop(), intensity(x) },  // x∈[0,1]: brightness/level with progress
+  music: { start(), credits(), stop(), ready },  // streamed score — see below
 }
 ```
+
+## Music module (FROZEN addition — the roca-airways pattern)
+
+Two same-origin files: `./music.mp3` (gameplay, **loops exquisitely**) and
+`./credits.mp3` (credits screen). Rules:
+
+- Lazy: first `music.start()` (post-`enable()`) fetches + `decodeAudioData`s
+  `music.mp3` in the background; the synth drone keeps playing until the
+  buffer is ready, then crossfades out (~2 s) as the music fades in. `ready`
+  is a boolean getter.
+- **The exquisite loop**: play via `AudioBufferSourceNode` with `loop = true`
+  and `loopStart`/`loopEnd` chosen after trimming edge silence (scan the
+  decoded buffer for first/last samples above ~−60 dBFS); overlay an
+  equal-power crossfade of the tail into the head so the seam is inaudible
+  (either the loopStart/loopEnd overlap technique or a twin-source crossfade
+  scheduler — your call, but the loop must have no gap, click, or lurch).
+- `music.credits()`: fade gameplay loop out (~1.5 s), fetch/decode
+  `credits.mp3` if needed, play it (loop with the same care); used by the
+  credits screen. `music.stop()` fades everything musical out and lets the
+  drone return.
+- Music routes through its own bus gain under the same master/mute; motifs
+  duck the music bus ~3 dB during their sound and release after.
+- Any fetch/decode failure: silent fallback to the drone, one journal-safe
+  no-op (never throw, never retry-spam; one retry on next start() call is fine).
+- Autoplay discipline unchanged: nothing before `enable()`.
 
 Scale discipline: everything melodic lives in A minor pentatonic (A2–A4 range)
 so overlapping cues never clash. `deny` is non-musical (dull wood thud + short

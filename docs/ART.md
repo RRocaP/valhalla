@@ -54,9 +54,23 @@ export function createArt() => {
   medallion(ctx, x, y, r, state, ordinal),  // lock medallion: 'sealed'|'next'|'open'
   glow(ctx, x, y, r, color, strength),      // radial ember/gold glow
   chestScene(ctx, w, h, t, progress),       // the lid: chest + 15 medallion sockets; t for idle drift
-  treasureFrame(ctx, w, h, t)               // finale frame around the Tebi image / placeholder
+  treasureFrame(ctx, w, h, t),              // finale frame around the Tebi image / placeholder
+  portrait(ctx, img, x, y, w, h, opts?)     // challenger/credits portrait — see below
 }
 ```
+
+### `portrait()` (FROZEN — added for the duels, docs/JARLS.md)
+
+Draws a supplied image (HTMLImageElement or canvas; caller decodes the data
+URI) **graded into the palette** inside a carved arch: desaturate ~25–35%,
+warm oak-tone multiply, tar vignette, carved arch mask with gold groove rim —
+the portrait must sit in the same light as the wood, never look pasted.
+`opts`: `{ bow: 0..1 }` — yield animation driver: 0 upright, 1 fully bowed
+(vertical dip ~8% of h + slight forward shear + dim toward tar; implement so
+intermediate values render, shell tweens it); `{ white: true }` — replaces the
+arch treatment with a **smallish flat bone-white border frame** (the credits
+variant for JARL RAMON: straight edges, `bone` border ~3% of w, subtle shadow,
+still lightly graded). Deterministic, no internal timers — the caller drives.
 
 All painters must be deterministic for a given seed, resolution-independent
 (work at any dpr), and cheap enough to repaint on resize without jank. Respect

@@ -14,10 +14,19 @@ Ship target: **one self-contained `index.html`** at the repo root, deployed by
 GitHub Pages. No network requests at runtime. No external fonts, images, audio
 files, CDNs, or analytics. Everything procedural or inlined.
 
-**Sole non-procedural asset:** the treasure. Opening all fifteen locks reveals
-`assets/tebi.jpg` — *Tebi the Osteopath* — supplied by Ramon, inlined at build
-time as a data URI (generated module `src/kernel/treasure.gen.js`). If the file
-is absent the build still succeeds and the finale shows a carved placeholder.
+**Non-procedural assets (all supplied by Ramon, all inlined at build time):**
+the five challenger portraits (`assets/jarls/*.jpg` → `src/kernel/portraits.gen.js`),
+the credits portrait (`assets/ramon.jpg`, same module), and the treasure
+(`assets/tebi.jpg` → `src/kernel/treasure.gen.js`) — *Tebi the Osteopath*,
+revealed when all fifteen locks open. Any absent file degrades to a carved
+placeholder; the build never breaks on a missing portrait.
+
+**Sound track exception (the roca-airways pattern):** two committed sibling
+files, `music.mp3` (gameplay loop — Frostbound Lullaby) and `credits.mp3`
+(Hjá Vindi), are the ONLY permitted runtime fetches, same-origin relative
+paths only. If either fetch or decode fails (offline `file://`, blocked
+autoplay), the game remains fully playable and the synthesized drone carries
+the score. Everything else stays inlined in `index.html`.
 
 ## 2. Runtime constraints (hard)
 

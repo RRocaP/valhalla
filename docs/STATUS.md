@@ -14,7 +14,14 @@ and leave a handoff at `artifacts/handoffs/<task>.md`. Workers do not run git.
 | OW-LOCKS-B | opus | src/locks/06–10*, tests/unit/locks-06-10 | dispatched |
 | OW-LOCKS-C | opus | src/locks/11–15*, tests/unit/locks-11-15 | dispatched |
 | OW-QA | sonnet | tests/e2e/** | queued (post-integration) |
+| OW-REV-1 (base/gates) | opus | review; fix rights on scripts/verify.mjs, build.mjs only | dispatched |
+| OW-REV-2 (locks logic) | opus | review-only, post-handoff | queued |
+| OW-REV-3 (art/shell/audio) | opus | review-only, post-handoff | queued |
+
+Wave-1 note: all six workers inherited plan mode 2026-08-06, filed plans,
+resumed with approvals + rulings (see docs/JARLS.md, AUDIO music module,
+SHELL credits — added while they were paused).
 
 Deploy target: public repo `RRocaP/oathwood`, GitHub Pages from `main` root,
-built `index.html` committed. Treasure asset expected at `assets/tebi.jpg`
-(Ramon to supply; build tolerates absence).
+built `index.html` + `music.mp3` + `credits.mp3` committed. All portraits +
+treasure + credits assets present under `assets/`.

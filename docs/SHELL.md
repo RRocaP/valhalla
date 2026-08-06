@@ -9,11 +9,13 @@ puzzle logic.
 
 ```js
 // src/shell/index.js
-export function createShell({ locks, art, audio, treasureDataUri }) => { start() }
+export function createShell({ locks, art, audio, treasureDataUri, portraits }) => { start() }
 ```
 
 `locks` is the ordinal-sorted array of lock modules. `treasureDataUri` is a
-(possibly empty) string.
+(possibly empty) string. `portraits` is `{ bourj, rois, andreas, folklore,
+arya, ramon }` — data-URI strings, any possibly `''` (degrade to carved
+placeholder + name).
 
 ## Screens
 
@@ -30,13 +32,30 @@ export function createShell({ locks, art, audio, treasureDataUri }) => { start()
    root. Footer: attempts dots, hint horn (appears at 3/6/10 wrong), back
    latch. Solving plays the **shard ceremony**: medallion turns, rune + value
    inscribed into the hasp strip, `audio.motif('shard')` then `'unlock'`.
-4. **Finale** — after lock 15: lid opens (canvas animation, ≥2.5 s, skippable
-   by tap), hoard glow, then the treasure: `treasureDataUri` in
-   `art.treasureFrame`, titled **TEBI THE OSTEOPATH**, sub-line
-   `The hoard of the fifteen locks.` If the data URI is empty, draw the carved
-   placeholder (shield + crossed axes + question rune) with the same title.
-   Below: rematch line (`Seal the chest again` → reset with confirm) and a
-   small colophon: `carved by machine hands · MMXXVI`.
+4. **Finale** — after lock 15 (Ärya's yield beat, docs/JARLS.md, runs first):
+   lid opens (canvas animation, ≥2.5 s, skippable by tap), hoard glow, then
+   the treasure: `treasureDataUri` in `art.treasureFrame`, titled
+   **TEBI THE OSTEOPATH**, sub-line `The hoard of the fifteen locks.` If the
+   data URI is empty, draw the carved placeholder (shield + crossed axes +
+   question rune) with the same title. Below: `Raise the horns` (→ credits)
+   and `Seal the chest again` (reset with confirm).
+5. **Credits** — enters with `audio.music.credits()`. A slow saga scroll
+   (wheel/keys/touch also scrub; fully readable under reduced motion as a
+   paged list): OATHWOOD · THE CHALLENGERS (the five, in duel order, small
+   graded portraits + names) · THE HOARD — TEBI THE OSTEOPATH · THE SCORE —
+   "Frostbound Lullaby" & "Hjá Vindi" · toward the end **JARL RAMON**, his
+   portrait through `art.portrait(..., { white: true })` — smallish,
+   bone-white border — caption `JARL RAMON` · last line
+   `carved by machine hands · MMXXVI`. Esc/tap-skip returns to the opened
+   chest; gameplay music resumes there.
+
+## Duels + score plumbing
+
+Duel beats for locks 3/6/9/12/15 are FROZEN in docs/JARLS.md (banner, dare
+card, yield beat, Ärya-into-finale). The begin gesture on the Threshold calls
+`audio.enable()`, `audio.drone.start()`, then `audio.music.start()` — the
+drone carries until the stream is ready (AUDIO.md). `drone.intensity` /
+overall progress still ramps with opened/15.
 
 ## The `ctx` given to `lock.mount` (FROZEN — you construct it)
 

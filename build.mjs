@@ -35,6 +35,28 @@ writeFileSync(
   `export default ${JSON.stringify(treasure)};\n`
 );
 
+// 2b. challenger + credits portraits
+const PORTRAIT_FILES = {
+  bourj: 'assets/jarls/bourj.jpg',
+  rois: 'assets/jarls/rois.jpg',
+  andreas: 'assets/jarls/andreas.jpg',
+  folklore: 'assets/jarls/folklore.jpg',
+  arya: 'assets/jarls/arya.jpg',
+  ramon: 'assets/ramon.jpg',
+};
+const portraits = {};
+for (const [id, rel] of Object.entries(PORTRAIT_FILES)) {
+  const p = join(ROOT, rel);
+  portraits[id] = existsSync(p)
+    ? `data:image/jpeg;base64,${readFileSync(p).toString('base64')}`
+    : '';
+  if (!portraits[id]) console.log(`portrait missing: ${rel} (placeholder used)`);
+}
+writeFileSync(
+  join(ROOT, 'src/kernel/portraits.gen.js'),
+  `export const PORTRAITS = ${JSON.stringify(portraits)};\n`
+);
+
 // 3. bundle
 const result = await build({
   entryPoints: [join(ROOT, 'src/main.js')],

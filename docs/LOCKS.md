@@ -170,7 +170,9 @@ A deep-cut bindrune on the hasp: the union of the canonical stroke segments
 stave. Name the runes bound in it. Minimality law: no chosen rune may be
 removable without losing a carved segment. Generator sweeps all 2^16 subsets to
 guarantee the carved figure has exactly one minimal generating set, and plants
-≥3 traps (runes whose segments are fully covered by others). **Answer:**
+traps: ᛁ (the only rune the kernel data allows to be fully covered by others —
+its lone stave is shared by all stave-bearing runes) plus ≥2 one-stroke-short
+near-traps (runes whose branches are all carved but one). **Answer:**
 `{ runes: [chars, futhark-sorted] }`. Floors: minSteps 32, estMinutes 22.
 
 ## 15 — `15-oathring` · The Oath-Ring · tier 4 (mastery) · LOCKS-C
