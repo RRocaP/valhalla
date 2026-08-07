@@ -7,3 +7,4 @@ playwright-report/
 
 src/kernel/*.gen.js
 artifacts/wip-*/*.png
+assets/gen/

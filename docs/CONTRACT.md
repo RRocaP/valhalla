@@ -26,6 +26,14 @@ revealed with *Jarl Ålanø* when all fifteen locks open. Any absent file
 degrades to a carved placeholder; the build never breaks on a missing
 portrait.
 
+**Hero-plate exception (2026-08-07, Ramon-authorized generated art):** the
+`heroes/*.jpg` directory of committed same-origin images (carved panels,
+chest, prow, board tabletops — generated via Ramon's subscription tooling,
+reviewed by the lead) may be runtime-fetched like the music, palette-graded
+through the portrait pipeline, and composited as board/scene backdrops.
+Absence (offline, fetch failure) degrades silently to the procedural
+painters — the game never depends on them.
+
 **Sound track exception (the roca-airways pattern, v2 progression score):**
 four committed sibling files are the ONLY permitted runtime fetches, all
 same-origin relative paths: `music.mp3` (Act I, gauntlets I–II — Frostbound

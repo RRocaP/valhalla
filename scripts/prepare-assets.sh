@@ -23,6 +23,15 @@ port "$DL/Ruthless Viking Character.png"            "1125:1540:0:445"  assets/al
 # Ålanø forest variant — sticker pool only
 port "$DL/C28AECF2-E8DB-449B-A4D2-FE02243A76C0.PNG" "1086:1448:0:0"    assets/alanof.jpg         640 7
 
+# Hero plates: generated art (assets/gen/*.png) -> web-weight jpg at repo root
+mkdir -p heroes
+for f in assets/gen/*.png; do
+  [ -e "$f" ] || continue
+  id=$(basename "$f" .png)
+  ffmpeg -y -hide_banner -loglevel error -i "$f" -vf "scale='min(1400,iw)':-2" -q:v 6 "heroes/${id}.jpg"
+  printf 'hero %-8s %s bytes\n' "$id" "$(stat -f%z "heroes/${id}.jpg")"
+done
+
 # Music: gameplay loop = Frostbound Lullaby (measured: clean master, steady RMS);
 # credits = Hjá Vindi. 128k CBR, 44.1k.
 ffmpeg -y -hide_banner -loglevel error -i "$DL/Frostbound Lullaby.mp3" -codec:a libmp3lame -b:a 128k -ar 44100 music.mp3
