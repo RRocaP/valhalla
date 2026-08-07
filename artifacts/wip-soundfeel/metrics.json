@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T23:48:24.067Z",
+  "generatedAt": "2026-08-07T05:28:30.292Z",
   "scenarios": {
     "ui_tick": {
       "peakDb": -44.23112696588787,
@@ -27,35 +27,35 @@
     },
     "ui_knock": {
       "peakDb": -27.666309773043373,
-      "rmsDb": -55.20055732745405,
-      "centroidHz": 782.520114374242,
-      "hfAbove4kDb": -39.7135488821958,
+      "rmsDb": -55.20055735129425,
+      "centroidHz": 782.5201157591522,
+      "hfAbove4kDb": -39.71354897513728,
       "attackMs": 4.000000000000001,
       "durMs": 430,
-      "roomWetFrac": 0.022941193113482913,
+      "roomWetFrac": 0.022941193507534024,
       "roomTailSec": 0.6525
     },
     "ui_confirm": {
       "peakDb": -29.99907039886238,
-      "rmsDb": -58.54773938233589,
-      "centroidHz": 911.3126860598803,
-      "hfAbove4kDb": -32.18122409075399,
+      "rmsDb": -58.54773940338737,
+      "centroidHz": 911.3126878818977,
+      "hfAbove4kDb": -32.18122416574155,
       "attackMs": 4.000000000000001,
       "durMs": 424
     },
     "ui_deny": {
       "peakDb": -26.280593432190564,
-      "rmsDb": -46.84732137991121,
-      "centroidHz": 71.13068693436529,
-      "hfAbove4kDb": -76.41641911271107,
+      "rmsDb": -46.84736117094856,
+      "centroidHz": 71.1305025545717,
+      "hfAbove4kDb": -76.43853672809371,
       "attackMs": 4.000000000000001,
       "durMs": 504
     },
     "motif_shard": {
       "durMs": 463,
       "peakDb": -27.025584368268582,
-      "centroidHz": 767.6447822366856,
-      "hfAbove4kDb": -41.321952356072316,
+      "centroidHz": 767.644781897199,
+      "hfAbove4kDb": -41.32195275824177,
       "attackMs": 112.99999999999999,
       "onsets": [
         0.0065,
@@ -65,7 +65,7 @@
       "pitches": [
         221.25999368595765,
         263.9807058746327,
-        335.03109115834854
+        335.0310911439462
       ]
     },
     "motif_hint": {
@@ -88,8 +88,8 @@
     "motif_unlock": {
       "durMs": 2221,
       "peakDb": -15.556346407502613,
-      "centroidHz": 293.34734854843214,
-      "hfAbove4kDb": -46.61853808864325,
+      "centroidHz": 293.3473489436533,
+      "hfAbove4kDb": -46.618537328648,
       "attackMs": 854.0000000000001,
       "onsets": [
         0.0055,
@@ -100,8 +100,8 @@
     "motif_dare": {
       "durMs": 1650.9999999999998,
       "peakDb": -15.329700650195463,
-      "centroidHz": 147.374442218499,
-      "hfAbove4kDb": -53.76116828974928,
+      "centroidHz": 147.37444102560906,
+      "hfAbove4kDb": -53.76122744691421,
       "attackMs": 784,
       "onsets": [
         1.1375,
@@ -116,27 +116,29 @@
       "softEntryRiseDb": 4.707677682153982
     },
     "motif_yield": {
-      "durMs": 664,
-      "peakDb": -25.30539331751685,
-      "centroidHz": 211.20126588609287,
-      "hfAbove4kDb": -52.93359675010227,
-      "attackMs": 27.000000000000004,
+      "durMs": 2336,
+      "peakDb": -20.61050158403853,
+      "centroidHz": 138.455566287327,
+      "hfAbove4kDb": -56.14309321862127,
+      "attackMs": 41,
       "onsets": [
         0.0055,
-        0.0895,
-        0.1625,
+        0.1195,
+        0.1695,
         0.2265,
-        0.3845,
+        0.3005,
+        0.3775,
         0.4665
       ],
       "drumSweep": {
-        "earlyHiOverLoDb": 19.606515105030727,
-        "lateLoOverHiDb": -7.7559118392372
+        "earlyHiOverLoDb": 19.9938661979341,
+        "lateLoOverHiDb": -7.59005762407935
       },
       "thirdBands": {
-        "c4FallDb": 12.25475506574908,
-        "a3RiseDb": 5.4799414566897156,
-        "lateA3OverC4Db": 12.921127479409009
+        "earlyC4PromDb": 8.057589841145244,
+        "lateC4PromDb": -0.5476803507173287,
+        "a3RiseDb": 13.757825576160919,
+        "lateA3OverC4Db": 8.058528366416247
       }
     },
     "motif_chest": {
@@ -169,6 +171,11 @@
       "floorDb": -29.38394101587371,
       "label": "act2->act3 (music.mp3->act2.mp3)"
     },
+    "yield_beat": {
+      "lowBandTailDeltaDb": 0,
+      "broadbandTailDeltaDb": 0,
+      "stingOverBedDb": 11.295846682719166
+    },
     "seating": {
       "profiles": {
         "act1": {
@@ -198,14 +205,14 @@
     },
     "duck_motif": {
       "baseDb": -21.237416327433863,
-      "depthAt50ms": 2.751665942468499,
-      "maxDepth": 2.9627220084657786,
+      "depthAt50ms": 2.7516659348504575,
+      "maxDepth": 2.9627220081667964,
       "releaseSec": 0.41500000000000004
     },
     "duck_ui": {
       "baseDb": -21.237416327433863,
-      "depthAt50ms": 2.7555159322168805,
-      "maxDepth": 2.943170512621016,
+      "depthAt50ms": 2.7555159354999503,
+      "maxDepth": 2.94317051647549,
       "releaseSec": 0.4249999999999998
     },
     "seam_act1": {
@@ -330,13 +337,13 @@
     },
     {
       "name": "ui.knock dark: HF>4kHz <= -25 dB rel",
-      "value": -39.7135488821958,
+      "value": -39.71354897513728,
       "pass": true,
       "detail": "dB"
     },
     {
       "name": "ui.knock centroid <= 1300 Hz",
-      "value": 782.520114374242,
+      "value": 782.5201157591522,
       "pass": true,
       "detail": "Hz"
     },
@@ -354,13 +361,13 @@
     },
     {
       "name": "ui.confirm dark: HF>4kHz <= -25 dB rel",
-      "value": -32.18122409075399,
+      "value": -32.18122416574155,
       "pass": true,
       "detail": "dB"
     },
     {
       "name": "ui.confirm centroid <= 1300 Hz",
-      "value": 911.3126860598803,
+      "value": 911.3126878818977,
       "pass": true,
       "detail": "Hz"
     },
@@ -378,19 +385,19 @@
     },
     {
       "name": "ui.deny centroid < 300 Hz (low felt thud)",
-      "value": 71.13068693436529,
+      "value": 71.1305025545717,
       "pass": true,
       "detail": "Hz"
     },
     {
       "name": "ui.deny dark: HF>4kHz <= -25 dB rel",
-      "value": -76.41641911271107,
+      "value": -76.43853672809371,
       "pass": true,
       "detail": "dB"
     },
     {
       "name": "ui.deny centroid <= 1300 Hz",
-      "value": 71.13068693436529,
+      "value": 71.1305025545717,
       "pass": true,
       "detail": "Hz"
     },
@@ -402,13 +409,13 @@
     },
     {
       "name": "room: knock tail-energy fraction (>0.25s) <= 0.20",
-      "value": 0.022941193113482913,
+      "value": 0.022941193507534024,
       "pass": true,
       "detail": "of total"
     },
     {
       "name": "room: knock tail-energy fraction >= 0.02 (room exists)",
-      "value": 0.022941193113482913,
+      "value": 0.022941193507534024,
       "pass": true,
       "detail": "of total"
     },
@@ -426,7 +433,7 @@
     },
     {
       "name": "motif.shard dark: HF>4kHz <= -25 dB rel",
-      "value": -41.321952356072316,
+      "value": -41.32195275824177,
       "pass": true,
       "detail": "dB"
     },
@@ -450,7 +457,7 @@
     },
     {
       "name": "motif.unlock dark: HF>4kHz <= -25 dB rel",
-      "value": -46.61853808864325,
+      "value": -46.618537328648,
       "pass": true,
       "detail": "dB"
     },
@@ -462,19 +469,19 @@
     },
     {
       "name": "motif.dare dark: HF>4kHz <= -25 dB rel",
-      "value": -53.76116828974928,
+      "value": -53.76122744691421,
       "pass": true,
       "detail": "dB"
     },
     {
       "name": "motif.yield peak in [-30,-17] dBFS",
-      "value": -25.30539331751685,
+      "value": -20.61050158403853,
       "pass": true,
       "detail": "dBFS"
     },
     {
       "name": "motif.yield dark: HF>4kHz <= -25 dB rel",
-      "value": -52.93359675010227,
+      "value": -56.14309321862127,
       "pass": true,
       "detail": "dB"
     },
@@ -492,25 +499,31 @@
     },
     {
       "name": "yield drum sweep: onset near 145 Hz (>=3dB over 70)",
-      "value": 19.606515105030727,
+      "value": 19.9938661979341,
       "pass": true,
       "detail": "dB"
     },
     {
-      "name": "yield: C4 band falls across the third (>=4dB)",
-      "value": 12.25475506574908,
+      "name": "yield: first pluck rings a real C4 line (prominence >=6dB)",
+      "value": 8.057589841145244,
       "pass": true,
-      "detail": "dB"
+      "detail": "dB over guards"
+    },
+    {
+      "name": "yield: no C4 line remains after the resolution (<=2dB)",
+      "value": -0.5476803507173287,
+      "pass": true,
+      "detail": "dB over guards"
     },
     {
       "name": "yield: A3 band rises across the third (>=4dB)",
-      "value": 5.4799414566897156,
+      "value": 13.757825576160919,
       "pass": true,
       "detail": "dB"
     },
     {
       "name": "yield: resolves down to A3 (>=3dB over C4 band)",
-      "value": 12.921127479409009,
+      "value": 8.058528366416247,
       "pass": true,
       "detail": "dB"
     },
@@ -522,13 +535,13 @@
     },
     {
       "name": "dare/lur centroid < 2 kHz",
-      "value": 147.374442218499,
+      "value": 147.37444102560906,
       "pass": true,
       "detail": "Hz"
     },
     {
       "name": "deny vs yield centroid separation",
-      "value": 2.9692004251410573,
+      "value": 1.9465006054344005,
       "pass": true,
       "detail": "ratio"
     },
@@ -593,6 +606,24 @@
       "detail": "dB under"
     },
     {
+      "name": "yield beat: NO HUM (50-400Hz back to bed within 1dB by 12.5s)",
+      "value": 0,
+      "pass": true,
+      "detail": "dB over bed"
+    },
+    {
+      "name": "yield beat: tail fully returns to bed (broadband <= 1dB)",
+      "value": 0,
+      "pass": true,
+      "detail": "dB over bed"
+    },
+    {
+      "name": "yield beat: the sting actually lands over the bed (>= 4dB)",
+      "value": 11.295846682719166,
+      "pass": true,
+      "detail": "dB peak over bed"
+    },
+    {
       "name": "acts seated: level*body loudness spread <= 1dB",
       "value": 0,
       "pass": true,
@@ -600,13 +631,13 @@
     },
     {
       "name": "duck_motif: -3dB (+-0.5) within 50ms",
-      "value": 2.751665942468499,
+      "value": 2.7516659348504575,
       "pass": true,
       "detail": "dB"
     },
     {
       "name": "duck_motif: max depth <= 4.5dB (no over-duck)",
-      "value": 2.9627220084657786,
+      "value": 2.9627220081667964,
       "pass": true,
       "detail": "dB"
     },
@@ -618,13 +649,13 @@
     },
     {
       "name": "duck_ui: -3dB (+-0.5) within 50ms",
-      "value": 2.7555159322168805,
+      "value": 2.7555159354999503,
       "pass": true,
       "detail": "dB"
     },
     {
       "name": "duck_ui: max depth <= 4.5dB (no over-duck)",
-      "value": 2.943170512621016,
+      "value": 2.94317051647549,
       "pass": true,
       "detail": "dB"
     },

@@ -28,3 +28,21 @@ incl. suspended-iOS, save-resume, and fetch-failure paths).
 
 NOTE for integration: docs/AUDIO.md still says deny carries a "short low buzz" and implies the old act order —
 contract text amendment stays with Ramon per the addendum.
+
+## URGENT FIX — first-yield-beat hum (Ramon, live)
+
+ROOT CAUSE, reproduced offline before touching code: the shell persists progress at yield beats and
+drone.intensity() re-raised the crossfaded-out drone under the music — 110 Hz saws + noise floor = the hum.
+metrics-yieldbug-before.json: sustained +6.7 dB (50-400 Hz) over the music bed, never returning. chest's
+bloomDrone and a mid-music drone.start() had the same exposure. Convolver/IR and lur were measured clean.
+
+FIX (src/audio/index.js + music.js): music now owns the floor via drone.ducked — set at every handoff,
+cleared on music.stop(). While ducked: intensity() stores but never applies, chest never blooms, a drone
+rebuild comes up at gain 0; restore re-applies the stored intensity (gain AND filter center).
+EPIC HALF: yield sting now lands +11.3 dB over the bed — drum 0.2→0.3, plucks 0.4/0.38 with the A3 ringing
+1.4 s, plus a soft A2 horn (gain 0.05, 2.2 s) under the resolution answering dare's held call.
+
+PROOF (artifacts/wip-soundfeel/): before/after same 6 s window in yield_lowband_before.png vs
+yield_lowband.png; numeric no-hum gates in metrics.json — 50-400 Hz and broadband both return to the bed
+within 0.00 dB by 12.5 s (2.5 s after the sting ends). Gates: 76/76 render · 295/295 unit (44 audio,
+incl. new no-re-raise test) · build exit 0.

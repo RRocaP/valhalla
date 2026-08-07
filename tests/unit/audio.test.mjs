@@ -941,6 +941,48 @@ test('music.act(): a switch issued while the context is suspended (iOS) still sc
   }
 });
 
+// The live first-yield-beat bug (Ramon): the shell persists progress at
+// yield beats -> drone.intensity() fired while music owned the floor and
+// re-raised the crossfaded-out drone — a saw hum under the score. Music
+// ownership now gates every drone raise path.
+test('drone stays FULLY silent under music: no re-raise via intensity(), chest bloom, or rebuild', async () => {
+  const restore = withMockFetch(okFetchImpl);
+  try {
+    const { audio, ctx } = fresh();
+    audio.enable();
+    const c = ctx();
+    const beforeDrone = mark(c);
+    audio.drone.start();
+    const droneBus = graphNodes(c).droneBus;
+    const droneOut = since(c, beforeDrone).find((n) => n._kind === 'gain' && n.connections.includes(droneBus));
+    audio.music.start();
+    assert.ok(await waitFor(() => audio.music.ready === true));
+    const marker = droneOut.gain.calls.length; // crossfade-out already scheduled
+
+    audio.drone.intensity(0.9); // the shell persisting progress mid-music
+    audio.motif('chest'); // the finale bloom path
+    const raised = droneOut.gain.calls.slice(marker)
+      .filter((call) => call[0] !== 'cancel' && call[1] > 0);
+    assert.strictEqual(raised.length, 0,
+      `drone gain re-raised under music: ${JSON.stringify(raised)}`);
+
+    // a drone rebuilt mid-music must come up silent
+    audio.drone.stop();
+    const beforeRestart = mark(c);
+    audio.drone.start();
+    const newOut = since(c, beforeRestart).find((n) => n._kind === 'gain' && n.connections.includes(droneBus));
+    const intro = newOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
+    assert.ok(intro && Math.abs(intro[1]) < 1e-9, `mid-music drone rebuild must target 0, got ${intro && intro[1]}`);
+
+    // when music stops, the floor returns at the intensity persisted mid-music
+    audio.music.stop();
+    const restored = newOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
+    assert.ok(restored[1] > 0.25, `restore must use the stored intensity 0.9, got gain ${restored[1]}`);
+  } finally {
+    restore();
+  }
+});
+
 test('first music entry is the 4s exhale (drone eased gently); resumes use the 2s handoff', async () => {
   const restore = withMockFetch(actFetchImpl([]));
   try {

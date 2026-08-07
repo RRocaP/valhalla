@@ -20,7 +20,15 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
   let musicImpl = null;
   let enabledFlag = false;
   let mutedFlag = false;
-  const drone = { playing: false, nodes: null, intensity: 0.4 };
+  // `ducked` = music owns the floor (set/cleared by music.js at handoff/
+  // stop). While true the drone must be FULLY silent: intensity() stores but
+  // never re-raises, chest never blooms it, a rebuild comes up at gain 0.
+  // (Shipped bug, Ramon live: the shell persists progress at yield beats,
+  // and intensity() re-raised the crossfaded-out drone under the music — a
+  // 110 Hz saw hum below the score. artifacts/wip-soundfeel/
+  // metrics-yieldbug-before.json holds the offline repro: +6.7 dB sustained
+  // 50-400 Hz over the music bed.)
+  const drone = { playing: false, nodes: null, intensity: 0.4, ducked: false };
 
   // Node creation order below is fixed and relied upon by
   // tests/unit/audio.test.mjs: master, compressor, droneBus, voiceBus,
@@ -167,7 +175,8 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
       case 'chest':
         [0, 0.14, 0.28].forEach((dt) => V.drumHit(ctx, bus, t + dt, { gain: 0.2, dur: 0.34 }));
         V.lurSwell(ctx, bus, t + 0.1, [V.PENT[0], V.PENT[3], V.PENT[5], V.PENT[8]], { dur: 3.2, gain: 0.14, brightness: 1500, attack: 0.6 });
-        if (drone.playing && drone.nodes) V.bloomDrone(ctx, drone.nodes, drone.intensity, t);
+        // bloom only when the drone owns the floor — under music it must stay silent
+        if (drone.playing && drone.nodes && !drone.ducked) V.bloomDrone(ctx, drone.nodes, drone.intensity, t);
         break;
       case 'dare':
         // low horn challenge: A2 sounds, then the fifth stacks on top and both
@@ -176,10 +185,13 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
         V.lurSwell(ctx, bus, t + 0.45, [V.PENT[3]], { dur: 1.55, gain: 0.055, brightness: 1100, attack: 0.7 });
         break;
       case 'yield':
-        // drum hit + falling minor third C4->A3, resolving (the challenger bows)
-        V.drumHit(ctx, bus, t, { gain: 0.2, dur: 0.28 });
-        V.pluck(ctx, bus, t + 0.22, V.PENT[6], { gain: 0.32, decay: 0.5, brightness: 1400 });
-        V.pluck(ctx, bus, t + 0.46, V.PENT[5], { gain: 0.3, decay: 1.0, brightness: 1200 });
+        // the challenger bows: one BIG felted drum, falling minor third
+        // C4->A3 ringing out, and a low horn under the resolution answering
+        // dare's held call — epic and clean, then the hall goes quiet
+        V.drumHit(ctx, bus, t, { gain: 0.3, dur: 0.34 });
+        V.pluck(ctx, bus, t + 0.22, V.PENT[6], { gain: 0.4, decay: 0.6, brightness: 1400 });
+        V.pluck(ctx, bus, t + 0.46, V.PENT[5], { gain: 0.38, decay: 1.4, brightness: 1200 });
+        V.lurSwell(ctx, bus, t + 0.46, [V.PENT[0]], { dur: 2.2, gain: 0.05, brightness: 1000, attack: 0.6 });
         break;
       default:
         break; // unknown kind: no-op, never throws
@@ -197,7 +209,9 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
       start() {
         if (!ctx || drone.playing) return; // idempotent, no double-allocate
         drone.playing = true;
-        drone.nodes = V.buildDrone(ctx, buses.droneBus, V.droneGainFor(drone.intensity));
+        // rebuilt while music owns the floor: come up silent; music.stop()'s
+        // restore raises it at the stored intensity
+        drone.nodes = V.buildDrone(ctx, buses.droneBus, drone.ducked ? 0 : V.droneGainFor(drone.intensity));
       },
       stop() {
         if (!ctx || !drone.playing) return;
@@ -207,8 +221,10 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
       },
       intensity(x) {
         if (!ctx) return;
-        drone.intensity = V.clamp01(x);
-        if (drone.nodes) V.applyDroneIntensity(ctx, drone.nodes, drone.intensity);
+        drone.intensity = V.clamp01(x); // always stored (restore uses it)...
+        // ...but NEVER applied under music: the shell persists progress at
+        // yield beats, and applying here was the live hum-under-music bug
+        if (drone.nodes && !drone.ducked) V.applyDroneIntensity(ctx, drone.nodes, drone.intensity);
       },
     },
     music: {

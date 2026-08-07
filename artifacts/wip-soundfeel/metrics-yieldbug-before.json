@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-08-07T05:25:31.315Z",
+  "scenarios": {
+    "yield_beat": {
+      "lowBandTailDeltaDb": 6.67197322236504,
+      "broadbandTailDeltaDb": 4.2553748783056236,
+      "stingOverBedDb": 8.05759744922213
+    }
+  },
+  "checks": [
+    {
+      "name": "deny vs yield centroid separation",
+      "value": -1,
+      "pass": false,
+      "detail": "ratio"
+    },
+    {
+      "name": "yield beat: NO HUM (50-400Hz back to bed within 1dB by 12.5s)",
+      "value": 6.67197322236504,
+      "pass": false,
+      "detail": "dB over bed"
+    },
+    {
+      "name": "yield beat: tail fully returns to bed (broadband <= 1dB)",
+      "value": 4.2553748783056236,
+      "pass": false,
+      "detail": "dB over bed"
+    },
+    {
+      "name": "yield beat: the sting actually lands over the bed (>= 4dB)",
+      "value": 8.05759744922213,
+      "pass": true,
+      "detail": "dB peak over bed"
+    }
+  ]
+}

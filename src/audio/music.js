@@ -7,7 +7,7 @@
 // after enable()+start()/act(), silent fallback to the synth drone on any
 // failure. Acts crossfade equal-power (~2.5 s) at the shell's yield beats.
 
-import { droneGainFor } from './voices.js';
+import { applyDroneIntensity, droneGainFor } from './voices.js';
 
 const AMP_THRESHOLD_DB = -60;
 export const AMP_THRESHOLD = Math.pow(10, AMP_THRESHOLD_DB / 20);
@@ -334,6 +334,7 @@ export function createMusic(ctx, bus, drone) {
   }
 
   function crossfadeDroneOut(t, gentle = false) {
+    drone.ducked = true; // music owns the floor: the drone may not re-raise
     if (drone.playing && drone.nodes) {
       drone.nodes.out.gain.cancelScheduledValues(t);
       // Staggered handoff: hold the drone while the music establishes, then
@@ -347,10 +348,13 @@ export function createMusic(ctx, bus, drone) {
     }
   }
   function restoreDrone(t) {
+    drone.ducked = false; // the floor is the drone's again
     if (drone.playing && drone.nodes) {
-      const target = droneGainFor(drone.intensity);
       drone.nodes.out.gain.cancelScheduledValues(t);
-      drone.nodes.out.gain.setTargetAtTime(target, t, STOP_FADE_SECONDS / 2);
+      // full re-apply (gain AND filter center): intensity() calls made while
+      // ducked were stored, not applied — the drone returns as the shell
+      // last set it, not as it left
+      applyDroneIntensity(ctx, drone.nodes, drone.intensity);
     }
   }
 

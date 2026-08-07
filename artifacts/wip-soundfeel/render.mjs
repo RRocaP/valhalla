@@ -123,6 +123,17 @@ window.SCENARIOS = {
     } },
     { at: 12, run: (a, inst) => landed(inst, () => a.music.act(3)) },
   ]),
+  // FIRST-YIELD-BEAT repro (Ramon, live: "a hum below the good music"): the
+  // shell persists progress at a yield beat -> drone.intensity() fires while
+  // music owns the floor; chest's bloom has the same exposure. bed = the
+  // identical render without the sting+persist. Offline rendering is
+  // deterministic, so the two tracks subtract sample-for-sample.
+  yield_bed: () => run(16, [(a) => { a.drone.start(); a.drone.intensity(0.4); }],
+    [{ at: 0.5, run: async (a) => { a.music.start(); await until(() => a.music.ready); } }]),
+  yield_live: () => run(16, [(a) => { a.drone.start(); a.drone.intensity(0.4); }], [
+    { at: 0.5, run: async (a) => { a.music.start(); await until(() => a.music.ready); } },
+    { at: 8, run: (a) => { a.motif('yield'); a.drone.intensity(0.55); } },
+  ]),
   // duck scenarios: music mocked as 6.5 kHz sine so Goertzel isolates the music level
   duck_motif: () => run(8, [], [
     { at: 0.5, run: async (a) => {
@@ -506,7 +517,7 @@ async function main() {
   const wanted = [
     'ui_tick', 'ui_knock', 'ui_slide', 'ui_deny', 'ui_confirm', 'ui_flip',
     'motif_shard', 'motif_hint', 'motif_unlock', 'motif_dare', 'motif_yield', 'motif_chest',
-    'handoff', 'act12', 'act23', 'duck_motif', 'duck_ui',
+    'handoff', 'act12', 'act23', 'yield_bed', 'yield_live', 'duck_motif', 'duck_ui',
     'seam_act1', 'seam_act2', 'seam_act3', 'seam_credits', 'seating',
   ].filter((n) => !only || only.includes(n));
 
@@ -634,11 +645,20 @@ async function main() {
     // in the unit suite.
     const g262 = goertzelTrack(x, SR, 261.63, { win: 0.08, hop: 0.01 });
     const g220 = goertzelTrack(x, SR, 220, { win: 0.08, hop: 0.01 });
-    const c4Fall = bandMean(g262, 0.27, 0.42) - bandMean(g262, 0.52, 0.80);
+    // C4-line PROMINENCE against off-harmonic guard bands (240/285 Hz): the
+    // resolving horn's 220/330 Hz harmonics leak equally into the guards and
+    // the C4 bin, so prominence isolates the actual pluck line. A real C4
+    // rings early; after the third resolves no C4 line may remain.
+    const g240 = goertzelTrack(x, SR, 240, { win: 0.08, hop: 0.01 });
+    const g285 = goertzelTrack(x, SR, 285, { win: 0.08, hop: 0.01 });
+    const prom = (a, b) => bandMean(g262, a, b) - (bandMean(g240, a, b) + bandMean(g285, a, b)) / 2;
+    const earlyProm = prom(0.27, 0.42);
+    const lateProm = prom(0.9, 1.3);
     const a3Rise = bandMean(g220, 0.52, 0.80) - bandMean(g220, 0.27, 0.42);
     const lateThird = bandMean(g220, 0.52, 0.80) - bandMean(g262, 0.52, 0.80);
-    results.scenarios.motif_yield.thirdBands = { c4FallDb: c4Fall, a3RiseDb: a3Rise, lateA3OverC4Db: lateThird };
-    check('yield: C4 band falls across the third (>=4dB)', c4Fall, c4Fall >= 4, 'dB');
+    results.scenarios.motif_yield.thirdBands = { earlyC4PromDb: earlyProm, lateC4PromDb: lateProm, a3RiseDb: a3Rise, lateA3OverC4Db: lateThird };
+    check('yield: first pluck rings a real C4 line (prominence >=6dB)', earlyProm, earlyProm >= 6, 'dB over guards');
+    check('yield: no C4 line remains after the resolution (<=2dB)', lateProm, lateProm <= 2, 'dB over guards');
     check('yield: A3 band rises across the third (>=4dB)', a3Rise, a3Rise >= 4, 'dB');
     check('yield: resolves down to A3 (>=3dB over C4 band)', lateThird, lateThird >= 3, 'dB');
   }
@@ -750,6 +770,52 @@ async function main() {
       plot.series(smooth.map((e) => ({ x: e.t, y: e.db })), 0, 24, lo, hi, [230, 230, 200]);
       await plot.save(join(OUT_DIR, 'act12_rms.png'));
     }
+  }
+
+  // ---- the yield beat over live music: sting lands, then NOTHING hums ----
+  // Ramon's no-hum condition, numeric: outside the sting window the mix must
+  // return to the music bed alone — the 50-400 Hz band (drone saws sit at
+  // 110 Hz under a 230-350 Hz bandpass) and the broadband RMS both within
+  // 1 dB of the bed from 12.5 s (~2.5 s after the sting's last note ends).
+  if (pcm.yield_bed && pcm.yield_live) {
+    const bandTrack = (x, lo, hi) => {
+      const n = 4096, hop = 1024;
+      const binHz = SR / n;
+      const out = [];
+      stft(x, SR, { n, hop }, (mags, _f, t) => {
+        let e = 0;
+        for (let k = Math.max(1, Math.ceil(lo / binHz)); k * binHz <= hi && k < mags.length; k++) e += mags[k] * mags[k];
+        out.push({ t, db: 10 * Math.log10(Math.max(e, 1e-24)) });
+      });
+      return out;
+    };
+    const bedLow = bandTrack(pcm.yield_bed.x, 50, 400);
+    const liveLow = bandTrack(pcm.yield_live.x, 50, 400);
+    const bedAll = rmsTrack(pcm.yield_bed.x, SR, 0.1, 0.025);
+    const liveAll = rmsTrack(pcm.yield_live.x, SR, 0.1, 0.025);
+    const maxDeltaIn = (live, bed, t0, t1) => {
+      let m = -Infinity;
+      for (let i = 0; i < Math.min(live.length, bed.length); i++) {
+        if (live[i].t < t0 || live[i].t > t1) continue;
+        m = Math.max(m, live[i].db - bed[i].db);
+      }
+      return m;
+    };
+    const humTail = maxDeltaIn(liveLow, bedLow, 12.5, 15.6);
+    const broadTail = maxDeltaIn(liveAll, bedAll, 12.5, 15.6);
+    const stingLand = maxDeltaIn(liveAll, bedAll, 8, 9.5);
+    results.scenarios.yield_beat = { lowBandTailDeltaDb: humTail, broadbandTailDeltaDb: broadTail, stingOverBedDb: stingLand };
+    check('yield beat: NO HUM (50-400Hz back to bed within 1dB by 12.5s)', humTail, humTail <= 1, 'dB over bed');
+    check('yield beat: tail fully returns to bed (broadband <= 1dB)', broadTail, broadTail <= 1, 'dB over bed');
+    check('yield beat: the sting actually lands over the bed (>= 4dB)', stingLand, stingLand >= 4, 'dB peak over bed');
+    const plot = new Plot();
+    plot.hgrid(6);
+    const all = [...bedLow, ...liveLow].map((e) => e.db);
+    const lo = Math.max(-90, Math.min(...all) - 2), hi = Math.max(...all) + 2;
+    plot.vline(10 + (8 / 16) * 880, [80, 70, 60]);
+    plot.series(bedLow.map((e) => ({ x: e.t, y: Math.max(e.db, lo) })), 0, 16, lo, hi, [110, 140, 220]);
+    plot.series(liveLow.map((e) => ({ x: e.t, y: Math.max(e.db, lo) })), 0, 16, lo, hi, [220, 100, 90]);
+    await plot.save(join(OUT_DIR, 'yield_lowband.png'));
   }
 
   // ---- act seating: the design invariant, computed not sampled ----

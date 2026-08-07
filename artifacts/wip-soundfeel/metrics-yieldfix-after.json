@@ -1,0 +1,114 @@
+{
+  "generatedAt": "2026-08-07T05:27:39.094Z",
+  "scenarios": {
+    "motif_yield": {
+      "durMs": 2336,
+      "peakDb": -20.61050158403853,
+      "centroidHz": 138.45556626911485,
+      "hfAbove4kDb": -56.14309378863298,
+      "attackMs": 41,
+      "onsets": [
+        0.0055,
+        0.1195,
+        0.1695,
+        0.2265,
+        0.3005,
+        0.3775,
+        0.4665
+      ],
+      "drumSweep": {
+        "earlyHiOverLoDb": 19.9938661979341,
+        "lateLoOverHiDb": -7.59005762407935
+      },
+      "thirdBands": {
+        "c4FallDb": -1.8472871577630343,
+        "a3RiseDb": 13.757825478590938,
+        "lateA3OverC4Db": 8.058528524590407
+      }
+    },
+    "motif_chest": {
+      "peakDb": -10.660905170251368,
+      "droneRmsPreDb": -27.23167884786943,
+      "tailAboveDroneSec": 6.4
+    },
+    "yield_beat": {
+      "lowBandTailDeltaDb": 0,
+      "broadbandTailDeltaDb": 0,
+      "stingOverBedDb": 11.295846682719166
+    }
+  },
+  "checks": [
+    {
+      "name": "motif.yield peak in [-30,-17] dBFS",
+      "value": -20.61050158403853,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "motif.yield dark: HF>4kHz <= -25 dB rel",
+      "value": -56.14309378863298,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "yield drum sweep: onset near 145 Hz (>=3dB over 70)",
+      "value": 19.9938661979341,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "yield: C4 band falls across the third (>=4dB)",
+      "value": -1.8472871577630343,
+      "pass": false,
+      "detail": "dB"
+    },
+    {
+      "name": "yield: A3 band rises across the third (>=4dB)",
+      "value": 13.757825478590938,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "yield: resolves down to A3 (>=3dB over C4 band)",
+      "value": 8.058528524590407,
+      "pass": true,
+      "detail": "dB"
+    },
+    {
+      "name": "deny vs yield centroid separation",
+      "value": -1,
+      "pass": false,
+      "detail": "ratio"
+    },
+    {
+      "name": "chest peak headroom <= -9 dBFS (quieter finale)",
+      "value": -10.660905170251368,
+      "pass": true,
+      "detail": "dBFS"
+    },
+    {
+      "name": "chest audible tail >= 3s over drone",
+      "value": 6.4,
+      "pass": true,
+      "detail": "s"
+    },
+    {
+      "name": "yield beat: NO HUM (50-400Hz back to bed within 1dB by 12.5s)",
+      "value": 0,
+      "pass": true,
+      "detail": "dB over bed"
+    },
+    {
+      "name": "yield beat: tail fully returns to bed (broadband <= 1dB)",
+      "value": 0,
+      "pass": true,
+      "detail": "dB over bed"
+    },
+    {
+      "name": "yield beat: the sting actually lands over the bed (>= 4dB)",
+      "value": 11.295846682719166,
+      "pass": true,
+      "detail": "dB peak over bed"
+    }
+  ]
+}
