@@ -808,9 +808,9 @@ function mount(ctx) {
     const rake = vertical
       ? c.createLinearGradient(0, 0, w, 0)
       : c.createLinearGradient(0, 0, 0, h);
-    rake.addColorStop(0, rgbaHex(p.oakLight, 0.3));
-    rake.addColorStop(0.42, rgbaHex(p.oakLight, 0.07));
-    rake.addColorStop(1, rgbaHex(p.tar, 0.3));
+    rake.addColorStop(0, rgbaHex(p.oakLight, 0.42)); // LOOP 3: plank faces lifted —
+    rake.addColorStop(0.42, rgbaHex(p.oakLight, 0.14)); // the benches were the darkest
+    rake.addColorStop(1, rgbaHex(p.tar, 0.26)); // surfaces on the board (soft spot #1)
     c.save();
     c.fillStyle = rake;
     c.fillRect(0, 0, w, h);
@@ -838,8 +838,8 @@ function mount(ctx) {
       const rx = SEAT_W * 0.27;
       const ry = SEAT_H * 0.3;
       const pol = c.createRadialGradient(cx, cy - ry * 0.2, rx * 0.1, cx, cy, rx * 1.5);
-      pol.addColorStop(0, rgbaHex(p.bone, 0.16));
-      pol.addColorStop(0.55, rgbaHex(p.oakLight, 0.1));
+      pol.addColorStop(0, rgbaHex(p.bone, 0.26)); // mead-light on the worn seats (LOOP 3)
+      pol.addColorStop(0.55, rgbaHex(p.oakLight, 0.15));
       pol.addColorStop(1, rgbaHex(p.bone, 0));
       c.fillStyle = pol;
       c.beginPath(); c.ellipse(cx, cy, rx * 1.5, ry * 1.5, 0, 0, Math.PI * 2); c.fill();
@@ -969,8 +969,9 @@ function mount(ctx) {
       if (vertical) { c.moveTo(t + 1.3, 0); c.lineTo(t + 1.3, h); } else { c.moveTo(0, t + 1.3); c.lineTo(w, t + 1.3); }
       c.stroke();
     }
-    // hearth pool: the one warm key every screen shares
-    art.glow(c, w / 2, h / 2, Math.max(w, h) * 0.45, p.ember, 0.16);
+    // hearth pool: the one warm key every screen shares — poured fuller, the
+    // mead-pool over the boards (LOOP 3 luminous-focal prescription)
+    art.glow(c, w / 2, h / 2, Math.max(w, h) * 0.5, p.ember, 0.3);
     // the four sightlines — a man faces the man across the boards from him
     c.save();
     c.strokeStyle = rgbaHex(p.goldBright, 0.18);

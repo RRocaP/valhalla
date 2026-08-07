@@ -450,18 +450,22 @@ function drawMotes(ctx, w, h, key, motes, s) {
         ctx.stroke();
       }
       for (const c of motes.charms) {
+        // LOOP 2 (played on the photo tabletops): at phone width there is no
+        // side dead-zone — the charms landed ON the boards and read as ink
+        // stains. They belong to wide rooms only, and quietly even there.
+        if (w < 640) continue;
         const sway = Math.sin(s * 0.55 + c.ph * 6.28) * 0.09;
         ctx.save();
         ctx.translate(c.x, 0);
         ctx.rotate(sway);
-        ctx.strokeStyle = rgba(palette.tar, 0.72);
+        ctx.strokeStyle = rgba(palette.tar, 0.48);
         ctx.lineWidth = Math.max(1, w * 0.0022);
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(0, c.drop);
         ctx.stroke();
-        ctx.fillStyle = rgba(palette.tar, 0.78);
-        ctx.strokeStyle = rgba(VIOLET_LIGHT, 0.35);
+        ctx.fillStyle = rgba(palette.tar, 0.5);
+        ctx.strokeStyle = rgba(VIOLET_LIGHT, 0.4);
         ctx.beginPath();
         if (c.kind === 0) {
           ctx.arc(0, c.drop + c.size, c.size, 0, Math.PI * 2);

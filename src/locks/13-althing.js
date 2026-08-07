@@ -1296,8 +1296,11 @@ export default {
       const yBase = g.iy + g.ih * 0.985;
       const top = yBase - h;
       c.save();
-      // it is the one thing the hearth truly lights
-      art.glow(c, x, top + h * 0.3, w * 0.8, p.ember, 0.26);
+      // it is the one thing the hearth truly lights — and the moon finds it
+      // too (LOOP 3: the board lacked a luminous focal; docs/ART.md soft
+      // spot — a cool moonlight pool over the warm hearth glow)
+      art.glow(c, x, top + h * 0.18, w * 0.95, p.fjordLight || '#3f6d9e', 0.2);
+      art.glow(c, x, top + h * 0.3, w * 0.8, p.ember, 0.34);
       c.fillStyle = alpha(p.tar, 0.6);
       c.beginPath();
       c.ellipse(x + w * 0.1, yBase, w * 0.66, h * 0.11, 0, 0, Math.PI * 2);
@@ -1315,7 +1318,7 @@ export default {
       stoneSkin(c, p, x - w / 2, top, w, h, 913, { lichen: 7, chips: 7 });
       // the top is worn bright: three hundred years of men standing on it
       const pol = c.createLinearGradient(0, top, 0, top + h * 0.34);
-      pol.addColorStop(0, alpha(p.bone, 0.16));
+      pol.addColorStop(0, alpha(p.bone, 0.27)); // moonlit crown (LOOP 3)
       pol.addColorStop(1, alpha(p.bone, 0));
       c.fillStyle = pol;
       c.fillRect(x - w / 2, top, w, h * 0.34);
@@ -1333,6 +1336,11 @@ export default {
       c.lineTo(x + w / 2 - w * 0.03, top + h * 0.26);
       c.lineTo(x + w / 2, yBase);
       c.stroke();
+
+      // moonlight lands ON the stone (LOOP 3): the earlier pool painted under
+      // the body and vanished — this one kisses the crown after the skin
+      art.glow(c, x, top + h * 0.12, w * 0.5, p.fjordLight || '#3f6d9e', 0.3);
+      art.glow(c, x - w * 0.1, top + h * 0.05, w * 0.24, p.bone, 0.2);
 
       // the law cut into its face: maðr, and a notch struck for every stone
       // that stands consistent under the brands laid so far

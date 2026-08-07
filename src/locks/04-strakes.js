@@ -31,8 +31,23 @@
 // than twelve acts.
 
 import { SHARDS } from '../kernel/shards.js';
+import { loadHero } from '../shell/heroes.js';
 
 const COUNT = 7;
+
+// Photographic strakes (LOOP 2, Ramon: "use image gen ... it needs to feel
+// visual interactive"): heroes/plank1.jpg + plank2.jpg photograph two real
+// single strakes on black, side view. Each draggable plank is a slice of one
+// of the two plates (alternated + mirrored per plank so seven read distinct),
+// cropped ABOVE the photograph's own rivet row — the puzzle's exact-count
+// rivet pips stay painted, the decorative photo rivets never contradict them.
+// Black is lifted to alpha so the strake silhouette (with its sheer curve)
+// sits on the board like laid timber. Absence -> the procedural painter below
+// (offline law). Crop bands measured on the plates.
+const PLANK_PLATES = [
+  { id: 'plank1', y0: 0.36, y1: 0.575 },
+  { id: 'plank2', y0: 0.35, y1: 0.585 },
+];
 const PERM_CAP = 5040; // 7! — the whole space, so the sweep is never truncated
 
 const MARKS = [
@@ -1056,6 +1071,46 @@ function mount(ctx) {
   });
 
   // ---- the stack ----------------------------------------------------------
+  // ---- photographic strakes (heroes/plank*.jpg, procedural fallback) ------
+  let heroPlanks = null;            // [plate, plate] once at least one decodes
+  const stripCache = new Map();     // `${variant}|${flip}|${w}x${h}` -> canvas
+  function plankStrip(variant, flip, w, h) {
+    const key = `${variant}|${flip}|${Math.round(w)}x${Math.round(h)}`;
+    const hit = stripCache.get(key);
+    if (hit) return hit;
+    const img = heroPlanks && heroPlanks[variant];
+    if (!img) return null;
+    const spec = PLANK_PLATES[variant];
+    const off = document.createElement('canvas');
+    off.width = Math.max(8, Math.round(w));
+    off.height = Math.max(8, Math.round(h));
+    const g = off.getContext('2d');
+    const sy = spec.y0 * img.naturalHeight;
+    const sh = (spec.y1 - spec.y0) * img.naturalHeight;
+    g.save();
+    if (flip) { g.translate(off.width, 0); g.scale(-1, 1); }
+    g.drawImage(img, 0, sy, img.naturalWidth, sh, 0, 0, off.width, off.height);
+    g.restore();
+    // lift the studio black to alpha: the strake keeps its sheer-curve
+    // silhouette instead of arriving as a black rectangle
+    const d = g.getImageData(0, 0, off.width, off.height);
+    const px = d.data;
+    for (let i = 0; i < px.length; i += 4) {
+      const lum = 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+      if (lum < 26) px[i + 3] = Math.max(0, Math.round(((lum - 8) / 18) * 255));
+    }
+    g.putImageData(d, 0, 0);
+    stripCache.set(key, off);
+    return off;
+  }
+  Promise.all([loadHero(PLANK_PLATES[0].id), loadHero(PLANK_PLATES[1].id)]).then(([a, b]) => {
+    if (!a && !b) return; // offline / absent: procedural painter stands
+    if (!wrap.isConnected) return;
+    heroPlanks = [a || b, b || a];
+    stripCache.clear();
+    plankViews.forEach((v) => { v.key = ''; paintPlank(v); });
+  });
+
   const plankViews = instance.planks.map((plank, id) => {
     const btn = node('button');
     btn.className = 'ow4-plank';
@@ -1078,12 +1133,19 @@ function mount(ctx) {
     render();
   }
 
-  // a set-down plank slides home along its own grain
+  // a set-down plank lands with the weight of real timber: a short drop into
+  // the cradle, one small rebound, done — paired with the felted knock at the
+  // drop site (LOOP 2, Ramon: "laying real timber onto the keel")
   function settle(btn) {
     if (calm || typeof btn.animate !== 'function') return;
     const m = btn.animate(
-      [{ transform: 'translateX(-6px)' }, { transform: 'translateX(1.5px)' }, { transform: 'translateX(0)' }],
-      { duration: 150, easing: 'ease-out' },
+      [
+        { transform: 'translateY(-5px)' },
+        { transform: 'translateY(1.8px)', offset: 0.55 },
+        { transform: 'translateY(-0.7px)', offset: 0.8 },
+        { transform: 'translateY(0)' },
+      ],
+      { duration: 190, easing: 'cubic-bezier(.3,.7,.4,1)' },
     );
     motions.push(m);
   }
@@ -1182,59 +1244,92 @@ function mount(ctx) {
     const x0 = 0, y0 = 3, x1 = w, y1 = h - 3;
     c.clearRect(0, 0, w, h);
 
-    // the plank body, lit from above
-    c.save();
-    const g = c.createLinearGradient(0, y0, 0, y1);
-    g.addColorStop(0, lifted ? mixHex(p.oakLight, p.goldBright, 0.14) : p.oakLight);
-    g.addColorStop(0.42, lifted ? p.oakLight : p.oak);
-    g.addColorStop(1, p.oakDeep);
-    c.fillStyle = g;
-    c.fillRect(x0, y0, x1 - x0, y1 - y0);
+    // the plank body: a slice of a photographed strake when the plates are
+    // here, the painted plank otherwise (offline law)
+    const strip = heroPlanks ? plankStrip(v.id % 2, h32(v.id * 97) > 0.5, x1 - x0, y1 - y0) : null;
+    if (strip) {
+      c.save();
+      c.drawImage(strip, x0, y0);
+      // everything tonal stays INSIDE the strake's photographed silhouette
+      c.globalCompositeOperation = 'source-atop';
+      // faint per-plank tone shift so the two alternated plates never twin
+      c.globalAlpha = 0.08 + h32(v.id * 131) * 0.08;
+      c.fillStyle = h32(v.id * 137) > 0.5 ? p.oakLight : p.tar;
+      c.fillRect(x0, y0, x1 - x0, y1 - y0);
+      if (lifted) {
+        c.globalAlpha = 0.16;
+        c.fillStyle = p.goldBright;
+        c.fillRect(x0, y0, x1 - x0, y1 - y0);
+      }
+      c.globalAlpha = 1;
+      markFeature(c, v, x0, y0, x1, y1);
+      // the chalked name field + clinker lap shadow, clipped to the wood
+      const nf = c.createLinearGradient(0, y0, 0, y0 + 24);
+      nf.addColorStop(0, 'rgba(12,9,6,.6)');
+      nf.addColorStop(1, 'rgba(12,9,6,0)');
+      c.fillStyle = nf;
+      c.fillRect(x0, y0, x1 - x0, 24);
+      const lap = c.createLinearGradient(0, y0, 0, y0 + 7);
+      lap.addColorStop(0, p.tar); lap.addColorStop(1, 'rgba(0,0,0,0)');
+      c.globalAlpha = 0.5; c.fillStyle = lap; c.fillRect(x0, y0, x1 - x0, 7);
+      c.globalAlpha = 0.45; c.strokeStyle = p.oakLight; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(x0 + 3, y1 - 0.5); c.lineTo(x1 - 3, y1 - 0.5); c.stroke();
+      c.restore();
+    } else {
+      // the plank body, lit from above
+      c.save();
+      const g = c.createLinearGradient(0, y0, 0, y1);
+      g.addColorStop(0, lifted ? mixHex(p.oakLight, p.goldBright, 0.14) : p.oakLight);
+      g.addColorStop(0.42, lifted ? p.oakLight : p.oak);
+      g.addColorStop(1, p.oakDeep);
+      c.fillStyle = g;
+      c.fillRect(x0, y0, x1 - x0, y1 - y0);
 
-    // grain running the plank's length
-    c.lineWidth = 1;
-    for (let k = 0; k < 5; k++) {
-      const gy = y0 + 3 + h32(v.id * 11 + k) * (y1 - y0 - 6);
-      const sway = (h32(v.id * 19 + k) - 0.5) * 5;
-      c.strokeStyle = k % 2 ? p.oakDeep : p.oakLight;
-      c.globalAlpha = 0.15 + h32(v.id * 23 + k) * 0.11;
-      c.beginPath();
-      c.moveTo(x0 + 2, gy);
-      c.bezierCurveTo(w * 0.33, gy + sway, w * 0.66, gy - sway, x1 - 2, gy);
-      c.stroke();
+      // grain running the plank's length
+      c.lineWidth = 1;
+      for (let k = 0; k < 5; k++) {
+        const gy = y0 + 3 + h32(v.id * 11 + k) * (y1 - y0 - 6);
+        const sway = (h32(v.id * 19 + k) - 0.5) * 5;
+        c.strokeStyle = k % 2 ? p.oakDeep : p.oakLight;
+        c.globalAlpha = 0.15 + h32(v.id * 23 + k) * 0.11;
+        c.beginPath();
+        c.moveTo(x0 + 2, gy);
+        c.bezierCurveTo(w * 0.33, gy + sway, w * 0.66, gy - sway, x1 - 2, gy);
+        c.stroke();
+      }
+      // pore stipple
+      c.globalAlpha = 1;
+      for (let k = 0; k < 34; k++) {
+        c.fillStyle = h32(v.id * 67 + k) > 0.5 ? p.oakDeep : p.tar;
+        c.globalAlpha = 0.1 + h32(v.id * 71 + k) * 0.14;
+        c.fillRect(x0 + h32(v.id * 73 + k) * w, y0 + h32(v.id * 79 + k) * (y1 - y0), 1.1, 0.9);
+      }
+      c.globalAlpha = 1;
+      c.restore();
+
+      markFeature(c, v, x0, y0, x1, y1);
+
+      // the name field: a planed patch the wright chalked, so the word sits on
+      // wood that can carry it (contrast floor over every mark's own wash)
+      c.save();
+      const nf = c.createLinearGradient(0, y0, 0, y0 + 24);
+      nf.addColorStop(0, 'rgba(12,9,6,.52)');
+      nf.addColorStop(1, 'rgba(12,9,6,0)');
+      c.fillStyle = nf;
+      c.fillRect(x0, y0, x1 - x0, 24);
+      c.restore();
+
+      // clinker shading: the lap shadow above, the catch light below
+      c.save();
+      const lap = c.createLinearGradient(0, y0, 0, y0 + 7);
+      lap.addColorStop(0, p.tar); lap.addColorStop(1, 'rgba(0,0,0,0)');
+      c.globalAlpha = 0.55; c.fillStyle = lap; c.fillRect(x0, y0, x1 - x0, 7);
+      c.globalAlpha = 0.5; c.strokeStyle = p.oakLight; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(x0, y1 - 0.5); c.lineTo(x1, y1 - 0.5); c.stroke();
+      c.globalAlpha = 0.9; c.strokeStyle = p.tar;
+      c.strokeRect(x0 + 0.5, y0 + 0.5, x1 - x0 - 1, y1 - y0 - 1);
+      c.restore();
     }
-    // pore stipple
-    c.globalAlpha = 1;
-    for (let k = 0; k < 34; k++) {
-      c.fillStyle = h32(v.id * 67 + k) > 0.5 ? p.oakDeep : p.tar;
-      c.globalAlpha = 0.1 + h32(v.id * 71 + k) * 0.14;
-      c.fillRect(x0 + h32(v.id * 73 + k) * w, y0 + h32(v.id * 79 + k) * (y1 - y0), 1.1, 0.9);
-    }
-    c.globalAlpha = 1;
-    c.restore();
-
-    markFeature(c, v, x0, y0, x1, y1);
-
-    // the name field: a planed patch the wright chalked, so the word sits on
-    // wood that can carry it (contrast floor over every mark's own wash)
-    c.save();
-    const nf = c.createLinearGradient(0, y0, 0, y0 + 24);
-    nf.addColorStop(0, 'rgba(12,9,6,.52)');
-    nf.addColorStop(1, 'rgba(12,9,6,0)');
-    c.fillStyle = nf;
-    c.fillRect(x0, y0, x1 - x0, 24);
-    c.restore();
-
-    // clinker shading: the lap shadow above, the catch light below
-    c.save();
-    const lap = c.createLinearGradient(0, y0, 0, y0 + 7);
-    lap.addColorStop(0, p.tar); lap.addColorStop(1, 'rgba(0,0,0,0)');
-    c.globalAlpha = 0.55; c.fillStyle = lap; c.fillRect(x0, y0, x1 - x0, 7);
-    c.globalAlpha = 0.5; c.strokeStyle = p.oakLight; c.lineWidth = 1;
-    c.beginPath(); c.moveTo(x0, y1 - 0.5); c.lineTo(x1, y1 - 0.5); c.stroke();
-    c.globalAlpha = 0.9; c.strokeStyle = p.tar;
-    c.strokeRect(x0 + 0.5, y0 + 0.5, x1 - x0 - 1, y1 - y0 - 1);
-    c.restore();
 
     // rivets: a cast shadow first, then the lit dome — set along the lap line
     const n = plank.rivets;

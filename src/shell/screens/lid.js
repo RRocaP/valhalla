@@ -7,6 +7,8 @@ import { el } from '../dom.js';
 import { lockState, isAccessible, nextLockId, progressFraction } from '../progress.js';
 import { pushJournal } from '../journal.js';
 import { ordinalWord } from '../numerals.js';
+import { SHELL_STRINGS, ordinalWordLang } from '../strings.js';
+import { t } from '../../kernel/i18n.js';
 import { gauntletFor, lineFor, journalHasLine, WAGER } from '../duels.js';
 import { rng } from '../../kernel/rng.js';
 import { resolveLang } from '../../kernel/i18n.js';
@@ -14,23 +16,34 @@ import { loadHero, drawHero, coverRect } from '../heroes.js';
 
 // The chest hero plate (heroes/chest.jpg) photographs the real object: a
 // sea-chest with FIFTEEN bronze medallions in three arcs. In photo mode the
-// hit targets anchor onto the photographed bronze (fractions of the image,
-// calibrated against artifacts/wip-magic/shots/calib-medallions.png) and all
-// lock state renders as light ON the metal. Procedural chestScene remains
-// the full fallback when the plate is absent (offline law).
-const CHEST_SOCKETS = (() => {
-  const r1x = [0.3365, 0.4153, 0.5021, 0.5889, 0.6677];
-  const r1y = [0.4535, 0.4643, 0.4711, 0.4643, 0.4535];
-  const r2x = [0.3229, 0.4111, 0.4992, 0.5873, 0.6755];
-  const r2y = [0.5317, 0.54, 0.5476, 0.54, 0.5317];
-  const r3y = [0.6107, 0.619, 0.6266, 0.619, 0.6107];
-  const out = [];
-  for (let i = 0; i < 5; i++) out.push({ fx: r1x[i], fy: r1y[i] });
-  for (let i = 0; i < 5; i++) out.push({ fx: r2x[i], fy: r2y[i] });
-  for (let i = 0; i < 5; i++) out.push({ fx: r2x[i], fy: r3y[i] });
-  return out;
-})();
-const CHEST_SOCKET_R = 0.0442; // medallion radius as a fraction of drawn plate width
+// hit targets anchor onto the photographed bronze and all lock state renders
+// as light ON the metal. Procedural chestScene remains the full fallback when
+// the plate is absent (offline law).
+// Calibration (LOOP 1, hand-measured on 0.005-fraction grid crops —
+// artifacts/wip-verifier/loop1/grid-row*.png, verified calib-verify.png):
+// per-socket center AND radius as fractions of the image (fr is of width;
+// the photographed discs are 0.034-0.036 W, not one shared radius — the old
+// single 0.0442 constant is why every state ring spilled off its bronze).
+const CHEST_SOCKETS = [
+  { fx: 0.3309, fy: 0.4497, fr: 0.0349 },
+  { fx: 0.4152, fy: 0.4554, fr: 0.0349 },
+  { fx: 0.5019, fy: 0.4598, fr: 0.0349 },
+  { fx: 0.5858, fy: 0.4564, fr: 0.0341 },
+  { fx: 0.6688, fy: 0.4504, fr: 0.0343 },
+  { fx: 0.3185, fy: 0.5296, fr: 0.0360 },
+  { fx: 0.4017, fy: 0.5363, fr: 0.0357 },
+  { fx: 0.4973, fy: 0.5386, fr: 0.0353 },
+  { fx: 0.5901, fy: 0.5344, fr: 0.0353 },
+  { fx: 0.6774, fy: 0.5296, fr: 0.0351 },
+  { fx: 0.3129, fy: 0.6133, fr: 0.0360 },
+  { fx: 0.4004, fy: 0.6243, fr: 0.0358 },
+  { fx: 0.4972, fy: 0.6267, fr: 0.0358 },
+  { fx: 0.5856, fy: 0.6249, fr: 0.0354 },
+  { fx: 0.6724, fy: 0.6197, fr: 0.0354 },
+];
+// Clear zones of the photograph for chapter labels (fractions of the image):
+// the iron/dark band between the carved frieze and the first medallion arc.
+const CHEST_LABEL_BAND_TOP = 0.414;
 
 // Fallback layout, used only when the art module predates art.chestLayout.
 // Generic N-lock layout (not hardcoded to 15) so the same code serves the
@@ -82,7 +95,13 @@ const LID_STYLE = `
   animation:chapter-breathe 3.4s ease-in-out infinite}
 @keyframes chapter-breathe{0%,100%{opacity:1}50%{opacity:.84}}
 @media (prefers-reduced-motion: reduce){#app .chapter-label.duel-banner{animation:none}}
-#app.reduced-motion .chapter-label.duel-banner{animation:none}`;
+#app.reduced-motion .chapter-label.duel-banner{animation:none}
+#app .medallion-hit{transition:transform .16s cubic-bezier(.34,1.56,.64,1)}
+#app .medallion-hit:not(:disabled):active{transform:translate(-50%,-50%) scale(.955)}
+@media (prefers-reduced-motion: reduce){#app .medallion-hit{transition:none}
+  #app .medallion-hit:not(:disabled):active{transform:translate(-50%,-50%)}}
+#app.reduced-motion .medallion-hit{transition:none}
+#app.reduced-motion .medallion-hit:not(:disabled):active{transform:translate(-50%,-50%)}`;
 
 export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpenedId, onOpenLock, onOpenJournal, onOpenSettings }) {
   const p = art.palette;
@@ -157,10 +176,15 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   if (activeGroup) {
     const g = activeGroup.g;
     if (isRevealed(g)) {
-      const marker = `${g.name} bars the`;
-      if (!save.journal.some((line) => line.includes(marker))) {
-        pushJournal(save, `${g.name} bars the ${ordinalWord(g.dareAt)} lock.`);
+      // localized announcement (LOOP 4: the es/ca journal carried an English
+      // line — strings.js has held lid.barsJournal all along). journalHasLine
+      // dedupes across languages, so old saves keep their English entry.
+      const line = {};
+      for (const L of ['en', 'es', 'ca']) {
+        line[L] = t(SHELL_STRINGS, L, 'lid.barsJournal',
+          { name: g.name, ord: L === 'en' ? ordinalWord(g.dareAt) : ordinalWordLang(g.dareAt, L) });
       }
+      if (!journalHasLine(save, line)) pushJournal(save, lineFor(line, lang));
     } else {
       const veiled = {
         en: `A new banner is raised over the ${ordinalWord(g.dareAt)} lock. No one will say whose.`,
@@ -243,7 +267,7 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     const sockets = CHEST_SOCKETS.map((f) => ({
       x: r.dx + f.fx * r.dw,
       y: r.dy + f.fy * r.dh,
-      r: Math.max(22, CHEST_SOCKET_R * r.dw),
+      r: Math.max(20, f.fr * r.dw),
     }));
     return {
       sockets,
@@ -267,28 +291,34 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       if (!pos) return;
       const state = lockState(locks, save, lock.id);
       if (state === 'sealed') {
-        const g = c.createRadialGradient(pos.x, pos.y, pos.r * 0.2, pos.x, pos.y, pos.r * 1.15);
+        const g = c.createRadialGradient(pos.x, pos.y, pos.r * 0.2, pos.x, pos.y, pos.r * 1.05);
         g.addColorStop(0, 'rgba(12,9,6,.48)');
         g.addColorStop(1, 'rgba(12,9,6,0)');
         c.fillStyle = g;
         c.beginPath();
-        c.arc(pos.x, pos.y, pos.r * 1.15, 0, Math.PI * 2);
+        c.arc(pos.x, pos.y, pos.r * 1.05, 0, Math.PI * 2);
         c.fill();
       } else if (state === 'open') {
-        // the seal stands broken: a quiet gold ring and the lock's rune etched
-        art.glow(c, pos.x, pos.y, pos.r * 1.35, p.gold, 0.16);
+        // the seal stands broken: a quiet gold ring ON the rim and the lock's
+        // rune etched dead-center. All light is clipped to the disc so it
+        // reads as light on the bronze, never a halo hovering over the wood.
         c.save();
-        c.strokeStyle = 'rgba(238,207,109,.5)';
-        c.lineWidth = Math.max(1.4, pos.r * 0.05);
         c.beginPath();
-        c.arc(pos.x, pos.y, pos.r * 0.92, 0, Math.PI * 2);
+        c.arc(pos.x, pos.y, pos.r * 1.04, 0, Math.PI * 2);
+        c.clip();
+        art.glow(c, pos.x, pos.y, pos.r * 1.02, p.gold, 0.2);
+        c.strokeStyle = 'rgba(238,207,109,.55)';
+        c.lineWidth = Math.max(1.4, pos.r * 0.055);
+        c.beginPath();
+        c.arc(pos.x, pos.y, pos.r * 0.9, 0, Math.PI * 2);
         c.stroke();
         if (typeof art.drawRune === 'function') {
           const shard = lock.shard && lock.shard(lock.makePuzzle(rng('lindisfarne-793:' + lock.id)));
           if (shard && shard.rune) {
+            const rs = pos.r * 0.84;
             c.globalAlpha = 0.85;
-            art.drawRune(c, shard.rune, pos.x - pos.r * 0.34, pos.y - pos.r * 0.44, pos.r * 0.68, {
-              color: p.goldBright, weight: Math.max(2, pos.r * 0.1), glow: 0.25,
+            art.drawRune(c, shard.rune, pos.x - rs / 2, pos.y - rs / 2, rs, {
+              color: p.goldBright, weight: Math.max(2, rs * 0.13), glow: 0.25,
             });
           }
         }
@@ -308,25 +338,38 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       const pos = nextIdx >= 0 ? layout[nextIdx] : null;
       if (pos) {
         const pulse = reducedMotion ? 0.75 : 0.62 + 0.38 * Math.sin(t / 640);
-        art.glow(cur.ctx, pos.x, pos.y, pos.r * 2.1, p.goldBright, 0.3 * pulse + 0.18);
-        art.glow(cur.ctx, pos.x, pos.y, pos.r * 1.1, p.ember, 0.22 * pulse);
+        // gold state light stays ON the bronze: clipped wash + a ring that
+        // hugs the photographed rim (the 2.1r halo spilled onto the wood and
+        // collided with its neighbours — LOOP 1)
         cur.ctx.save();
-        cur.ctx.strokeStyle = `rgba(238,207,109,${0.4 + 0.3 * pulse})`;
+        cur.ctx.beginPath();
+        cur.ctx.arc(pos.x, pos.y, pos.r * 1.08, 0, Math.PI * 2);
+        cur.ctx.clip();
+        art.glow(cur.ctx, pos.x, pos.y, pos.r * 1.05, p.goldBright, 0.26 * pulse + 0.14);
+        art.glow(cur.ctx, pos.x, pos.y, pos.r * 0.7, p.ember, 0.18 * pulse);
+        cur.ctx.strokeStyle = `rgba(238,207,109,${0.45 + 0.3 * pulse})`;
         cur.ctx.lineWidth = Math.max(1.6, pos.r * 0.07);
         cur.ctx.beginPath();
-        cur.ctx.arc(pos.x, pos.y, pos.r * 1.02, 0, Math.PI * 2);
+        cur.ctx.arc(pos.x, pos.y, pos.r * 0.94, 0, Math.PI * 2);
         cur.ctx.stroke();
+        cur.ctx.restore();
+        // the armed rune BURNS — overflowing arcane fire, dead-center on the
+        // disc; the flame alone may rise past the rim (Ramon, LOOP 1)
         if (typeof art.drawRune === 'function') {
           const shard = nextLock.shard && nextLock.shard(nextLock.makePuzzle(rng('lindisfarne-793:' + nextLock.id)));
           const accent = (p.fjordLight || '#3f6d9e');
           if (shard && shard.rune) {
-            cur.ctx.globalAlpha = 0.5 + 0.4 * pulse;
-            art.drawRune(cur.ctx, shard.rune, pos.x - pos.r * 0.36, pos.y - pos.r * 0.46, pos.r * 0.72, {
-              color: accent, weight: Math.max(2.2, pos.r * 0.11), glow: 0.5,
+            const rs = pos.r * 1.12;
+            cur.ctx.save();
+            cur.ctx.globalAlpha = 0.82 + 0.18 * pulse;
+            art.drawRune(cur.ctx, shard.rune, pos.x - rs / 2, pos.y - rs / 2, rs, {
+              color: accent, weight: Math.max(2.2, rs * 0.13),
+              magic: 0.88 + 0.12 * pulse, t, reduced: reducedMotion,
+              flameScale: 3, // couch test: the fire must outgrow the disc
             });
+            cur.ctx.restore();
           }
         }
-        cur.ctx.restore();
       }
     } else {
       art.chestScene(cur.ctx, cur.w, cur.h, t, progress);
@@ -346,42 +389,205 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
         if (strength > 0) art.glow(cur.ctx, pos.x, pos.y, pos.r * 1.8, p.goldBright, strength);
       }
     }
+    renderFx(cur.ctx);
   }
 
+  // ---- touch delight (LOOP 1, Ramon: "like when you press them they give
+  // some magic feedback like a card in HS would") -----------------------------
+  // Transient, time-gated FX on the existing animated canvas: an accessible
+  // medallion answers a press with a quick bloom + 4-6 arcane sparks that die
+  // <500ms; a locked one answers with a dull ember pulse + the soft deny thud;
+  // bare chest wood answers idle taps with dust motes. Reduced motion: bloom
+  // or gleam only, no particles, no press scale.
+  const fxList = [];
+  let fxTimer = null;
+  function scheduleFxRepaint() {
+    if (fxTimer || !reducedMotion) return;
+    fxTimer = setTimeout(() => {
+      fxTimer = null;
+      paint(0);
+      if (fxList.length) scheduleFxRepaint();
+    }, 90);
+  }
+  function addFx(f) {
+    f.t0 = performance.now();
+    fxList.push(f);
+    scheduleFxRepaint();
+  }
+  function renderFx(ctx) {
+    if (!fxList.length) return;
+    const now = performance.now();
+    for (let i = fxList.length - 1; i >= 0; i--) {
+      const f = fxList[i];
+      const k = (now - f.t0) / f.life;
+      if (k >= 1) { fxList.splice(i, 1); continue; }
+      const fade = 1 - k;
+      if (f.kind === 'bloom') {
+        art.glow(ctx, f.x, f.y, f.r * (1.1 + 0.3 * k), p.goldBright, 0.95 * fade);
+        art.glow(ctx, f.x, f.y, f.r * 0.6, (p.fjordLight || '#3f6d9e'), 0.55 * fade);
+      } else if (f.kind === 'spark') {
+        const e = 1 - (1 - k) * (1 - k); // ease-out travel
+        const px = f.x + Math.cos(f.ang) * f.sp * e;
+        const py = f.y + Math.sin(f.ang) * f.sp * e - f.rise * e;
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, 1.2 * fade);
+        ctx.fillStyle = f.cold ? (p.fjordLight || '#3f6d9e') : p.goldBright;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(px, py, f.size * (0.6 + 0.4 * fade), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,241,199,.9)';
+        ctx.beginPath();
+        ctx.arc(px, py, f.size * 0.4 * fade, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else if (f.kind === 'deny') {
+        ctx.save();
+        ctx.globalAlpha = 0.7 * fade;
+        ctx.strokeStyle = p.ember;
+        ctx.lineWidth = Math.max(2.5, f.r * 0.12);
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r * (0.86 + 0.1 * k), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        art.glow(ctx, f.x, f.y, f.r * 0.8, p.ember, 0.45 * fade);
+      } else if (f.kind === 'mote') {
+        ctx.save();
+        ctx.globalAlpha = 0.36 * fade;
+        ctx.fillStyle = p.bone;
+        ctx.shadowColor = p.bone;
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.arc(f.x + f.dx * k, f.y + f.dy * k, f.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        if (k < 0.4) art.glow(ctx, f.x, f.y, 20, p.gold, 0.12 * (1 - k / 0.4));
+      } else if (f.kind === 'gleam') {
+        art.glow(ctx, f.x, f.y, f.r, p.gold, 0.3 * fade);
+      }
+    }
+  }
+  function pressFx(pos) {
+    addFx({ kind: 'bloom', x: pos.x, y: pos.y, r: pos.r, life: 280 });
+    if (reducedMotion) return;
+    const n = 5 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < n; i++) {
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.1;
+      addFx({
+        kind: 'spark', x: pos.x, y: pos.y - pos.r * 0.3, ang,
+        sp: pos.r * (0.7 + Math.random() * 1.0), rise: pos.r * (0.6 + Math.random() * 0.8),
+        size: 2.4 + Math.random() * 2, cold: i % 2 === 0, life: 380 + Math.random() * 110,
+      });
+    }
+  }
+  function denyFx(pos) {
+    addFx({ kind: 'deny', x: pos.x, y: pos.y, r: pos.r, life: 380 });
+  }
+  function motesFx(x, y) {
+    if (reducedMotion) { addFx({ kind: 'gleam', x, y, r: 26, life: 320 }); return; }
+    for (let i = 0; i < 8; i++) {
+      addFx({
+        kind: 'mote', x: x + (Math.random() - 0.5) * 16, y: y + (Math.random() - 0.5) * 10,
+        dx: (Math.random() - 0.5) * 32, dy: -12 - Math.random() * 26,
+        size: 1.4 + Math.random() * 1.6, life: 380 + Math.random() * 80,
+      });
+    }
+  }
+  medallionsLayer.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    const rect = screen.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    let hit = -1;
+    layout.forEach((pos, i) => {
+      if (pos && Math.hypot(px - pos.x, py - pos.y) <= Math.max(24, pos.r * 1.12)) hit = i;
+    });
+    if (hit >= 0) {
+      if (buttons[hit].disabled) { denyFx(layout[hit]); audio.ui('deny'); }
+      else pressFx(layout[hit]);
+    } else {
+      motesFx(px, py);
+      audio.ui('tick');
+    }
+  });
+
+  // The shard ledger: ONE carved rail object seated on the chest's carved
+  // band — tar-washed plate, swallow-tail ends, gold hairlines, each shard a
+  // rune over its Cormorant numeral. Loose runes + mono chips floated under
+  // the chest like debris (Ramon's iPhone review, LOOP 1).
   function paintHasp() {
     const opened = locks.filter((l) => save.opened.includes(l.id));
-    const n = opened.length;
-    const cell = n ? Math.min(40, hasp.w / n) : 0;
-    opened.forEach((lock, i) => {
-      // shard(instance) is part of the Lock interface (CONTRACT §4) and is
-      // documented instance-independent — calling it directly (rather than
-      // keying into the frozen kernel SHARDS table, which only knows the
-      // real 01..14 ids) works for every lock, real or fixture.
-      const shard = lock.shard(lock.makePuzzle(rng('lindisfarne-793:' + lock.id)));
-      if (!shard) return;
-      const cx = hasp.w / 2 - (n * cell) / 2 + cell * i + cell / 2;
-      const cy = hasp.h / 2;
-      art.drawRune(hasp.ctx, shard.rune, cx - cell * 0.28, cy - cell * 0.32, cell * 0.56, { color: p.goldBright });
-      // ledger numerals SEATED: each value gets its own small tar plate with a
-      // gold hairline — bare digits hung half off the rail and collided with
-      // their neighbours as the row filled (QUALITY_LOOP4)
-      const val = String(shard.value);
-      const yv = cy + cell * 0.42;
-      const vw = Math.max(17, val.length * 7 + 7);
-      hasp.ctx.save();
-      hasp.ctx.fillStyle = 'rgba(12,9,6,.8)';
-      hasp.ctx.beginPath();
-      hasp.ctx.roundRect(cx - vw / 2, yv - 10, vw, 14, 3);
-      hasp.ctx.fill();
-      hasp.ctx.strokeStyle = 'rgba(201,162,39,.38)';
-      hasp.ctx.lineWidth = 1;
-      hasp.ctx.stroke();
-      hasp.ctx.font = '600 11px ui-monospace, monospace';
-      hasp.ctx.textAlign = 'center';
-      hasp.ctx.fillStyle = p.goldBright;
-      hasp.ctx.fillText(val, cx, yv + 1);
-      hasp.ctx.restore();
+    if (!opened.length) return;
+    // shard(instance) is part of the Lock interface (CONTRACT §4) and is
+    // documented instance-independent — calling it directly (rather than
+    // keying into the frozen kernel SHARDS table, which only knows the
+    // real 01..14 ids) works for every lock, real or fixture.
+    const shards = opened
+      .map((lock) => lock.shard(lock.makePuzzle(rng('lindisfarne-793:' + lock.id))))
+      .filter(Boolean);
+    if (!shards.length) return;
+    const c = hasp.ctx;
+    const cellW = shards.map((s) => Math.max(27, String(s.value).length * 8 + 14));
+    const innerW = cellW.reduce((a, b) => a + b, 0);
+    const pad = 16;
+    const railW = Math.min(hasp.w - 4, innerW + pad * 2);
+    const scale = innerW + pad * 2 > railW ? (railW - pad * 2) / innerW : 1;
+    const x0 = hasp.w / 2 - railW / 2;
+    const y0 = 9;
+    const railH = 40;
+    const notch = 8;
+    c.save();
+    // plate
+    c.beginPath();
+    c.moveTo(x0, y0);
+    c.lineTo(x0 + railW, y0);
+    c.lineTo(x0 + railW - notch, y0 + railH / 2);
+    c.lineTo(x0 + railW, y0 + railH);
+    c.lineTo(x0, y0 + railH);
+    c.lineTo(x0 + notch, y0 + railH / 2);
+    c.closePath();
+    const gPlate = c.createLinearGradient(0, y0, 0, y0 + railH);
+    gPlate.addColorStop(0, 'rgba(24,16,10,.92)');
+    gPlate.addColorStop(0.5, 'rgba(14,10,7,.9)');
+    gPlate.addColorStop(1, 'rgba(8,6,4,.94)');
+    c.fillStyle = gPlate;
+    c.shadowColor = 'rgba(12,9,6,.7)';
+    c.shadowBlur = 6;
+    c.shadowOffsetY = 2;
+    c.fill();
+    c.shadowColor = 'transparent';
+    c.strokeStyle = 'rgba(12,9,6,.85)';
+    c.lineWidth = 1.2;
+    c.stroke();
+    c.strokeStyle = 'rgba(201,162,39,.42)';
+    c.lineWidth = 0.9;
+    c.stroke();
+    // shards
+    let x = x0 + pad;
+    shards.forEach((shard, i) => {
+      const wCell = cellW[i] * scale;
+      const cx = x + wCell / 2;
+      const runeS = 15;
+      art.drawRune(c, shard.rune, cx - runeS / 2, y0 + 4, runeS, {
+        color: p.goldBright, weight: 2.2,
+      });
+      c.font = '600 13px "Cormorant Garamond", "Iowan Old Style", Georgia, serif';
+      c.textAlign = 'center';
+      c.fillStyle = rgbaOf(p.goldBright, 0.92);
+      c.fillText(String(shard.value), cx, y0 + railH - 7);
+      if (i < shards.length - 1) {
+        const nx = x + wCell;
+        c.save();
+        c.translate(nx, y0 + railH / 2);
+        c.rotate(Math.PI / 4);
+        c.fillStyle = 'rgba(201,162,39,.45)';
+        c.fillRect(-1.8, -1.8, 3.6, 3.6);
+        c.restore();
+      }
+      x += wCell;
     });
+    c.restore();
   }
 
   // ---- gauntlet ribbons -----------------------------------------------------
@@ -422,20 +628,6 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   function bannerGeometry(seg, w) {
     const sockets = seg.items.map((it) => it.pos);
     const r = sockets[0].r;
-    if (photoMode()) {
-      // On the photographed chest the rows smile upward at their ends; cloth
-      // that follows them kicks its tails into the straps. Pin the banner
-      // STRAIGHT above the row instead, quiet and level.
-      const bandH = Math.max(10, Math.min(14, r * 0.3));
-      const gapBelow = Math.max(5, r * 0.2);
-      const yTop = Math.min(...sockets.map((s) => s.y)) - r - gapBelow - bandH;
-      let colGap = r * 4;
-      for (let i = 1; i < sockets.length; i++) colGap = Math.min(colGap, sockets[i].x - sockets[i - 1].x);
-      const ext = Math.max(r * 0.4, Math.min(r + 18, colGap / 2 - r - 5));
-      const x0 = Math.max(8, sockets[0].x - r - (seg.outerLeft ? ext : Math.max(2, ext * 0.4)));
-      const x1 = Math.min(w - 8, sockets[sockets.length - 1].x + r + (seg.outerRight ? ext : Math.max(2, ext * 0.4)));
-      return { x0, x1, bandH, topAt: () => yTop, r };
-    }
     const bandH = Math.max(11, Math.min(19, r * 0.52));
     const gapBelow = Math.max(4, r * 0.16);
     // extend past the end sockets into the column gap / chest margin, clamped
@@ -544,6 +736,98 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     ctx.restore();
   }
 
+  // Photo mode: the photograph is the spectacle — NO cloth crosses the
+  // medallion field (the full-width ribbons read as red smears cutting the
+  // bronze mid-face, Ramon's iPhone review LOOP 1). The one armed chapter
+  // label is seated in a CLEAR ZONE of the photograph — the iron band above
+  // the first arc, or the wooden rail between arcs — on a whisper-weight
+  // blood end-tab sized to the text.
+  function paintPhotoLabel(ctx, group, w, h) {
+    if (!group.active || !group.label) return;
+    const segs = segmentsOf(group);
+    if (!segs.length) return;
+    // seat the label on the segment that holds the ARMED lock — the words
+    // belong beside the burning medallion (fallback: the longest run)
+    let labelSeg = null;
+    if (nextLock) {
+      labelSeg = segs.find((s) => s.items.some((it) => it.ordinal === nextLock.ordinal)) || null;
+    }
+    if (!labelSeg) {
+      labelSeg = segs[0];
+      for (const s of segs) {
+        if (s.items.length > labelSeg.items.length) labelSeg = s;
+        else if (s.items.length === labelSeg.items.length
+          && s.items.some((it) => it.ordinal === group.g.dareAt)) labelSeg = s;
+      }
+    }
+    const items = labelSeg.items;
+    const row = Math.floor(items[0].index / 5);
+    const rect = photoRect(w, h);
+    const labelW = group.label.offsetWidth || 150;
+    const tabW = Math.min(labelW + 34, w - 16);
+    // horizontal seat first: over the segment, clamped so the whole TAB stays
+    // on-screen (at 390px the gauntlet-IV tab bled off the left edge — LOOP 2)
+    const cxRaw = items.reduce((a, it) => a + it.pos.x, 0) / items.length;
+    const cx = Math.max(tabW / 2 + 8, Math.min(w - tabW / 2 - 8, cxRaw));
+    let cy;
+    if (row === 0) {
+      cy = rect.dy + CHEST_LABEL_BAND_TOP * rect.dh;
+    } else {
+      // midpoint of the clear rail between this arc and the arc above it,
+      // measured over the TAB'S OWN CLAMPED SPAN (the arcs smile, so the rail
+      // height depends on which columns the cloth actually crosses)
+      const x0 = cx - tabW / 2;
+      const x1 = cx + tabW / 2;
+      let prevBottom = -Infinity;
+      let segTop = Infinity;
+      for (let i = (row - 1) * 5; i < row * 5; i++) {
+        const s2 = layout[i];
+        if (!s2 || s2.x + s2.r < x0 || s2.x - s2.r > x1) continue;
+        prevBottom = Math.max(prevBottom, s2.y + s2.r);
+      }
+      for (let i = row * 5; i < Math.min(layout.length, row * 5 + 5); i++) {
+        const s2 = layout[i];
+        if (!s2 || s2.x + s2.r < x0 || s2.x - s2.r > x1) continue;
+        segTop = Math.min(segTop, s2.y - s2.r);
+      }
+      if (segTop === Infinity) segTop = Math.min(...items.map((it) => it.pos.y - it.pos.r));
+      cy = prevBottom > -Infinity ? (prevBottom + segTop) / 2 : segTop - 16;
+    }
+    group.label.style.left = `${cx}px`;
+    group.label.style.top = `${cy}px`;
+    // the end-tab: a short strip of cloth pinned behind the words only
+    const revealed = isRevealed(group.g);
+    const tabH = 20;
+    const notch = 7;
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(cx - tabW / 2, cy - tabH / 2);
+    ctx.lineTo(cx + tabW / 2, cy - tabH / 2);
+    ctx.lineTo(cx + tabW / 2 - notch, cy);
+    ctx.lineTo(cx + tabW / 2, cy + tabH / 2);
+    ctx.lineTo(cx - tabW / 2, cy + tabH / 2);
+    ctx.lineTo(cx - tabW / 2 + notch, cy);
+    ctx.closePath();
+    ctx.fillStyle = revealed ? p.blood : 'rgba(30,20,14,.9)';
+    ctx.fill();
+    const g1 = ctx.createLinearGradient(0, cy - tabH / 2, 0, cy + tabH / 2);
+    g1.addColorStop(0, 'rgba(255,241,199,.10)');
+    g1.addColorStop(0.5, 'rgba(12,9,6,.05)');
+    g1.addColorStop(1, 'rgba(12,9,6,.42)');
+    ctx.fillStyle = g1;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(12,9,6,.8)';
+    ctx.lineWidth = 1.1;
+    ctx.stroke();
+    if (revealed) {
+      ctx.strokeStyle = rgbaOf(p.goldBright, 0.32);
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function paintBanner(ctx, group, w) {
     const segs = segmentsOf(group);
     if (!segs.length) return;
@@ -551,8 +835,7 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     // finished ones resting, the sealed ones receded to tar-washed cloth —
     // five equal-loudness ribbons read as a red lattice, not chapters.
     const revealed = isRevealed(group.g);
-    let alpha = group.active ? 1 : group.done ? 0.5 : revealed ? 0.62 : 0.4;
-    if (photoMode()) alpha *= 0.85; // the cloth defers to the photographed bronze
+    const alpha = group.active ? 1 : group.done ? 0.5 : revealed ? 0.62 : 0.4;
     const r3 = rng(`banner-folds:${group.g.key}`);
     // the label sits on the longest run (ties -> the run holding the dare lock)
     let labelSeg = segs[0];
@@ -635,7 +918,7 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       const yB1 = geo.topAt(geo.x1) + geo.bandH;
       const firstPos = seg.items[0].pos;
       const lastPos = seg.items[seg.items.length - 1].pos;
-      if (!photoMode() && (revealed || group.active || group.done)) {
+      if (revealed || group.active || group.done) {
         if (seg.outerLeft && rowOuter(geo.x0, -1, firstPos)) drawFlap(ctx, geo.x0, yB0, geo.bandH, -1, firstPos, w, r3());
         if (seg.outerRight && rowOuter(geo.x1, 1, lastPos)) drawFlap(ctx, geo.x1, yB1, geo.bandH, 1, lastPos, w, r3());
       }
@@ -698,7 +981,11 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
         art.wordmark(deco.ctx, w / 2, Math.max(34, L.top * 0.44), size, { maxWidth: w * 0.7, depth: 0.75 });
       }
     }
-    for (const group of gauntletGroups) paintBanner(deco.ctx, group, w);
+    if (photoMode()) {
+      for (const group of gauntletGroups) paintPhotoLabel(deco.ctx, group, w, h);
+    } else {
+      for (const group of gauntletGroups) paintBanner(deco.ctx, group, w);
+    }
   }
 
   function layoutMedallions() {
@@ -736,11 +1023,12 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     // on bare board below the chest.
     let haspW = Math.min(w * 0.86, 640);
     if (photoMode()) {
-      // the photographed chest's carved band under the third arc
+      // the ledger rail sits ON the photographed carved band under the third
+      // arc (fy 0.667 of the plate), centered on the rail plate's own height
       const r = photoRect(w, h);
-      haspW = Math.min(r.dw * 0.42, 560);
+      haspW = Math.min(r.dw * 0.82, 640);
       haspWrap.style.bottom = 'auto';
-      haspWrap.style.top = `${Math.round(r.dy + 0.685 * r.dh)}px`;
+      haspWrap.style.top = `${Math.round(r.dy + 0.667 * r.dh - 28)}px`;
     } else if (useChestLayout) {
       const L = art.chestLayout(w, h, locks.length);
       haspW = Math.min(L.chestW * 0.76, 640);
@@ -782,6 +1070,7 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   return function unmount() {
     alive = false;
     if (raf) cancelAnimationFrame(raf);
+    if (fxTimer) clearTimeout(fxTimer);
     window.removeEventListener('resize', resize);
     screen.remove();
   };

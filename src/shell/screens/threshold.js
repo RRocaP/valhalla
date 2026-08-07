@@ -58,7 +58,7 @@ function titleSize(w) {
   return Math.round(Math.max(30, Math.min(62, w * 0.052 + 14)));
 }
 
-export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew }) {
+export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew, tr }) {
   const p = art.palette;
   const screen = el('div', { class: 'screen screen-threshold' });
   const style = el('style');
@@ -183,10 +183,11 @@ export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew }) {
 
   const actions = el('div', { class: 'threshold-actions' });
   if (hasSave) {
-    const cont = el('button', { type: 'button', class: 'btn-carved', onClick: () => beginThrough(onBegin) }, 'Continue');
+    const cont = el('button', { type: 'button', class: 'btn-carved', onClick: () => beginThrough(onBegin) }, tr('threshold.continue'));
     const anew = confirmButton({
-      label: 'Begin anew',
-      confirmLabel: 'Yes — begin anew',
+      label: tr('threshold.beginAnew'),
+      confirmLabel: tr('threshold.beginAnewConfirm'),
+      cancelLabel: tr('common.neverMind'),
       className: 'btn-quiet',
       onConfirm: () => beginThrough(onBeginAnew, { always: true }),
     });
@@ -195,7 +196,7 @@ export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew }) {
     const begin = el('button', {
       type: 'button', class: 'btn-carved',
       onClick: () => beginThrough(onBegin),
-    }, 'Lay hands on the chest');
+    }, tr('threshold.begin'));
     actions.append(begin);
   }
 
@@ -358,7 +359,58 @@ export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew }) {
       ctx.arc(((x % w) + w) % w, y, m.r, 0, Math.PI * 2);
       ctx.fill();
     }
+    // tap puffs (LOOP 1 board delight): the chest answers an idle touch with
+    // a short breath of dust — ≤450ms, never blocking, cheap on this canvas
+    const now = performance.now();
+    for (let i = bursts.length - 1; i >= 0; i--) {
+      const b = bursts[i];
+      const k = (now - b.t0) / 430;
+      if (k >= 1) { bursts.splice(i, 1); continue; }
+      const fade = 1 - k;
+      if (b.gleam) {
+        const g = ctx.createRadialGradient(b.x, b.y, 2, b.x, b.y, 26);
+        g.addColorStop(0, `rgba(238,207,109,${0.16 * fade})`);
+        g.addColorStop(1, 'rgba(238,207,109,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 26, 0, Math.PI * 2);
+        ctx.fill();
+        continue;
+      }
+      for (const s of b.specks) {
+        ctx.fillStyle = `rgba(233,220,195,${0.22 * fade})`;
+        ctx.beginPath();
+        ctx.arc(b.x + s.dx * k, b.y + s.dy * k, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   }
+  const bursts = [];
+  let burstTimer = null;
+  screen.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button') || e.target.closest('.wager-layer')) return;
+    const rect = screen.getBoundingClientRect();
+    const b = { x: e.clientX - rect.left, y: e.clientY - rect.top, t0: performance.now() };
+    if (reducedMotion) b.gleam = true;
+    else {
+      b.specks = [];
+      for (let i = 0; i < 7; i++) {
+        b.specks.push({
+          dx: (Math.random() - 0.5) * 34, dy: -8 - Math.random() * 30,
+          r: 0.8 + Math.random() * 1.4,
+        });
+      }
+    }
+    bursts.push(b);
+    if (reducedMotion && !burstTimer) {
+      // no raf under reduced motion: repaint a few times so the gleam clears
+      const tick = () => {
+        paintMotes(0);
+        burstTimer = bursts.length ? setTimeout(tick, 110) : null;
+      };
+      burstTimer = setTimeout(tick, 110);
+    }
+  });
   function startMotes() {
     if (reducedMotion) { paintMotes(0); return; } // static scatter
     const t0 = performance.now();
@@ -474,6 +526,7 @@ export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew }) {
     alive = false;
     window.removeEventListener('resize', resize);
     if (motesRaf) cancelAnimationFrame(motesRaf);
+    if (burstTimer) clearTimeout(burstTimer);
     if (untrap) untrap();
     screen.remove();
   };

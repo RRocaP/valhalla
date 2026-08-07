@@ -203,7 +203,7 @@ function wispPath(g, ax, ay, halfW, len, sway, bend) {
   g.fill();
 }
 
-function drawMagic(ctx, ch, size, weight, magic, t, reduced) {
+function drawMagic(ctx, ch, size, weight, magic, t, reduced, flameScale = 1) {
   const m = clamp01(magic);
   if (m <= 0.01) return;
   const phase = (ch.codePointAt(0) % 16) * 0.7854;
@@ -217,8 +217,12 @@ function drawMagic(ctx, ch, size, weight, magic, t, reduced) {
 
   // coreA is CAPPED below 1 so the pigment pass always ghosts through — even
   // at magic 1.0 the glyph stays a carved rune that burns, never a light tube.
-  const bloomA = m * m * (0.32 + 0.42 * breath);
-  const coreA = Math.min(0.92, m * 1.45) * (0.8 + 0.2 * breath);
+  // `over` is the overflow band (magic ≥ ~0.72): the armed-lock spectacle
+  // where the fire visibly outgrows the groove (LOOP 1, Ramon: "overflowing
+  // blue magick effect kind of like a flame").
+  const over = clamp01((m - 0.72) / 0.28);
+  const bloomA = m * m * (0.32 + 0.42 * breath) * (1 + 0.3 * over);
+  const coreA = Math.min(0.94, m * 1.45) * (0.8 + 0.2 * breath);
   ctx.save();
   if (bloomA > 0.01) {
     ctx.globalAlpha = bloomA;
@@ -230,9 +234,19 @@ function drawMagic(ctx, ch, size, weight, magic, t, reduced) {
 
   // Flame wisps — only once the magic truly burns, never under reduced
   // motion, and geometry updated on a ~30fps gate so idle frames stay cheap.
+  // The size gate sits at 13px so the armed medallion still burns at phone
+  // scale (LOOP 1: the couch test — the flame must read from across the room).
   const wispEase = clamp01((m - 0.6) / 0.3);
-  if (reduced || wispEase <= 0.01 || size < 18) return;
+  if (reduced || wispEase <= 0.01 || size < 13) return;
   const ease = Math.sqrt(wispEase); // presence arrives early, saturates late
+  // overflow: the flame envelope outgrows the groove. flameScale is the
+  // caller's spectacle dial (opts.flameScale) — the lid's armed medallion
+  // passes >1 so the fire reads at phone size from across the room.
+  const tall = (1 + 1.15 * over) * flameScale;
+  const thick = Math.sqrt(flameScale);
+  // a scaled flame must also read against bright metal, not only dark wood —
+  // lift the wisp alpha with the scale (capped well under opaque)
+  const loud = Math.min(1.6, 1 + 0.35 * (flameScale - 1));
   const tg = Math.floor(t / 33) * 33;
   const anchors = wispAnchors(ch);
   ctx.save();
@@ -247,12 +261,34 @@ function drawMagic(ctx, ch, size, weight, magic, t, reduced) {
     const lean = (((i % 2) * 2 - 1) + Math.sin(phase + i)) * size * 0.018;
     const sway = lean + Math.sin(tg * 0.0031 + phase + i * 2.1) * size * 0.04;
     const flick = 0.7 + 0.3 * Math.sin(tg * 0.0093 + phase * 1.3 + i * 1.7);
-    const len = size * (0.14 + 0.08 * flick) * ease;
+    const len = size * (0.14 + 0.08 * flick) * ease * tall;
     const bend = lean * 1.5 + Math.sin(tg * 0.0052 + i * 2.6) * size * 0.02;
-    ctx.fillStyle = rgba(palette.fjordLight, 0.5 * ease * flick);
-    wispPath(ctx, ax, ay, Math.max(1, weight * 0.4), len, sway, bend);
-    ctx.fillStyle = rgba(arcane.flame, 0.66 * ease * flick);
-    wispPath(ctx, ax, ay, Math.max(0.6, weight * 0.22), len * 0.72, sway * 0.85, bend * 0.75);
+    ctx.fillStyle = rgba(palette.fjordLight, Math.min(0.85, 0.5 * ease * flick * loud));
+    wispPath(ctx, ax, ay, Math.max(1, weight * 0.4 * thick), len, sway, bend);
+    ctx.fillStyle = rgba(arcane.flame, Math.min(0.92, 0.66 * ease * flick * loud));
+    wispPath(ctx, ax, ay, Math.max(0.6, weight * 0.22 * thick), len * 0.72, sway * 0.85, bend * 0.75);
+    if (over > 0.4) {
+      // a brighter heart lick inside the tall flame, so the overflow reads
+      // as living fire rather than a longer blue thorn
+      ctx.fillStyle = rgba(arcane.bright, 0.5 * over * flick);
+      wispPath(ctx, ax, ay, Math.max(0.5, weight * 0.14 * thick), len * 0.5, sway * 0.7, bend * 0.6);
+    }
+  }
+  if (over > 0.4) {
+    // stray embers rising off the fire — deterministic drift on the same
+    // 30fps gate, two at most, dying above the glyph
+    for (let i = 0; i < 2; i++) {
+      const cycle = 1400 + i * 380;
+      const k = ((tg + phase * 500 + i * 700) % cycle) / cycle;
+      const [ux, uy] = anchors[i % anchors.length] || [0.5, 0.1];
+      const ex = ux * size + Math.sin(tg * 0.004 + i * 3) * size * 0.06;
+      const ey = uy * size - k * size * (0.34 + 0.18 * i) * tall;
+      const die = 1 - k;
+      ctx.fillStyle = rgba(arcane.flame, 0.55 * over * die * die);
+      ctx.beginPath();
+      ctx.arc(ex, ey, Math.max(0.7, weight * 0.16) * (0.6 + 0.4 * die), 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   ctx.restore();
 }
@@ -290,7 +326,7 @@ export function drawRune(ctx, ch, x, y, size, opts = {}) {
 
   if (opts.magic) {
     const reduced = opts.reduced ?? prefersReducedMotion();
-    drawMagic(ctx, ch, size, weight, opts.magic, opts.t || 0, reduced);
+    drawMagic(ctx, ch, size, weight, opts.magic, opts.t || 0, reduced, opts.flameScale || 1);
   }
   ctx.restore();
 }

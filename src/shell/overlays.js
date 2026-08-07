@@ -11,6 +11,16 @@ import { LANG_NAMES } from './strings.js';
 function overlayShell({ className, titleText, closeLabel, onClose }) {
   const scrim = el('div', { class: 'overlay-scrim', onClick: onClose });
   const closeBtn = el('button', { type: 'button', class: 'overlay-close', 'aria-label': closeLabel }, '✕');
+  // Escape closes any overlay (LOOP 4: the drawer only answered the ✕ and a
+  // scrim tap — desktop hands reach for Escape first). Listener detached by
+  // the panel's own removal check so unmount paths need no extra wiring.
+  const onKey = (e) => {
+    if (e.key !== 'Escape') return;
+    if (!panel.isConnected) { document.removeEventListener('keydown', onKey); return; }
+    e.preventDefault();
+    onClose();
+  };
+  document.addEventListener('keydown', onKey);
   const header = el('div', { class: 'overlay-header' }, [el('h2', { class: 'overlay-title' }, titleText), closeBtn]);
   const panel = el('div', { class: className, role: 'dialog', 'aria-modal': 'true', 'aria-label': titleText }, [header]);
   closeBtn.addEventListener('click', onClose);

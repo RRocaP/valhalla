@@ -14,7 +14,7 @@ import { loadHero, drawHero } from '../heroes.js';
 
 export function mountLockRoom(root, {
   lock, locks, save, art, audio, reducedMotion, portraitsCache,
-  onPersist, onBack, onSolved,
+  onPersist, onBack, onSolved, tr,
 }) {
   const p = art.palette;
   const solved = save.opened.includes(lock.id);
@@ -96,6 +96,12 @@ export function mountLockRoom(root, {
   /* the challenger's ship, riding out of the dark behind the entrance */
   #app .dare-ship{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.4s ease}
   #app .dare-ship.shown{opacity:1}
+  #app .dare-flare{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;
+    pointer-events:none;background:radial-gradient(circle,rgba(238,170,100,.5) 0%,rgba(194,92,51,.26) 38%,rgba(194,92,51,0) 70%);
+    animation:dare-flare .45s ease-out both}
+  @keyframes dare-flare{from{opacity:0;transform:scale(.5)}30%{opacity:1}to{opacity:0;transform:scale(1.18)}}
+  #app.reduced-motion .dare-flare{animation:none;opacity:.5}
+  @media (prefers-reduced-motion: reduce){#app .dare-flare{animation:none;opacity:.5}}
   #app.reduced-motion .dare-ship{transition:none}
   @media (prefers-reduced-motion: reduce){#app .dare-ship{transition:none}}
   #app .yield-stage canvas{margin:0 auto}`;
@@ -166,6 +172,11 @@ export function mountLockRoom(root, {
   // The room's tabletop plate (heroes/panel-v2.jpg): a real carved frame with
   // a clean centre, composited under every board. Procedural wood is the
   // fallback and the first paint either way (no jank; offline law).
+  // Lock 04 gets its own environment (LOOP 2, Ramon): heroes/slipway.jpg —
+  // the dusk shipyard, keel in its cradle awaiting planks — under a stronger
+  // legibility scrim (the photograph is busier than the carved panel).
+  const PLATE_BY_LOCK = { '04-strakes': { id: 'slipway', fy: 0.6, dim: 0.34, edge: 0.66 } };
+  const plateSpec = PLATE_BY_LOCK[lock.id] || { id: 'panel-v2', fy: 0.5, dim: 0.1, edge: 0.78 };
   let heroPanel = null;
 
   function paintBg() {
@@ -176,7 +187,7 @@ export function mountLockRoom(root, {
     if (heroPanel) {
       // the frame must never outshine the toy: deeper edge seating, and the
       // tray interior gets the hearth pool (focal hierarchy law)
-      drawHero(bg.ctx, heroPanel, bg.w, bg.h, { dim: 0.1, edge: 0.78 });
+      drawHero(bg.ctx, heroPanel, bg.w, bg.h, { fy: plateSpec.fy, dim: plateSpec.dim, edge: plateSpec.edge });
       // text sovereignty over the carved bands: quiet scrims where the
       // header and the footer chrome read (contrast floors stay law)
       const hdr = bg.ctx.createLinearGradient(0, 0, 0, bg.h * 0.3);
@@ -271,7 +282,7 @@ export function mountLockRoom(root, {
   const backBtn = el('button', {
     type: 'button', class: 'btn-quiet back-latch',
     onClick: () => { audio.ui('slide'); onBack(); },
-  }, 'Close the lock');
+  }, tr ? tr('lockroom.back') : 'Close the lock');
 
   const footer = el('div', { class: 'lockroom-footer' }, [
     nearLine,
@@ -302,7 +313,7 @@ export function mountLockRoom(root, {
   window.addEventListener('resize', resizeBg);
   resizeBg();
 
-  loadHero('panel-v2').then((img) => {
+  loadHero(plateSpec.id).then((img) => {
     if (!img || !screen.isConnected) return;
     heroPanel = img;
     lastFurnitureKey = '';
@@ -350,7 +361,7 @@ export function mountLockRoom(root, {
 
   function renderAttempts() {
     const n = currentAttempts();
-    attemptsLabel.textContent = `Attempts: ${n}`;
+    attemptsLabel.textContent = tr ? tr('lockroom.attempts', { n }) : `Attempts: ${n}`;
     clear(attemptsDots);
     const shown = Math.min(n, 12);
     for (let i = 0; i < shown; i++) attemptsDots.append(el('span', { class: 'dot' }));
@@ -418,12 +429,18 @@ export function mountLockRoom(root, {
       const horn = art.makeCanvas(44, 32);
       horn.canvas.setAttribute('aria-hidden', 'true');
       drawHornInto(horn.ctx, horn.w, horn.h, state);
+      // localized hint labels (LOOP 4 es/ca sweep: the horns still spoke
+      // English); tr is autotest-aware so the e2e language pin holds
+      const hintWord = tr ? tr('lockroom.hint', { n: k + 1 }) : `Hint ${k + 1}`;
+      const hintAria = tr
+        ? tr(isTaken ? 'lockroom.hintTaken' : isArmed ? 'lockroom.hintAvailable' : 'lockroom.hintLocked', { n: k + 1 })
+        : `Hint ${k + 1}${isTaken ? ' — taken' : isArmed ? ' — available' : ' — not yet armed'}`;
       const slot = el('button', {
         type: 'button', class: 'hint-slot', 'data-state': state,
         disabled: !isArmed && !isTaken,
-        'aria-label': `Hint ${k + 1}${isTaken ? ' — taken' : isArmed ? ' — available' : ' — not yet armed'}`,
+        'aria-label': hintAria,
         onClick: () => takeHint(k),
-      }, [horn.canvas, el('span', {}, `Hint ${k + 1}`)]);
+      }, [horn.canvas, el('span', {}, hintWord)]);
       hintHorn.append(slot);
       if (isTaken) hintText.append(el('p', {}, locText.hints[k]));
     }
@@ -792,7 +809,7 @@ overlay.append(stage, line);
     } else {
       drawPortraitPlaceholder(port.ctx, p, port.pad, port.pad, port.archW, port.archH, dare.name);
     }
-    const answerBtn = el('button', { type: 'button', class: 'btn-carved' }, 'Answer the dare');
+    const answerBtn = el('button', { type: 'button', class: 'btn-carved' }, tr ? tr('lockroom.answerDare') : 'Answer the dare');
     const nameSize = Math.round(Math.max(30, Math.min(
       loudest ? 54 : 44, (screen.clientWidth || 800) * 0.055,
     )));
@@ -809,6 +826,19 @@ overlay.append(stage, line);
     furnitureMode = 'dare';
     paintBg();
     lockRootEl.append(vignette, card);
+    // board delight (LOOP 2): the dark stage answers an idle touch with a
+    // brief ember flare off the prow — never blocking, gone in <500ms
+    const stageFlare = (e) => {
+      if (!stageUp) return;
+      if (e.target.closest('button') || e.target.closest('.dare-card')) return;
+      const fl = el('div', { class: 'dare-flare', 'aria-hidden': 'true' });
+      fl.style.left = `${e.clientX}px`;
+      fl.style.top = `${e.clientY}px`;
+      vignette.append(fl);
+      audio.ui('tick');
+      stageTimers.push(setTimeout(() => fl.remove(), 470));
+    };
+    screen.addEventListener('pointerdown', stageFlare);
     if (!journalHasLine(save, dare.taunt)) {
       note(`${dare.name}: "${lineFor(dare.taunt, lang)}"`);
     }
@@ -819,6 +849,7 @@ overlay.append(stage, line);
     }
     answerBtn.addEventListener('click', () => {
       stageUp = false;
+      screen.removeEventListener('pointerdown', stageFlare);
       for (const t of stageTimers) clearTimeout(t);
       stageTimers = [];
       audio.ui('confirm');
