@@ -28,7 +28,7 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
   // 110 Hz saw hum below the score. artifacts/wip-soundfeel/
   // metrics-yieldbug-before.json holds the offline repro: +6.7 dB sustained
   // 50-400 Hz over the music bed.)
-  const drone = { playing: false, nodes: null, intensity: 0.4, ducked: false };
+  const drone = { playing: false, nodes: null, intensity: 0.4, ducked: false, retired: false };
 
   // Node creation order below is fixed and relied upon by
   // tests/unit/audio.test.mjs: master, compressor, droneBus, voiceBus,
@@ -211,7 +211,7 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
         drone.playing = true;
         // rebuilt while music owns the floor: come up silent; music.stop()'s
         // restore raises it at the stored intensity
-        drone.nodes = V.buildDrone(ctx, buses.droneBus, drone.ducked ? 0 : V.droneGainFor(drone.intensity));
+        drone.nodes = V.buildDrone(ctx, buses.droneBus, (drone.ducked || drone.retired) ? 0 : V.droneGainFor(drone.intensity));
       },
       stop() {
         if (!ctx || !drone.playing) return;
@@ -224,7 +224,7 @@ export function createAudio(ACImpl = globalThis.AudioContext || globalThis.webki
         drone.intensity = V.clamp01(x); // always stored (restore uses it)...
         // ...but NEVER applied under music: the shell persists progress at
         // yield beats, and applying here was the live hum-under-music bug
-        if (drone.nodes && !drone.ducked) V.applyDroneIntensity(ctx, drone.nodes, drone.intensity);
+        if (drone.nodes && !drone.ducked && !drone.retired) V.applyDroneIntensity(ctx, drone.nodes, drone.intensity);
       },
     },
     music: {

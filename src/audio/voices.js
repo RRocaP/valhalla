@@ -26,7 +26,10 @@ export function clamp01(x) {
 // (artifacts/wip-fable-b/metrics.json): keeps drone peaks under -12 dBFS while
 // preserving >=1.5 dB steps between intensity 0.2 / 0.6 / 1.0.
 export function droneGainFor(x) {
-  return 0.12 + clamp01(x) * 0.16;
+  // Ramon 2026-08-07: the drone read as "a stupid hum", loudest while the
+  // opening track fetched on a slow connection. Pre-music floor cut ~10 dB;
+  // once music ever plays the drone retires permanently (index.js/music.js).
+  return 0.038 + clamp01(x) * 0.05;
 }
 
 // ---- deterministic noise buffer, cached per AudioContext ----

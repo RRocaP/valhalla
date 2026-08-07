@@ -335,6 +335,8 @@ export function createMusic(ctx, bus, drone) {
 
   function crossfadeDroneOut(t, gentle = false) {
     drone.ducked = true; // music owns the floor: the drone may not re-raise
+    drone.retired = true; // Ramon 2026-08-07: once music has EVER played,
+    // the drone never returns — twice flagged live as "that stupid hum"
     if (drone.playing && drone.nodes) {
       drone.nodes.out.gain.cancelScheduledValues(t);
       // Staggered handoff: hold the drone while the music establishes, then
@@ -348,6 +350,7 @@ export function createMusic(ctx, bus, drone) {
     }
   }
   function restoreDrone(t) {
+    if (drone.retired) return; // retired drones stay silent forever
     drone.ducked = false; // the floor is the drone's again
     if (drone.playing && drone.nodes) {
       drone.nodes.out.gain.cancelScheduledValues(t);

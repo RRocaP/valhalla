@@ -502,7 +502,7 @@ test('music.start(): the playing source has native loop points set (loopEnd > lo
   }
 });
 
-test('music.stop(): fades music out and restores the drone gain', async () => {
+test('music.stop(): fades music out and the RETIRED drone stays silent (Ramon 2026-08-07: once music has played, the hum never returns)', async () => {
   const restore = withMockFetch(okFetchImpl);
   try {
     const { audio, ctx } = fresh();
@@ -520,7 +520,12 @@ test('music.stop(): fades music out and restores the drone gain', async () => {
 
     audio.music.stop();
     last = droneOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
-    assert.ok(last[1] > 0, `expected drone gain restored above 0, got ${last[1]}`);
+    assert.ok(Math.abs(last[1] - 0) < 1e-6,
+      `retired drone must stay at 0 after music.stop(), got ${last[1]}`);
+    // and intensity() after stop must not re-raise a retired drone
+    audio.drone.intensity(0.9);
+    const set = droneOut.gain.calls.filter((call) => call[0] === 'set').at(-1);
+    assert.ok(!set || set[1] === 0, 'intensity() must not re-raise a retired drone');
   } finally {
     restore();
   }
@@ -974,10 +979,12 @@ test('drone stays FULLY silent under music: no re-raise via intensity(), chest b
     const intro = newOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
     assert.ok(intro && Math.abs(intro[1]) < 1e-9, `mid-music drone rebuild must target 0, got ${intro && intro[1]}`);
 
-    // when music stops, the floor returns at the intensity persisted mid-music
+    // when music stops, the RETIRED drone stays silent (Ramon 2026-08-07:
+    // once music has ever played, the hum never returns)
     audio.music.stop();
     const restored = newOut.gain.calls.filter((call) => call[0] === 'target').at(-1);
-    assert.ok(restored[1] > 0.25, `restore must use the stored intensity 0.9, got gain ${restored[1]}`);
+    assert.ok(Math.abs(restored[1]) < 1e-9,
+      `retired drone must stay at 0 after music.stop(), got gain ${restored[1]}`);
   } finally {
     restore();
   }
