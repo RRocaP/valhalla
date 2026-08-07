@@ -75,13 +75,9 @@ const wrapPi = (a) => { let x = a; while (x > Math.PI) x -= TAU; while (x < -Mat
 // `plate` stays deliberately spare: the law of this ring is the puzzle, and
 // docs/LOCKS.md §15 forbids stating it — mystery IS the design here.
 const BOARD_EN = {
-  plate: 'Hang all fourteen shards. The ring knows its own law.',
-  hasp: 'The hasp — your hoard, one shard off every lock you opened',
-  help: 'Tap a shard, then a socket — or drag it there. The iron rivet is slot 0; the ring runs sunwise from it.',
   clear: 'Take the ring apart',
   close: 'Close the ring',
   skip: 'Skip the showing',
-  showing: 'Watch once: a shard comes off the hasp, hangs on a socket, and comes off again.',
   filled: '{n} of fourteen sockets hang full',
   filledAll: 'All fourteen sockets hang full. Close the ring.',
   inHand: '{name} is in your hand.',
@@ -106,7 +102,7 @@ const BOARD_EN = {
 const I18N = {
   es: {
     title: 'El Anillo del Juramento',
-    epigraph: 'Catorce cerraduras entregaron catorce nombres. El anillo solo pregunta dónde estaba cada uno de ellos.',
+    epigraph: 'Los números son pasos, no riqueza.\nAnda con el sol lo que cuenta cada esquirla —\nla vieja hilera ha de cerrar su anillo.',
     hints: [
       'Los números de las esquirlas no son pesos ni cuentas. Son zancadas.',
       'Avanza en el sentido del sol desde una esquirla, tantos puestos como su propio número, y caerás sobre su vecina — no la vecina del anillo, sino la que la sigue en la hilera antigua.',
@@ -119,13 +115,9 @@ const I18N = {
       'The strides do not close the row.': 'Las zancadas no cierran la hilera.',
     },
     board: {
-      plate: 'Cuelga las catorce esquirlas. El anillo conoce su propia ley.',
-      hasp: 'La abrazadera — tu botín, una esquirla de cada cerradura abierta',
-      help: 'Toca una esquirla y luego un alvéolo — o arrástrala hasta él. El remache de hierro de arriba es el puesto 0, y el anillo corre con el sol desde él.',
       clear: 'Desarmar el anillo',
       close: 'Cerrar el anillo',
       skip: 'Saltar la muestra',
-      showing: 'Mira una vez: una esquirla sale de la abrazadera, cuelga de un alvéolo y vuelve a salir.',
       filled: '{n} de catorce alvéolos van llenos',
       filledAll: 'Los catorce alvéolos van llenos. Cierra el anillo.',
       inHand: '{name} queda en tu mano.',
@@ -149,7 +141,7 @@ const I18N = {
   },
   ca: {
     title: 'L’Anell del Jurament',
-    epigraph: 'Catorze panys van lliurar catorze noms. L’anell només pregunta on era cadascun d’ells.',
+    epigraph: 'Els nombres són passes, no riquesa.\nCamina amb el sol el que compta cada estella —\nla vella filera ha de tancar el seu anell.',
     hints: [
       'Els números de les esquerdes no són pesos ni comptes. Són gambades.',
       'Avança en el sentit del sol des d’una esquerda, tants llocs com el seu propi número, i cauràs damunt la seva veïna — no la veïna de l’anell, sinó la que la segueix a la filera antiga.',
@@ -162,13 +154,9 @@ const I18N = {
       'The strides do not close the row.': 'Les gambades no tanquen la filera.',
     },
     board: {
-      plate: 'Penja les catorze esquerdes. L’anell coneix la seva pròpia llei.',
-      hasp: 'La baga — el teu botí, una esquerda de cada pany obert',
-      help: 'Toca una esquerda i després un alvèol — o arrossega-la fins allà. El rebló de ferro de dalt és el lloc 0, i l’anell corre amb el sol des d’ell.',
       clear: 'Desfer l’anell',
       close: 'Tancar l’anell',
       skip: 'Saltar la mostra',
-      showing: 'Mira-ho un cop: una esquerda surt de la baga, penja d’un alvèol i en torna a sortir.',
       filled: '{n} de catorze alvèols van plens',
       filledAll: 'Els catorze alvèols van plens. Tanca l’anell.',
       inHand: '{name} queda a la teva mà.',
@@ -197,7 +185,7 @@ export default {
   ordinal: 15,
   tier: 4,
   title: 'The Oath-Ring',
-  epigraph: 'Fourteen locks gave up fourteen names. The ring asks only where each of them was standing.',
+  epigraph: 'The numbers are strides, not worth.\nStep sunwise as each shard counts —\nthe old row must close its ring.',
 
   makePuzzle() {
     // Static by contract: every chest carries the same ring.
@@ -329,10 +317,6 @@ export default {
       font-family:${SERIF};color:${p.bone};align-items:stretch`);
     const style = node('style');
     style.textContent = `
-      .ow15-plate{margin:0;text-align:center;font-size:14.5px;line-height:1.45;letter-spacing:.045em;
-        color:${p.bone};text-shadow:${art.reliefShadowCss}}
-      .ow15-haspname{margin:0;text-align:center;font-size:11.5px;letter-spacing:.12em;color:${p.boneDim};
-        font-variant-caps:all-small-caps}
       .ow15-hasp{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;padding:5px 7px;border-radius:3px;
         background:linear-gradient(180deg,${rgba(p.oakLight, 0.32)},${rgba(p.tar, 0.55)});
         box-shadow:inset 0 1px 0 ${rgba(p.bone, 0.14)},inset 0 -2px 3px ${rgba(p.tar, 0.7)},
@@ -346,7 +330,6 @@ export default {
       .ow15-stage[data-wide="1"]{flex-direction:row;align-items:center;justify-content:center;gap:16px}
       .ow15-stage[data-wide="1"] .ow15-haspcol{flex:0 0 auto;width:112px}
       .ow15-stage[data-wide="1"] .ow15-hasp{width:106px}
-      .ow15-stage[data-wide="1"] .ow15-haspname{font-size:10px;letter-spacing:.05em;line-height:1.4}
       .ow15-stage[data-wide="1"] .ow15-progress{font-size:11.5px;line-height:1.4}
       .ow15-stage[data-wide="1"] .ow15-ring{flex:0 0 auto}
       .ow15-ring{position:relative;min-height:236px;width:100%}
@@ -358,8 +341,6 @@ export default {
       .ow15-progress{margin:0;text-align:center;font-size:12.5px;letter-spacing:.05em;color:${p.boneDim}}
       .ow15-status{margin:0;min-height:19px;font-size:13.5px;color:${p.boneDim};text-align:center;
         scroll-margin:28px}
-      .ow15-help{margin:0;font-size:12px;line-height:1.5;color:${p.boneDim};max-width:66ch;text-align:center;
-        align-self:center}
       .ow15-acts{display:flex;gap:9px;flex-wrap:wrap;align-items:center;justify-content:center}
       .ow15-act{font-family:${SERIF};font-size:14.5px;color:${p.bone};background:${rgba(p.oakDeep, 0.85)};
         border:1px solid ${p.oakLight};border-radius:3px;padding:11px 16px;min-height:44px;cursor:pointer}
@@ -374,14 +355,10 @@ export default {
     `;
     wrap.append(style);
 
-    const plateP = node('p', null, T('plate'));
-    plateP.className = 'ow15-plate';
 
     const stage = node('div');
     stage.className = 'ow15-stage';
 
-    const haspName = node('p', null, T('hasp'));
-    haspName.className = 'ow15-haspname';
     const hasp = node('div');
     hasp.className = 'ow15-hasp';
 
@@ -400,15 +377,12 @@ export default {
     progress.className = 'ow15-progress';
     const haspCol = node('div');
     haspCol.className = 'ow15-haspcol';
-    haspCol.append(haspName, hasp, progress);
+    haspCol.append(hasp, progress);
     stage.append(haspCol, ringBox, ghostHost);
 
     const status = node('p', null, '');
     status.className = 'ow15-status';
-    status.setAttribute('aria-live', 'polite');
-    const help = node('p', null, T('help'));
-    help.className = 'ow15-help';
-
+    // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
     const acts = node('div');
     acts.className = 'ow15-acts';
     const clearBtn = node('button', null, T('clear'));
@@ -423,7 +397,7 @@ export default {
     closeBtn.type = 'button';
     acts.append(skipBtn, clearBtn, closeBtn);
 
-    wrap.append(plateP, stage, status, acts, help);
+    wrap.append(stage, status, acts);
     ctx.root.append(wrap);
 
     // ---- the shards, on the hasp -----------------------------------------
@@ -1599,7 +1573,6 @@ export default {
       ghostHost.style.display = 'block';
       ghostHost.style.transform = `translate(${Math.round(x0)}px,${Math.round(y0)}px)`;
       skipBtn.style.display = '';
-      status.textContent = T('showing');
 
       if (!calm && ghostHost.animate) {
         try {

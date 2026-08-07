@@ -1,0 +1,1575 @@
+[
+ {
+  "name": "en-desk-01-threshold",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 10,
+   "total": 10
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-desk-02-wager",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 46,
+   "total": 46
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-desk-03-lid-fresh",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 31,
+   "total": 31
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-desk-04-journal",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 92,
+   "total": 92
+  },
+  "overlaps": [
+   {
+    "a": "☰",
+    "b": "07:41 — JARL BOURJ bars the first lock.",
+    "ox": 44,
+    "oy": 31
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-desk-05-settings",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 47,
+   "total": 47
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-desk-06-lid-mid",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 29,
+   "total": 29
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-desk-L01-dare",
+  "words": {
+   "header": 21,
+   "board": 22,
+   "footer": 9,
+   "other": 0,
+   "total": 52
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 197
+ },
+ {
+  "name": "en-desk-L01-board",
+  "room": "01",
+  "words": {
+   "header": 21,
+   "board": 69,
+   "footer": 9,
+   "other": 0,
+   "total": 99
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 164
+ },
+ {
+  "name": "en-desk-L02-board",
+  "room": "02",
+  "words": {
+   "header": 27,
+   "board": 126,
+   "footer": 9,
+   "other": 0,
+   "total": 162
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 330
+ },
+ {
+  "name": "en-desk-L03-board",
+  "room": "03",
+  "words": {
+   "header": 11,
+   "board": 47,
+   "footer": 9,
+   "other": 0,
+   "total": 67
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 222
+ },
+ {
+  "name": "en-desk-L04-dare",
+  "words": {
+   "header": 11,
+   "board": 24,
+   "footer": 9,
+   "other": 0,
+   "total": 44
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 197
+ },
+ {
+  "name": "en-desk-L04-board",
+  "room": "04",
+  "words": {
+   "header": 11,
+   "board": 207,
+   "footer": 9,
+   "other": 0,
+   "total": 227
+  },
+  "overlaps": [
+   {
+    "a": "Ketil swears: the burnt plank laps the pale plank.",
+    "b": "28 over 14",
+    "ox": 283,
+    "oy": 16
+   },
+   {
+    "a": "Ozurr swears: the scarfed plank laps the burnt pla",
+    "b": "27 over 28",
+    "ox": 307,
+    "oy": 15
+   },
+   {
+    "a": "Hallvard swears: the salt-white plank laps the tar",
+    "b": "22 over 17",
+    "ox": 80,
+    "oy": 15
+   },
+   {
+    "a": "Steinn swears: the tarred plank laps the green pla",
+    "b": "17 over 18",
+    "ox": 304,
+    "oy": 15
+   },
+   {
+    "a": "Grim swears: the pale plank laps the resined plank",
+    "b": "14 over 15",
+    "ox": 296,
+    "oy": 15
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 284
+ },
+ {
+  "name": "en-desk-L05-board",
+  "room": "05",
+  "words": {
+   "header": 25,
+   "board": 95,
+   "footer": 9,
+   "other": 0,
+   "total": 129
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 313
+ },
+ {
+  "name": "en-desk-L06-board",
+  "room": "06",
+  "words": {
+   "header": 11,
+   "board": 173,
+   "footer": 9,
+   "other": 0,
+   "total": 193
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 454
+ },
+ {
+  "name": "en-desk-L07-dare",
+  "words": {
+   "header": 17,
+   "board": 21,
+   "footer": 9,
+   "other": 0,
+   "total": 47
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 197
+ },
+ {
+  "name": "en-desk-L07-board",
+  "room": "07",
+  "words": {
+   "header": 17,
+   "board": 154,
+   "footer": 9,
+   "other": 0,
+   "total": 180
+  },
+  "overlaps": [
+   {
+    "a": "Brandubh.",
+    "b": "dark attackers",
+    "ox": 73,
+    "oy": 19
+   },
+   {
+    "a": "Yours are the",
+    "b": "dark attackers",
+    "ox": 85,
+    "oy": 19
+   },
+   {
+    "a": "gold king",
+    "b": "dark attackers",
+    "ox": 61,
+    "oy": 19
+   },
+   {
+    "a": "and the",
+    "b": "dark attackers",
+    "ox": 54,
+    "oy": 19
+   },
+   {
+    "a": "pale defenders",
+    "b": "dark attackers",
+    "ox": 96,
+    "oy": 19
+   },
+   {
+    "a": "; the",
+    "b": "dark attackers",
+    "ox": 31,
+    "oy": 19
+   },
+   {
+    "a": "dark attackers",
+    "b": "answer each of your moves by a fixed published pol",
+    "ox": 429,
+    "oy": 19
+   },
+   {
+    "a": "answer each of your moves by a fixed published pol",
+    "b": "Stand the king on any corner within 3 moves.",
+    "ox": 472,
+    "oy": 19
+   },
+   {
+    "a": "Stand the king on any corner within 3 moves.",
+    "b": "Tap or Enter on a piece of yours to lift it — the ",
+    "ox": 468,
+    "oy": 19
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 298
+ },
+ {
+  "name": "en-desk-L08-board",
+  "room": "08",
+  "words": {
+   "header": 26,
+   "board": 46,
+   "footer": 9,
+   "other": 0,
+   "total": 81
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 353
+ },
+ {
+  "name": "en-desk-L09-board",
+  "room": "09",
+  "words": {
+   "header": 19,
+   "board": 177,
+   "footer": 9,
+   "other": 0,
+   "total": 205
+  },
+  "overlaps": [
+   {
+    "a": "The stone shows the ring of light",
+    "b": "a quarter of the ring — 16 points — from the sun",
+    "ox": 207,
+    "oy": 19
+   },
+   {
+    "a": "a quarter of the ring — 16 points — from the sun",
+    "b": ", never saying which side: each reading throws",
+    "ox": 288,
+    "oy": 19
+   },
+   {
+    "a": "a quarter of the ring — 16 points — from the sun",
+    "b": "two blades opposite each other",
+    "ox": 469,
+    "oy": 19
+   },
+   {
+    "a": ", never saying which side: each reading throws",
+    "b": "two blades opposite each other",
+    "ox": 288,
+    "oy": 19
+   },
+   {
+    "a": "two blades opposite each other",
+    "b": ".",
+    "ox": 8,
+    "oy": 19
+   },
+   {
+    "a": "two blades opposite each other",
+    "b": "The day-mark",
+    "ox": 91,
+    "oy": 19
+   },
+   {
+    "a": "two blades opposite each other",
+    "b": "— the painted sky on the horizon band, point 10 to",
+    "ox": 469,
+    "oy": 19
+   },
+   {
+    "a": ".",
+    "b": "— the painted sky on the horizon band, point 10 to",
+    "ox": 8,
+    "oy": 19
+   },
+   {
+    "a": "The day-mark",
+    "b": "— the painted sky on the horizon band, point 10 to",
+    "ox": 91,
+    "oy": 19
+   },
+   {
+    "a": "— the painted sky on the horizon band, point 10 to",
+    "b": "One stone was read wet",
+    "ox": 158,
+    "oy": 19
+   },
+   {
+    "a": "— the painted sky on the horizon band, point 10 to",
+    "b": "and says nothing true. Name the sun’s bearing, and",
+    "ox": 476,
+    "oy": 19
+   },
+   {
+    "a": "One stone was read wet",
+    "b": "and says nothing true. Name the sun’s bearing, and",
+    "ox": 158,
+    "oy": 19
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 566
+ },
+ {
+  "name": "en-desk-L10-dare",
+  "words": {
+   "header": 13,
+   "board": 21,
+   "footer": 9,
+   "other": 0,
+   "total": 43
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 197
+ },
+ {
+  "name": "en-desk-L10-board",
+  "room": "10",
+  "words": {
+   "header": 13,
+   "board": 152,
+   "footer": 9,
+   "other": 0,
+   "total": 174
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 427
+ },
+ {
+  "name": "en-desk-L11-board",
+  "room": "11",
+  "words": {
+   "header": 26,
+   "board": 117,
+   "footer": 9,
+   "other": 0,
+   "total": 152
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 553
+ },
+ {
+  "name": "en-desk-L12-board",
+  "room": "12",
+  "words": {
+   "header": 13,
+   "board": 214,
+   "footer": 9,
+   "other": 0,
+   "total": 236
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 787
+ },
+ {
+  "name": "en-desk-L13-dare",
+  "words": {
+   "header": 20,
+   "board": 22,
+   "footer": 9,
+   "other": 0,
+   "total": 51
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 197
+ },
+ {
+  "name": "en-desk-L13-board",
+  "room": "13",
+  "words": {
+   "header": 20,
+   "board": 190,
+   "footer": 9,
+   "other": 0,
+   "total": 219
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 856
+ },
+ {
+  "name": "en-desk-L14-board",
+  "room": "14",
+  "words": {
+   "header": 31,
+   "board": 96,
+   "footer": 9,
+   "other": 0,
+   "total": 136
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 415
+ },
+ {
+  "name": "en-desk-L15-board",
+  "room": "15",
+  "words": {
+   "header": 17,
+   "board": 77,
+   "footer": 9,
+   "other": 0,
+   "total": 103
+  },
+  "overlaps": [
+   {
+    "a": "[ctl] Slot 1, empty.",
+    "b": "[ctl] Slot 2, empty.",
+    "ox": 4,
+    "oy": 15
+   },
+   {
+    "a": "[ctl] Slot 5, empty.",
+    "b": "[ctl] Slot 6, empty.",
+    "ox": 4,
+    "oy": 15
+   },
+   {
+    "a": "[ctl] Slot 8, empty.",
+    "b": "[ctl] Slot 9, empty.",
+    "ox": 4,
+    "oy": 15
+   },
+   {
+    "a": "[ctl] Slot 12, empty.",
+    "b": "[ctl] Slot 13, empty.",
+    "ox": 4,
+    "oy": 15
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 263
+ },
+ {
+  "name": "en-phone-01-threshold",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 10,
+   "total": 10
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-phone-02-wager",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 46,
+   "total": 46
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-phone-03-lid-fresh",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 31,
+   "total": 31
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-phone-04-journal",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 92,
+   "total": 92
+  },
+  "overlaps": [
+   {
+    "a": "☰",
+    "b": "07:43 — JARL BOURJ bars the first lock.",
+    "ox": 44,
+    "oy": 31
+   },
+   {
+    "a": "Journal",
+    "b": "[ctl] Lock 13: The Althing Verdict —",
+    "ox": 50,
+    "oy": 22
+   },
+   {
+    "a": "✕",
+    "b": "[ctl] Lock 15: The Oath-Ring — seale",
+    "ox": 29,
+    "oy": 31
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-phone-05-settings",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 47,
+   "total": 47
+  },
+  "overlaps": [
+   {
+    "a": "Settings",
+    "b": "[ctl] Lock 10: The Dróttkvætt Lines ",
+    "ox": 50,
+    "oy": 6
+   },
+   {
+    "a": "✕",
+    "b": "[ctl] Lock 12: The Feast Benches — s",
+    "ox": 29,
+    "oy": 15
+   },
+   {
+    "a": "✕",
+    "b": "[ctl] Lock 15: The Oath-Ring — seale",
+    "ox": 29,
+    "oy": 10
+   },
+   {
+    "a": "Mute sound",
+    "b": "[ctl] Lock 13: The Althing Verdict —",
+    "ox": 50,
+    "oy": 9
+   },
+   {
+    "a": "[ctl] Lock 15: The Oath-Ring — seale",
+    "b": "[ctl] Mute sound",
+    "ox": 31,
+    "oy": 12
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-phone-06-lid-mid",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 29,
+   "total": 29
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "en-phone-L01-dare",
+  "words": {
+   "header": 21,
+   "board": 22,
+   "footer": 9,
+   "other": 0,
+   "total": 52
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 130
+ },
+ {
+  "name": "en-phone-L01-board",
+  "room": "01",
+  "words": {
+   "header": 21,
+   "board": 69,
+   "footer": 9,
+   "other": 0,
+   "total": 99
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 31
+ },
+ {
+  "name": "en-phone-L02-board",
+  "room": "02",
+  "words": {
+   "header": 27,
+   "board": 126,
+   "footer": 9,
+   "other": 0,
+   "total": 162
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 746
+ },
+ {
+  "name": "en-phone-L03-board",
+  "room": "03",
+  "words": {
+   "header": 11,
+   "board": 47,
+   "footer": 9,
+   "other": 0,
+   "total": 67
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 162
+ },
+ {
+  "name": "en-phone-L04-dare",
+  "words": {
+   "header": 11,
+   "board": 24,
+   "footer": 9,
+   "other": 0,
+   "total": 44
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 110
+ },
+ {
+  "name": "en-phone-L04-board",
+  "room": "04",
+  "words": {
+   "header": 11,
+   "board": 207,
+   "footer": 9,
+   "other": 0,
+   "total": 227
+  },
+  "overlaps": [
+   {
+    "a": "Ketil swears: the burnt plank laps the pale plank.",
+    "b": "28 over 14",
+    "ox": 80,
+    "oy": 14
+   },
+   {
+    "a": "Bjorn swears: the resined plank laps the salt-whit",
+    "b": "15 over 22",
+    "ox": 80,
+    "oy": 14
+   },
+   {
+    "a": "Ozurr swears: the scarfed plank laps the burnt pla",
+    "b": "27 over 28",
+    "ox": 80,
+    "oy": 14
+   },
+   {
+    "a": "Hallvard swears: the salt-white plank laps the tar",
+    "b": "22 over 17",
+    "ox": 80,
+    "oy": 15
+   },
+   {
+    "a": "Steinn swears: the tarred plank laps the green pla",
+    "b": "17 over 18",
+    "ox": 80,
+    "oy": 14
+   },
+   {
+    "a": "Onund swears: the green plank laps the scarfed pla",
+    "b": "18 over 27",
+    "ox": 80,
+    "oy": 14
+   },
+   {
+    "a": "Grim swears: the pale plank laps the resined plank",
+    "b": "14 over 15",
+    "ox": 80,
+    "oy": 14
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 740
+ },
+ {
+  "name": "en-phone-L05-board",
+  "room": "05",
+  "words": {
+   "header": 25,
+   "board": 95,
+   "footer": 9,
+   "other": 0,
+   "total": 129
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 493
+ },
+ {
+  "name": "en-phone-L06-board",
+  "room": "06",
+  "words": {
+   "header": 11,
+   "board": 173,
+   "footer": 9,
+   "other": 0,
+   "total": 193
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 791
+ },
+ {
+  "name": "en-phone-L07-dare",
+  "words": {
+   "header": 17,
+   "board": 21,
+   "footer": 9,
+   "other": 0,
+   "total": 47
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 130
+ },
+ {
+  "name": "en-phone-L07-board",
+  "room": "07",
+  "words": {
+   "header": 17,
+   "board": 154,
+   "footer": 9,
+   "other": 0,
+   "total": 180
+  },
+  "overlaps": [
+   {
+    "a": "Brandubh.",
+    "b": "pale defenders",
+    "ox": 73,
+    "oy": 19
+   },
+   {
+    "a": "Yours are the",
+    "b": "pale defenders",
+    "ox": 85,
+    "oy": 19
+   },
+   {
+    "a": "gold king",
+    "b": "pale defenders",
+    "ox": 61,
+    "oy": 19
+   },
+   {
+    "a": "and the",
+    "b": "pale defenders",
+    "ox": 54,
+    "oy": 19
+   },
+   {
+    "a": "pale defenders",
+    "b": "; the",
+    "ox": 31,
+    "oy": 19
+   },
+   {
+    "a": "pale defenders",
+    "b": "dark attackers",
+    "ox": 93,
+    "oy": 19
+   },
+   {
+    "a": "pale defenders",
+    "b": "answer each of your moves by a fixed published pol",
+    "ox": 299,
+    "oy": 19
+   },
+   {
+    "a": "; the",
+    "b": "answer each of your moves by a fixed published pol",
+    "ox": 31,
+    "oy": 19
+   },
+   {
+    "a": "dark attackers",
+    "b": "answer each of your moves by a fixed published pol",
+    "ox": 93,
+    "oy": 19
+   },
+   {
+    "a": "answer each of your moves by a fixed published pol",
+    "b": "Stand the king on any corner within 3 moves.",
+    "ox": 311,
+    "oy": 19
+   },
+   {
+    "a": "Stand the king on any corner within 3 moves.",
+    "b": "Tap or Enter on a piece of yours to lift it — the ",
+    "ox": 311,
+    "oy": 19
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 313
+ },
+ {
+  "name": "en-phone-L08-board",
+  "room": "08",
+  "words": {
+   "header": 26,
+   "board": 46,
+   "footer": 9,
+   "other": 0,
+   "total": 81
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 860
+ },
+ {
+  "name": "en-phone-L09-board",
+  "room": "09",
+  "words": {
+   "header": 19,
+   "board": 177,
+   "footer": 9,
+   "other": 0,
+   "total": 205
+  },
+  "overlaps": [
+   {
+    "a": "The stone shows the ring of light",
+    "b": "a quarter of the ring — 16 points — from the sun",
+    "ox": 207,
+    "oy": 19
+   },
+   {
+    "a": "a quarter of the ring — 16 points — from the sun",
+    "b": ", never saying which side: each reading throws",
+    "ox": 311,
+    "oy": 19
+   },
+   {
+    "a": ", never saying which side: each reading throws",
+    "b": "two blades opposite each other",
+    "ox": 311,
+    "oy": 19
+   },
+   {
+    "a": "two blades opposite each other",
+    "b": ".",
+    "ox": 8,
+    "oy": 19
+   },
+   {
+    "a": "two blades opposite each other",
+    "b": "The day-mark",
+    "ox": 91,
+    "oy": 19
+   },
+   {
+    "a": "two blades opposite each other",
+    "b": "— the painted sky on the horizon band, point 10 to",
+    "ox": 325,
+    "oy": 19
+   },
+   {
+    "a": ".",
+    "b": "— the painted sky on the horizon band, point 10 to",
+    "ox": 8,
+    "oy": 19
+   },
+   {
+    "a": "The day-mark",
+    "b": "— the painted sky on the horizon band, point 10 to",
+    "ox": 91,
+    "oy": 19
+   },
+   {
+    "a": "— the painted sky on the horizon band, point 10 to",
+    "b": "One stone was read wet",
+    "ox": 158,
+    "oy": 19
+   },
+   {
+    "a": "— the painted sky on the horizon band, point 10 to",
+    "b": "and says nothing true. Name the sun’s bearing, and",
+    "ox": 327,
+    "oy": 19
+   },
+   {
+    "a": "One stone was read wet",
+    "b": "and says nothing true. Name the sun’s bearing, and",
+    "ox": 158,
+    "oy": 19
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 742
+ },
+ {
+  "name": "en-phone-L10-dare",
+  "words": {
+   "header": 13,
+   "board": 21,
+   "footer": 9,
+   "other": 0,
+   "total": 43
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 130
+ },
+ {
+  "name": "en-phone-L10-board",
+  "room": "10",
+  "words": {
+   "header": 13,
+   "board": 152,
+   "footer": 9,
+   "other": 0,
+   "total": 174
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 870
+ },
+ {
+  "name": "en-phone-L11-board",
+  "room": "11",
+  "words": {
+   "header": 26,
+   "board": 117,
+   "footer": 9,
+   "other": 0,
+   "total": 152
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 635
+ },
+ {
+  "name": "en-phone-L12-board",
+  "room": "12",
+  "words": {
+   "header": 13,
+   "board": 214,
+   "footer": 9,
+   "other": 0,
+   "total": 236
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 1277
+ },
+ {
+  "name": "en-phone-L13-dare",
+  "words": {
+   "header": 20,
+   "board": 22,
+   "footer": 9,
+   "other": 0,
+   "total": 51
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 130
+ },
+ {
+  "name": "en-phone-L13-board",
+  "room": "13",
+  "words": {
+   "header": 20,
+   "board": 190,
+   "footer": 9,
+   "other": 0,
+   "total": 219
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 1729
+ },
+ {
+  "name": "en-phone-L14-board",
+  "room": "14",
+  "words": {
+   "header": 31,
+   "board": 76,
+   "footer": 9,
+   "other": 0,
+   "total": 116
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 543
+ },
+ {
+  "name": "en-phone-L15-board",
+  "room": "15",
+  "words": {
+   "header": 17,
+   "board": 77,
+   "footer": 9,
+   "other": 0,
+   "total": 103
+  },
+  "overlaps": [
+   {
+    "a": "[ctl] Slot 1, empty.",
+    "b": "[ctl] Slot 2, empty.",
+    "ox": 7,
+    "oy": 15
+   },
+   {
+    "a": "[ctl] Slot 5, empty.",
+    "b": "[ctl] Slot 6, empty.",
+    "ox": 7,
+    "oy": 15
+   },
+   {
+    "a": "[ctl] Slot 8, empty.",
+    "b": "[ctl] Slot 9, empty.",
+    "ox": 7,
+    "oy": 15
+   },
+   {
+    "a": "[ctl] Slot 12, empty.",
+    "b": "[ctl] Slot 13, empty.",
+    "ox": 7,
+    "oy": 15
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 259
+ },
+ {
+  "name": "en-desk-90-finale",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 17,
+   "total": 17
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "es-desk-L01-dare",
+  "words": {
+   "header": 22,
+   "board": 21,
+   "footer": 9,
+   "other": 0,
+   "total": 52
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 197
+ },
+ {
+  "name": "es-desk-L01-board",
+  "words": {
+   "header": 22,
+   "board": 66,
+   "footer": 9,
+   "other": 0,
+   "total": 97
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 183
+ },
+ {
+  "name": "es-desk-L02-board",
+  "words": {
+   "header": 30,
+   "board": 128,
+   "footer": 9,
+   "other": 0,
+   "total": 167
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 330
+ },
+ {
+  "name": "es-desk-L04-dare",
+  "words": {
+   "header": 12,
+   "board": 25,
+   "footer": 9,
+   "other": 0,
+   "total": 46
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 221
+ },
+ {
+  "name": "es-desk-L04-board",
+  "words": {
+   "header": 12,
+   "board": 217,
+   "footer": 9,
+   "other": 0,
+   "total": 238
+  },
+  "overlaps": [
+   {
+    "a": "Ketil jura: la traca quemada solapa la traca pálid",
+    "b": "28 sobre 14",
+    "ox": 286,
+    "oy": 16
+   },
+   {
+    "a": "Hallvard jura: la traca blanca de sal solapa la tr",
+    "b": "22 sobre 17",
+    "ox": 87,
+    "oy": 15
+   },
+   {
+    "a": "Steinn jura: la traca embreada solapa la traca ver",
+    "b": "17 sobre 18",
+    "ox": 296,
+    "oy": 15
+   },
+   {
+    "a": "Onund jura: la traca verde solapa la traca empalma",
+    "b": "18 sobre 27",
+    "ox": 310,
+    "oy": 16
+   },
+   {
+    "a": "Grim jura: la traca pálida solapa la traca resinad",
+    "b": "14 sobre 15",
+    "ox": 285,
+    "oy": 15
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 301
+ },
+ {
+  "name": "es-desk-L11-board",
+  "words": {
+   "header": 28,
+   "board": 127,
+   "footer": 9,
+   "other": 0,
+   "total": 164
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 594
+ },
+ {
+  "name": "es-desk-L12-board",
+  "words": {
+   "header": 14,
+   "board": 235,
+   "footer": 9,
+   "other": 0,
+   "total": 258
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 880
+ },
+ {
+  "name": "ca-desk-L02-board",
+  "words": {
+   "header": 34,
+   "board": 127,
+   "footer": 9,
+   "other": 0,
+   "total": 170
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 349
+ },
+ {
+  "name": "ca-desk-L12-board",
+  "words": {
+   "header": 14,
+   "board": 233,
+   "footer": 9,
+   "other": 0,
+   "total": 256
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 844
+ },
+ {
+  "name": "es-desk-01-threshold",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 10,
+   "total": 10
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "es-desk-03-lid",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 27,
+   "total": 27
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "es-desk-05-settings",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 46,
+   "total": 46
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "es-phone-L01-dare",
+  "words": {
+   "header": 22,
+   "board": 21,
+   "footer": 9,
+   "other": 0,
+   "total": 52
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 130
+ },
+ {
+  "name": "es-phone-L01-board",
+  "words": {
+   "header": 22,
+   "board": 66,
+   "footer": 9,
+   "other": 0,
+   "total": 97
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 102
+ },
+ {
+  "name": "es-phone-L02-board",
+  "words": {
+   "header": 30,
+   "board": 128,
+   "footer": 9,
+   "other": 0,
+   "total": 167
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 766
+ },
+ {
+  "name": "es-phone-L04-dare",
+  "words": {
+   "header": 12,
+   "board": 25,
+   "footer": 9,
+   "other": 0,
+   "total": 46
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 110
+ },
+ {
+  "name": "es-phone-L04-board",
+  "words": {
+   "header": 12,
+   "board": 217,
+   "footer": 9,
+   "other": 0,
+   "total": 238
+  },
+  "overlaps": [
+   {
+    "a": "Ketil jura: la traca quemada solapa la traca pálid",
+    "b": "28 sobre 14",
+    "ox": 87,
+    "oy": 14
+   },
+   {
+    "a": "Bjorn jura: la traca resinada solapa la traca blan",
+    "b": "15 sobre 22",
+    "ox": 87,
+    "oy": 14
+   },
+   {
+    "a": "Ozurr jura: la traca empalmada solapa la traca que",
+    "b": "27 sobre 28",
+    "ox": 87,
+    "oy": 14
+   },
+   {
+    "a": "Hallvard jura: la traca blanca de sal solapa la tr",
+    "b": "22 sobre 17",
+    "ox": 87,
+    "oy": 15
+   },
+   {
+    "a": "Steinn jura: la traca embreada solapa la traca ver",
+    "b": "17 sobre 18",
+    "ox": 87,
+    "oy": 14
+   },
+   {
+    "a": "Onund jura: la traca verde solapa la traca empalma",
+    "b": "18 sobre 27",
+    "ox": 87,
+    "oy": 14
+   },
+   {
+    "a": "Grim jura: la traca pálida solapa la traca resinad",
+    "b": "14 sobre 15",
+    "ox": 87,
+    "oy": 14
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 791
+ },
+ {
+  "name": "es-phone-L11-board",
+  "words": {
+   "header": 28,
+   "board": 127,
+   "footer": 9,
+   "other": 0,
+   "total": 164
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 692
+ },
+ {
+  "name": "es-phone-L12-board",
+  "words": {
+   "header": 14,
+   "board": 235,
+   "footer": 9,
+   "other": 0,
+   "total": 258
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 1338
+ },
+ {
+  "name": "ca-phone-L02-board",
+  "words": {
+   "header": 34,
+   "board": 127,
+   "footer": 9,
+   "other": 0,
+   "total": 170
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 765
+ },
+ {
+  "name": "ca-phone-L12-board",
+  "words": {
+   "header": 14,
+   "board": 233,
+   "footer": 9,
+   "other": 0,
+   "total": 256
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 1338
+ },
+ {
+  "name": "es-phone-01-threshold",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 10,
+   "total": 10
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "es-phone-03-lid",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 27,
+   "total": 27
+  },
+  "overlaps": [],
+  "clipped": [],
+  "scrollNeed": 0
+ },
+ {
+  "name": "es-phone-05-settings",
+  "words": {
+   "header": 0,
+   "board": 0,
+   "footer": 0,
+   "other": 46,
+   "total": 46
+  },
+  "overlaps": [
+   {
+    "a": "Ajustes",
+    "b": "[ctl] Lock 10: The Dróttkvætt Lines ",
+    "ox": 50,
+    "oy": 26
+   },
+   {
+    "a": "✕",
+    "b": "[ctl] Lock 12: The Feast Benches — s",
+    "ox": 29,
+    "oy": 44
+   },
+   {
+    "a": "Silenciar el sonido",
+    "b": "[ctl] Lock 13: The Althing Verdict —",
+    "ox": 50,
+    "oy": 21
+   },
+   {
+    "a": "[ctl] Lock 15: The Oath-Ring — seale",
+    "b": "[ctl] Silenciar el sonido",
+    "ox": 31,
+    "oy": 26
+   }
+  ],
+  "clipped": [],
+  "scrollNeed": 0
+ }
+]

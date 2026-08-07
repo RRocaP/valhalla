@@ -1,6 +1,7 @@
 // OATHWOOD shell — entry point (docs/SHELL.md, frozen signature).
 import { rng } from '../kernel/rng.js';
 import { resolveLang, t } from '../kernel/i18n.js';
+import { FONTS } from '../kernel/fonts.gen.js';
 import { SHELL_STRINGS } from './strings.js';
 import { freshSave, loadSave, writeSave, hasSave } from './save.js';
 import { nextLockId, progressFraction, isComplete } from './progress.js';
@@ -26,6 +27,23 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
 
   function start() {
     const appRoot = document.getElementById('app');
+
+    // Embedded display face (docs/QUALITY.md Magic Law §2): Cormorant Garamond
+    // latin subset as data URIs, injected ahead of the shell style so both DOM
+    // text and the canvas carve engine resolve the same voice. Weight range
+    // 500-700 maps every display weight onto the one real cut (no faux bold).
+    if (!document.getElementById('ow-fonts') && FONTS.regular) {
+      const fontEl = document.createElement('style');
+      fontEl.id = 'ow-fonts';
+      fontEl.textContent =
+        `@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:500 700;` +
+        `src:url(${FONTS.regular}) format('woff2');font-display:swap}` +
+        (FONTS.italic
+          ? `@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500 700;` +
+            `src:url(${FONTS.italic}) format('woff2');font-display:swap}`
+          : '');
+      document.head.appendChild(fontEl);
+    }
 
     if (!document.getElementById('ow-shell-style')) {
       const styleEl = document.createElement('style');
@@ -225,7 +243,20 @@ export function createShell({ locks, art, audio, treasureDataUri, portraits }) {
       if (screen === 'lockroom') goTo('lid');
     });
 
-    goTo('threshold');
+    // First paint waits for the embedded face (canvas carve text has no
+    // reflow-on-font-load) — data-URI decode is near-instant, and a 400ms
+    // race keeps a broken FontFace API from ever blocking the game.
+    const fontsSettled = (FONTS.regular && typeof document !== 'undefined'
+      && document.fonts && typeof document.fonts.load === 'function')
+      ? Promise.race([
+        Promise.all([
+          document.fonts.load('600 40px "Cormorant Garamond"'),
+          document.fonts.load('italic 500 24px "Cormorant Garamond"'),
+        ]).catch(() => {}),
+        new Promise((r) => setTimeout(r, 400)),
+      ])
+      : Promise.resolve();
+    fontsSettled.then(() => goTo('threshold'));
 
     if (location.hash === '#autotest') {
       window.__OW = {

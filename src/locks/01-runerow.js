@@ -223,16 +223,12 @@ const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  railLaw: 'The rail is the law',
-  looseLaw: 'These six hang loose. Lay them under the rail’s first six.',
-  help: 'Drag a stave into its place. Tap a stave to turn it over. By key: arrows walk the six, space lifts and sets down, F turns a stave over.',
   submit: 'Set the ætt',
   submitDone: 'The ætt stands',
   solvedLine: 'The first ætt stands as it was cut.',
   tally: '{n} of six staves stand true',
   tallyAll: 'All six staves stand true. Set the ætt.',
   skip: 'Skip the showing',
-  demoSay: 'Watch once: a loose stave goes to its gap under the rail.',
   lifted: '{name} is lifted. Arrows move it; space sets it down.',
   setDown: '{name} is set down in the {place} place.',
   slid: '{name} slides from the {from} place to the {to}.',
@@ -356,8 +352,6 @@ function mount(ctx) {
   `;
   wrap.append(style);
 
-  const railLabel = node('p', `margin:0;font-size:13px;color:${p.boneDim};letter-spacing:.06em;text-align:center`,
-    T('railLaw'));
   const rail = { canvas: null, ctx: null, w: 0, h: 0 };
   const railHost = node('div', 'display:block;line-height:0');
 
@@ -372,18 +366,16 @@ function mount(ctx) {
   rowWrap.setAttribute('aria-label', T('ariaRow'));
   bed.append(bedHost, rowWrap);
 
-  const looseLabel = node('p', `margin:0;font-size:13px;color:${p.boneDim};text-align:center`, T('looseLaw'));
-
   const tallyWrap = node('div', 'display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap');
   const tallyGfx = art.makeCanvas(150, 22);
   tallyGfx.canvas.setAttribute('aria-hidden', 'true');
-  const tallyText = node('p', `margin:0;font-size:14px;color:${p.boneDim}`);
+  // The carved tally marks are the sighted count; the words stay for readers.
+  const tallyText = node('p', null);
+  tallyText.className = 'visually-hidden';
   tallyWrap.append(tallyGfx.canvas, tallyText);
 
-  const help = node('p', `margin:0;font-size:13px;color:${p.boneDim};text-align:center;line-height:1.5`, T('help'));
-
   const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};text-align:center`);
-  status.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
 
   const actions = node('div', 'display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center');
   const submitBtn = node('button', null, T('submit'));
@@ -395,7 +387,7 @@ function mount(ctx) {
   skipBtn.style.display = 'none';
   actions.append(submitBtn, skipBtn);
 
-  wrap.append(railLabel, railHost, bed, looseLabel, tallyWrap, help, actions, status);
+  wrap.append(railHost, bed, tallyWrap, actions, status);
   ctx.root.append(wrap);
 
   // ---- layout ------------------------------------------------------------
@@ -1013,7 +1005,6 @@ function mount(ctx) {
     ghostHost.style.display = 'block';
     ghostHost.style.transform = `translate(${Math.round(a.left - bedRect.left)}px,${Math.round(a.top - bedRect.top)}px)`;
     skipBtn.style.display = '';
-    status.textContent = T('demoSay');
 
     if (!calm && typeof ghostHost.animate === 'function') {
       const x0 = a.left - bedRect.left;
@@ -1149,7 +1140,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'La Primera Ætt',
-    epigraph: 'La hilera entera ya está tallada arriba. Solo sus seis primeras penden sueltas, y una fue cortada por la cara equivocada.',
+    epigraph: 'El listón recuerda la hilera.\nTiende las seis sueltas bajo sus seis primeras —\nuna cuelga del revés: vuélvela.',
     hints: [
       'Nada se te oculta. El listón de arriba ya lleva el orden verdadero; las seis de abajo solo han de tenderse bajo su primer tramo.',
       'Una de ellas no casará con el listón la pongas donde la pongas: fue golpeada por la cara equivocada y se lee al revés. Tócala para volverla.',
@@ -1165,16 +1156,12 @@ const I18N = {
       [NEAR.run[3]]: 'Las cuatro primeras astas se sostienen; la quinta no.',
     },
     board: {
-      railLaw: 'El listón es la ley',
-      looseLaw: 'Estas seis penden sueltas. Tiéndelas bajo las seis primeras del listón.',
-      help: 'Arrastra un asta a su sitio. Tócala para volverla. Con el teclado: flechas para recorrer las seis, espacio para alzarla y posarla, F para volverla.',
       submit: 'Asentar la ætt',
       submitDone: 'La ætt se sostiene',
       solvedLine: 'La primera ætt se sostiene tal como fue tallada.',
       tally: '{n} de seis astas se sostienen',
       tallyAll: 'Las seis astas se sostienen. Asienta la ætt.',
       skip: 'Saltar la muestra',
-      demoSay: 'Mira una vez: un asta suelta va a su hueco bajo el listón.',
       lifted: '{name} queda alzada. Las flechas la mueven; el espacio la posa.',
       setDown: '{name} queda posada en el {place} lugar.',
       slid: '{name} se desliza del {from} lugar al {to}.',
@@ -1196,7 +1183,7 @@ const I18N = {
   },
   ca: {
     title: 'La Primera Ætt',
-    epigraph: 'La filera sencera ja està tallada a dalt. Només les sis primeres pengen soltes, i una va ser tallada per la cara equivocada.',
+    epigraph: 'El llistó recorda la filera.\nEstén les sis soltes sota les seves sis primeres —\nuna penja a l’inrevés: gira-la.',
     hints: [
       'No se t’amaga res. El llistó de dalt ja duu l’ordre veritable; les sis de sota només s’han d’estendre sota el seu primer tram.',
       'Una d’elles no lligarà amb el llistó la posis on la posis: va ser colpida per la cara equivocada i es llegeix a l’inrevés. Toca-la per girar-la.',
@@ -1212,16 +1199,12 @@ const I18N = {
       [NEAR.run[3]]: 'Les quatre primeres astes s’aguanten; la cinquena no.',
     },
     board: {
-      railLaw: 'El llistó és la llei',
-      looseLaw: 'Aquestes sis pengen soltes. Estén-les sota les sis primeres del llistó.',
-      help: 'Arrossega una asta al seu lloc. Toca-la per girar-la. Amb el teclat: fletxes per recórrer les sis, espai per alçar-la i posar-la, F per girar-la.',
       submit: 'Assentar l’ætt',
       submitDone: 'L’ætt s’aguanta',
       solvedLine: 'La primera ætt s’aguanta tal com va ser tallada.',
       tally: '{n} de sis astes s’aguanten',
       tallyAll: 'Les sis astes s’aguanten. Assenta l’ætt.',
       skip: 'Saltar la mostra',
-      demoSay: 'Mira-ho un cop: una asta solta va al seu buit sota el llistó.',
       lifted: '{name} queda alçada. Les fletxes la mouen; l’espai la posa.',
       setDown: '{name} queda posada al {place} lloc.',
       slid: '{name} llisca del {from} lloc al {to}.',
@@ -1248,7 +1231,7 @@ export default {
   ordinal: 1,
   tier: 1,
   title: 'The First Ætt',
-  epigraph: 'The whole row stands carved above. Only its first six hang loose, and one was cut from the wrong face.',
+  epigraph: 'The rail remembers the row.\nLay the loose six under its first six —\none hangs wrong-faced: turn it.',
 
   makePuzzle,
   solve,

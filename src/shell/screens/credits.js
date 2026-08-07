@@ -68,7 +68,11 @@ export function mountCredits(root, { art, audio, reducedMotion, imageCache, tr, 
       el('p', {}, tr('credits.track2')),
     ]),
     el('section', { class: 'credits-section' }, [portraitFig('ramon', 'JARL RAMON', { white: true, size: 88 })]),
-    el('section', { class: 'credits-section credits-colophon' }, [el('p', { class: 'carved-text' }, tr('finale.colophon'))]),
+    el('section', { class: 'credits-section credits-colophon' }, [
+      el('p', { class: 'carved-text' }, tr('finale.colophon')),
+      // type credit (docs/QUALITY.md Magic Law §2): embedded display face
+      el('p', {}, 'set in Cormorant Garamond · SIL Open Font License'),
+    ]),
   );
 
   // Reduced motion: a static scatter as real DOM content at the foot of the

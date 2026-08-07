@@ -368,7 +368,6 @@ const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and resolve through it at mount.
 const BOARD_EN = {
-  plate: 'Sail from fleet to hoard in the fewest legs — the tide turns after every one, and closes half the channels.',
   legend: 'Falling glyphs mark a sound cut for the ebb, rising glyphs one cut for the flood; a plain sounding takes any tide. A dotted sledge track is a portage — two legs of hauling, and the tide stands where it stood.',
   movesOpen: 'Water open from here',
   movesShut: 'No water opens on this tide',
@@ -409,7 +408,7 @@ const BOARD_EN = {
 const I18N = {
   es: {
     title: 'El Camino de los Escollos',
-    epigraph: 'El mar no guarda camino. Lo presta dos veces al día, y se lo lleva.',
+    epigraph: 'El mar no guarda camino: lo presta,\nbajamar y pleamar. Navega tramo a tramo —\nlo que abre esta marea, la siguiente lo cierra.',
     hints: [
       'La marea cambia con cada tramo que confirmas. El primer tramo corre con el reflujo.',
       'Dos canales cortados para el reflujo no pueden tomarse uno tras otro — salvo que lo que quede entre ellos no atienda a marea alguna.',
@@ -421,7 +420,6 @@ const I18N = {
       'The passage holds, but a shorter road exists.': 'El paso se sostiene, pero existe un camino más corto.',
     },
     board: {
-      plate: 'Navega de la flota al tesoro en el menor número de tramos: la marea cambia tras cada uno y cierra la mitad de los canales.',
       legend: 'Los signos que caen marcan un canal cortado para el reflujo; los que suben, uno cortado para el flujo; una sonda lisa atiende a cualquier marea. Una senda de trineo punteada es un varadero: dos tramos de arrastre, y la marea queda donde estaba.',
       movesOpen: 'Agua abierta desde aquí',
       movesShut: 'Ningún agua se abre con esta marea',
@@ -461,7 +459,7 @@ const I18N = {
   },
   ca: {
     title: 'El Camí dels Esculls',
-    epigraph: 'El mar no guarda camí. En presta un, dos cops al dia, i se l’endú.',
+    epigraph: 'El mar no guarda camí: el presta,\nmarea baixa i plena. Navega tram a tram —\nel que obre aquesta marea, la següent ho tanca.',
     hints: [
       'La marea gira amb cada tram que confirmes. El primer tram corre amb el reflux.',
       'Dos canals tallats per al reflux no es poden prendre l’un darrere l’altre — llevat que allò que hi ha entremig no atengui cap marea.',
@@ -473,7 +471,6 @@ const I18N = {
       'The passage holds, but a shorter road exists.': 'El pas s’aguanta, però hi ha un camí més curt.',
     },
     board: {
-      plate: 'Navega de la flota al tresor amb el mínim de trams: la marea gira després de cadascun i tanca la meitat dels canals.',
       legend: 'Els signes que cauen marquen un canal tallat per al reflux; els que pugen, un de tallat per al flux; una sonda llisa atén qualsevol marea. Un camí de trineu puntejat és un varador: dos trams d’arrossegament, i la marea queda on era.',
       movesOpen: 'Aigua oberta des d’aquí',
       movesShut: 'Cap aigua no s’obre amb aquesta marea',
@@ -518,7 +515,7 @@ export default {
   ordinal: 11,
   tier: 4,
   title: 'The Skerry Road',
-  epigraph: 'The sea keeps no road. It lends one, twice a day, and takes it back.',
+  epigraph: 'The sea keeps no road; it lends one,\nebb then flood. Sail leg by leg —\nwhat this tide opens, the next will close.',
 
   makePuzzle(rng) {
     const chart = chartFor(rng) || fallbackInstance();
@@ -746,11 +743,6 @@ export default {
     const wrap = node('div', `display:grid;gap:10px;font-family:${SERIF};color:${p.bone}`);
     const style = node('style');
     style.textContent = `
-      .ow11-plate{margin:0;font-size:15px;line-height:1.45;color:${p.bone};
-        background:linear-gradient(180deg,${rgba(p.oakLight, 0.42)},${rgba(p.oakDeep, 0.72)});
-        border:1px solid ${rgba(p.gold, 0.5)};border-radius:4px;padding:11px 14px;
-        text-shadow:${art.reliefShadowCss || `-1px -1px 0 ${rgba(p.tar, 0.85)}`};
-        box-shadow:0 2px 0 ${rgba(p.tar, 0.6)},inset 0 1px 0 ${rgba(p.bone, 0.12)}}
       .ow11-act{font-family:${SERIF};font-size:15px;color:${p.bone};background:${p.oakDeep};
         border:1px solid ${p.gold};border-radius:3px;padding:11px 16px;min-height:44px;min-width:44px;cursor:pointer}
       .ow11-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
@@ -781,8 +773,6 @@ export default {
     `;
     wrap.append(style);
 
-    const plate = node('p', null, T('plate'));
-    plate.className = 'ow11-plate';
 
     const chartHost = node('div', 'line-height:0;display:block');
     let chart = null;
@@ -804,8 +794,6 @@ export default {
     knotWrap.append(knotGfx.canvas, knotText);
     meter.append(tidePill, knotWrap);
 
-    const legendText = node('p', `margin:0;font-size:12.5px;line-height:1.45;color:${p.boneDim};max-width:72ch`, T('legend'));
-
     const movesLabel = node('p', `margin:0;font-size:13px;color:${p.boneDim};letter-spacing:.06em`, T('movesOpen'));
     const moves = node('div', 'display:grid;gap:7px');
 
@@ -822,13 +810,13 @@ export default {
     actions.append(backBtn, resetBtn, sealBtn, skipBtn);
 
     const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px`);
-    status.setAttribute('aria-live', 'polite');
+    // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
 
     const waters = node('div', 'display:grid;gap:9px');
     waters.className = 'ow11-apron';
-    waters.append(legendText, movesLabel, moves);
+    waters.append(movesLabel, moves);
 
-    wrap.append(plate, chartHost, meter, waters, actions, status);
+    wrap.append(chartHost, meter, waters, actions, status);
     ctx.root.append(wrap);
 
     // ---- chart geometry -----------------------------------------------------
@@ -2513,6 +2501,7 @@ export default {
     }
 
     say(T('openNote', { n: inst.nodes.length, fleet: nameOf(inst.start), hoard: nameOf(inst.goal) }));
+    say(T('legend'));
     render(ctx.solved ? T('solvedLine') : '');
     if (!ctx.solved) later(showTheWay, 0);
 

@@ -142,19 +142,14 @@ const MONO = "ui-monospace,'SF Mono',Menlo,monospace";
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  ask: 'Two weighings are sworn. Name the light pouch.',
-  law: 'Every pouch is sworn to the same weight: {n} ertog — one mark is eight øre, one øre three ertog. One pouch was clipped, and runs light. The pan that sinks holds the heavier silver.',
   reckon: 'Reckon the labels in ertog',
   reckonBack: 'Read the labels as carved',
-  help: 'Lift a pouch from the rack to name it. By key: arrows walk the rack, space names one, X strikes one out.',
   submit: 'Name the pouch',
   submitDone: 'The pouch is named',
   skip: 'Skip the showing',
-  demoSay: 'Watch once: a pouch is lifted from the rack, and set back.',
   setAside: 'set aside',
   first: 'First',
   second: 'Second',
-  cap: '{ord} weighing — {sink}',
   sinkLeft: 'the left pan sinks',
   sinkRight: 'the right pan sinks',
   sinkLevel: 'the beam hangs level',
@@ -265,12 +260,6 @@ function mount(ctx) {
   const wrap = node('div', `display:grid;gap:9px;font-family:${SERIF};color:${p.bone};justify-items:stretch`);
   const style = node('style');
   style.textContent = `
-    .ow2-plate{position:relative;display:grid;justify-items:center}
-    .ow2-platewood{position:absolute;left:50%;top:0;transform:translateX(-50%);
-      pointer-events:none;line-height:0}
-    .ow2-ask{position:relative;margin:0;padding:11px 20px;text-align:center;font-size:16px;
-      letter-spacing:.03em;color:${p.bone};line-height:1.35;
-      text-shadow:-1px -1px 0 ${rgbaHex(p.tar, 0.85)},1px 1px 0 ${rgbaHex(p.goldBright, 0.2)}}
     .ow2-rack{position:relative;display:grid;justify-items:center;padding:13px 0 15px}
     .ow2-rackwood{position:absolute;pointer-events:none;line-height:0;z-index:0}
     .ow2-grid{position:relative;display:grid;justify-content:center;z-index:1}
@@ -309,26 +298,11 @@ function mount(ctx) {
   wrap.append(style);
 
   // (1) what the lock asks — one plain sentence, always visible, on a carved plate
-  const askWrap = node('div');
-  askWrap.className = 'ow2-plate';
-  const askHost = node('div');
-  askHost.className = 'ow2-platewood';
-  askHost.setAttribute('aria-hidden', 'true');
-  const ask = node('p', null, T('ask'));
-  ask.className = 'ow2-ask';
-  askWrap.append(askHost, ask);
-  const askWood = { canvas: null, ctx: null, w: 0, h: 0 };
-
-  const law = node('p', `margin:0;font-size:13px;color:${p.boneDim};line-height:1.5;text-align:center`,
-    T('law', { n: instance.swornErtog }));
-
   const beams = node('div', 'display:flex;flex-wrap:wrap;gap:12px;justify-content:center');
   const beamViews = instance.weighings.map((w, k) => {
     const box = node('div', 'display:grid;gap:3px;justify-items:center');
     const host = node('div', 'line-height:0');
-    const cap = node('p', `margin:0;font-size:12px;color:${p.boneDim}`,
-      T('cap', { ord: ordWord(k), sink: sinkWord(w.tilt) }));
-    box.append(host, cap);
+    box.append(host);
     beams.append(box);
     return { host, gfx: { canvas: null, ctx: null, w: 0, h: 0 }, back: null, w, k };
   });
@@ -363,10 +337,8 @@ function mount(ctx) {
   const ghost = { canvas: null, ctx: null, w: 0, h: 0 };
   rackWrap.append(rackHost, grid, ghostHost);
 
-  const help = node('p', `margin:0;font-size:13px;color:${p.boneDim};text-align:center;line-height:1.5`,
-    T('help'));
   const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};text-align:center`);
-  status.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
 
   const submitBtn = node('button', null, T('submit'));
   submitBtn.className = 'btn-carved'; // one primary-action language: the carved gold plate
@@ -378,7 +350,7 @@ function mount(ctx) {
 
   // the help line stands directly over the rack it describes, so the board
   // runs unbroken into its controls (docs/QUALITY.md density rubric)
-  wrap.append(askWrap, law, beams, tools, help, rackWrap, submitBtn, status);
+  wrap.append(beams, tools, rackWrap, submitBtn, status);
   ctx.root.append(wrap);
 
   function fitCanvas(holder, target, w, h) {
@@ -1171,11 +1143,6 @@ function mount(ctx) {
     const avail = Math.max(280, Math.round(wrap.getBoundingClientRect().width) || 360);
     const inner = Math.min(avail, 920);
 
-    // the ask plate spans the board: a carved lintel over the corner
-    ask.style.maxWidth = `${inner - 44}px`;
-    fitCanvas(askHost, askWood, inner, Math.max(42, ask.getBoundingClientRect().height || 44));
-    paintAskPlate();
-
     // the two weighings: side by side where there is room, stacked on a phone
     const two = inner >= 700;
     const bw = two ? Math.floor((inner - 14) / 2) : inner;
@@ -1235,22 +1202,6 @@ function mount(ctx) {
       });
       paintRack(cells, RACK_PAD);
     }
-  }
-
-  function paintAskPlate() {
-    if (!askWood.ctx) return;
-    const c = askWood.ctx;
-    const { w: W, h: H } = askWood;
-    c.clearRect(0, 0, W, H);
-    art.paintPanel(c, 0, 0, W, H, { title: null, nails: false, wash: 0.55 });
-    art.chipBorder(c, 6, 5, W - 12, H - 10, { size: Math.max(6, H * 0.2), alpha: 0.7 });
-    const r = Math.min(11, H * 0.28);
-    art.rosette(c, r + 5, H / 2, r, { alpha: 0.85 });
-    art.rosette(c, W - r - 5, H / 2, r, { alpha: 0.85 });
-    art.ornament(c, 'nailhead', 5, 5, 7);
-    art.ornament(c, 'nailhead', W - 5, 5, 7);
-    art.ornament(c, 'nailhead', 5, H - 5, 7);
-    art.ornament(c, 'nailhead', W - 5, H - 5, 7);
   }
 
   // ---- (2) the showing: a ghost hand lifts a pouch and sets it back -------
@@ -1325,7 +1276,7 @@ function mount(ctx) {
     if (ghostHost.style.display === 'none') return;
     ghostHost.style.display = 'none';
     skipBtn.style.display = 'none';
-    if (!quiet && status.textContent === T('demoSay')) status.textContent = '';
+    if (!quiet) status.textContent = '';
   }
 
   function takeTheChisel() {
@@ -1347,7 +1298,6 @@ function mount(ctx) {
     const y = Math.round(b.top - wr.top);
     ghostHost.style.transform = `translate(${x}px,${y}px)`;
     skipBtn.style.display = '';
-    status.textContent = T('demoSay');
 
     if (!calm && typeof ghostHost.animate === 'function') {
       const lift = Math.round(b.height * 0.22);
@@ -1512,7 +1462,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'La Balanza del Bismer',
-    epigraph: 'Seis bolsas, un solo peso jurado — y una corre ligera. La balanza ya ha hablado dos veces.',
+    epigraph: 'Seis bolsas juran un peso;\nuna jura de menos. La balanza habló dos veces —\npesa las palabras, no la plata.',
     hints: [
       'Todas las bolsas están juradas al mismo peso. Convierte las etiquetas a ertog antes de fiarte del ojo: ocho øre al marco, tres ertog al øre.',
       'El platillo que baja lleva la plata más pesada. Una balanza nivelada dice que la bolsa cercenada quedó apartada de esa pesada.',
@@ -1524,19 +1474,14 @@ const I18N = {
       'The later weighing already clears that pouch.': 'La pesada posterior ya deja limpia esa bolsa.',
     },
     board: {
-      ask: 'Dos pesadas están juradas. Nombra la bolsa ligera.',
-      law: 'Cada bolsa está jurada al mismo peso: {n} ertog — un marco son ocho øre, un øre tres ertog. Una bolsa fue cercenada y corre ligera. El platillo que baja lleva la plata más pesada.',
       reckon: 'Contar las etiquetas en ertog',
       reckonBack: 'Leer las etiquetas como fueron talladas',
-      help: 'Levanta una bolsa del estante para nombrarla. Con el teclado: flechas para recorrer el estante, espacio para nombrar una, X para tacharla.',
       submit: 'Nombrar la bolsa',
       submitDone: 'La bolsa queda nombrada',
       skip: 'Saltar la muestra',
-      demoSay: 'Mira una vez: una bolsa se levanta del estante y se vuelve a posar.',
       setAside: 'apartadas',
       first: 'Primera',
       second: 'Segunda',
-      cap: '{ord} pesada — {sink}',
       sinkLeft: 'baja el platillo izquierdo',
       sinkRight: 'baja el platillo derecho',
       sinkLevel: 'el astil queda nivelado',
@@ -1566,7 +1511,7 @@ const I18N = {
   },
   ca: {
     title: 'La Balança del Bismer',
-    epigraph: 'Sis bosses, un sol pes jurat — i una corre lleugera. La balança ja ha parlat dues vegades.',
+    epigraph: 'Sis bosses juren un pes;\nuna jura de menys. La balança va parlar dos cops —\npesa les paraules, no la plata.',
     hints: [
       'Totes les bosses estan jurades al mateix pes. Passa les etiquetes a ertog abans de fiar-te de l’ull: vuit øre al marc, tres ertog a l’øre.',
       'El plat que baixa duu l’argent més pesant. Una balança anivellada diu que la bossa escapçada va quedar a part d’aquella pesada.',
@@ -1578,19 +1523,14 @@ const I18N = {
       'The later weighing already clears that pouch.': 'La pesada posterior ja deixa neta aquella bossa.',
     },
     board: {
-      ask: 'Dues pesades estan jurades. Anomena la bossa lleugera.',
-      law: 'Cada bossa està jurada al mateix pes: {n} ertog — un marc són vuit øre, un øre tres ertog. Una bossa va ser escapçada i corre lleugera. El plat que baixa duu l’argent més pesant.',
       reckon: 'Comptar les etiquetes en ertog',
       reckonBack: 'Llegir les etiquetes tal com van ser tallades',
-      help: 'Alça una bossa del prestatge per anomenar-la. Amb el teclat: fletxes per recórrer el prestatge, espai per anomenar-ne una, X per ratllar-la.',
       submit: 'Anomenar la bossa',
       submitDone: 'La bossa queda anomenada',
       skip: 'Saltar la mostra',
-      demoSay: 'Mira-ho un cop: una bossa s’alça del prestatge i es torna a posar.',
       setAside: 'a part',
       first: 'Primera',
       second: 'Segona',
-      cap: '{ord} pesada — {sink}',
       sinkLeft: 'baixa el plat esquerre',
       sinkRight: 'baixa el plat dret',
       sinkLevel: 'la biga queda anivellada',
@@ -1625,7 +1565,7 @@ export default {
   ordinal: 2,
   tier: 1,
   title: 'The Bismer Scales',
-  epigraph: 'Six pouches, one sworn weight — and one runs light. The beam has already spoken twice.',
+  epigraph: 'Six pouches swear one weight;\none swears thin. The beam spoke twice —\nweigh the words, not the silver.',
 
   makePuzzle,
   solve,

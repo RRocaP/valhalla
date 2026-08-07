@@ -333,7 +333,6 @@ function seeded(n) {
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and resolve through it at mount.
 const BOARD_EN = {
-  plate: 'Pair and order the eight staves into four lines whose sounds bind — the lights will tell you when they do.',
   troughHead: 'Loose staves — six syllables cut in each',
   tally: '{n} of 4 lines bind true',
   tallyDone: 'All 4 lines bind true. Speak the verse.',
@@ -427,13 +426,6 @@ function mount(ctx) {
   style.textContent = `
   .ow-drott{position:relative;display:flex;flex-direction:column;gap:.42rem;color:${P.bone};
     font-family:${SERIF}}
-
-  /* ---- the carved instruction plate ---- */
-  .ow-drott .ow10-plate{position:relative;display:flex;align-items:center;min-height:54px;
-    padding:.5rem .8rem .5rem 3.4rem}
-  .ow-drott .ow10-plate>canvas{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
-  .ow-drott .ow10-plate p{position:relative;margin:0;font-size:.9rem;line-height:1.34;
-    color:${P.bone};text-shadow:${CARVED}}
 
   /* ---- the lectern rack ---- */
   .ow-drott .ow10-lectern{position:relative;padding:13px 11px 11px;display:flex;
@@ -547,17 +539,6 @@ function mount(ctx) {
   const LINES = N / 2;
   const slotOf = new Array(N).fill(-1);   // fragment -> slot (0..7) or -1 in the trough
   let held = null;
-
-  // ---- the instruction plate ------------------------------------------------
-  const plate = document.createElement('div');
-  plate.className = 'ow10-plate';
-  const plateCv = document.createElement('canvas');
-  plateCv.setAttribute('aria-hidden', 'true');
-  plate.appendChild(plateCv);
-  const plateText = document.createElement('p');
-  plateText.textContent = T('plate');
-  plate.appendChild(plateText);
-  wrap.appendChild(plate);
 
   // ---- the lectern ----------------------------------------------------------
   const lectern = document.createElement('div');
@@ -710,7 +691,7 @@ function mount(ctx) {
   // where the player's eye already is.
   const tell = document.createElement('p');
   tell.className = 'tell';
-  tell.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
   wrap.appendChild(tell);
 
   const keys = document.createElement('p');
@@ -1241,16 +1222,6 @@ function mount(ctx) {
     }
   }
 
-  function drawPlate(g, w, h) {
-    g.clearRect(0, 0, w, h);
-    art.paintWood(g, w, h, 401);
-    art.paintPanel(g, 2, 2, w - 4, h - 4, {});
-    art.chipBorder(g, 5, 5, w - 10, h - 10, { size: 7, alpha: 0.6 });
-    const rr = Math.min(15, h * 0.32);
-    art.rosette(g, 22, h / 2, rr);
-    art.wear(g, w, h, 'b10-plate', { avoid: { x: 42, y: 4, w: w - 50, h: h - 8 } });
-  }
-
   function drawTrough(g, w, h) {
     g.clearRect(0, 0, w, h);
     art.paintWood(g, w, h, 887);
@@ -1289,9 +1260,6 @@ function mount(ctx) {
   let lastRackW = 0;
   let lastRackH = 0;
   function repaintSurfaces(force) {
-    const pw = plate.clientWidth;
-    const ph = plate.clientHeight;
-    if (pw > 0) drawPlate(fitCanvas(plateCv, pw, ph), pw, ph);
     const lw = lectern.clientWidth;
     const lh = lectern.clientHeight;
     if (lw > 0 && (force || lw !== lastRackW || lh !== lastRackH)) {
@@ -1647,7 +1615,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'Los Versos de Dróttkvætt',
-    epigraph: 'El metro de corte es una cerradura de tres guardas: cuenta, asta y rima.',
+    epigraph: 'El metro de corte guarda tres cerrojos:\ncuenta, asta y rima.\nPosa cada palabra hasta que aguanten las tres luces.',
     hints: [
       'Ordénalas antes de emparejarlas: la mitad riman solo por la coda, la otra mitad por vocal y coda. Solo una clase puede abrir un verso.',
       'El asta rectora es el PRIMER acento de la segunda media línea — no su primera palabra. Una sílaba átona puede ir delante.',
@@ -1660,7 +1628,6 @@ const I18N = {
       '0 of the four long lines stand. The rest break metre.': 'No se sostiene ninguno de los cuatro versos. Todos rompen el metro.',
     },
     board: {
-      plate: 'Empareja y ordena las ocho astas en cuatro versos cuyos sonidos liguen — las luces te dirán cuándo lo hacen.',
       troughHead: 'Astas sueltas — seis sílabas talladas en cada una',
       tally: '{n} de 4 versos ligan',
       tallyDone: 'Los 4 versos ligan. Di el verso.',
@@ -1686,7 +1653,7 @@ const I18N = {
   },
   ca: {
     title: 'Els Versos de Dróttkvætt',
-    epigraph: 'El metre de cort és un pany de tres guardes: compte, asta i rima.',
+    epigraph: 'El metre de cort guarda tres forrellats:\ncompte, asta i rima.\nPosa cada mot fins que els tres llums aguantin.',
     hints: [
       'Classifica-les abans d’aparellar-les: la meitat rimen només per la coda, l’altra meitat per vocal i coda. Només una classe pot obrir un vers.',
       'L’asta rectora és el PRIMER accent de la segona mitja línia — no la seva primera paraula. Una síl·laba àtona pot anar-hi davant.',
@@ -1699,7 +1666,6 @@ const I18N = {
       '0 of the four long lines stand. The rest break metre.': 'No s’aguanta cap dels quatre versos. Tots trenquen el metre.',
     },
     board: {
-      plate: 'Aparella i ordena les vuit astes en quatre versos els sons dels quals lliguin — les llums et diran quan ho facin.',
       troughHead: 'Astes soltes — sis síl·labes tallades a cadascuna',
       tally: '{n} de 4 versos lliguen',
       tallyDone: 'Els 4 versos lliguen. Digues el vers.',
@@ -1730,7 +1696,7 @@ export default {
   ordinal: 10,
   tier: 3,
   title: 'The Dróttkvætt Lines',
-  epigraph: 'Court metre is a lock with three wards: count, stave, and rhyme.',
+  epigraph: 'Court-metre is a lock of three wards:\ncount, stave and rime.\nSet each word till all three lights hold.',
 
   makePuzzle,
   solve,

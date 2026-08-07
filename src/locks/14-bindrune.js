@@ -135,17 +135,13 @@ const mix = (a, b, t) => {
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  law: 'Name exactly the runes bound in the carving — every stroke claimed, no rune idle.',
   legend: 'Gold: a stroke your runes claim. Pale: a stroke of the carving still unclaimed. Red: a cut your runes would make that the hasp does not carry.',
-  legendShort: 'Gold: claimed. Pale: unclaimed. Red: cut astray.',
-  trayLabel: 'The sixteen of the row, loose in the tray',
   tally: '{n} strokes of {m} claimed',
   tallyOne: '{n} stroke of {m} claimed',
   tallyAll: 'All {m} strokes claimed — and nothing idle. Name the bound runes.',
   clear: 'Lift them all out',
   submit: 'Name the bound runes',
   skip: 'Skip the showing',
-  demoSay: 'Watch once: a rune laid on the carving burns the strokes it claims.',
   sayClaims: '{name} claims {n} of the carving’s strokes.',
   sayIdle: '{name} claims nothing the others have not already cut.',
   sayWaste: '{name} would cut {n} astray — strokes the hasp does not carry.',
@@ -168,7 +164,7 @@ const BOARD_EN = {
 const I18N = {
   es: {
     title: 'El Sello de Runas Ligadas',
-    epigraph: 'Seis nombres tallados uno sobre otro en una sola asta. El asta es de todos ellos y de ninguno.',
+    epigraph: 'Seis nombres tallados en una sola asta.\nReclama cada trazo, sin runa ociosa —\nel asta es de todos, y de ninguno.',
     hints: [
       'Cada trazo del sello pertenece a alguna runa. Halla la runa dueña de cada trazo y habrás hallado el sello.',
       'El asta larga del centro pertenece a toda runa que cuelgue de ella — luego no nombra a ninguna. Juzga una runa solo por sus ramas.',
@@ -181,17 +177,13 @@ const I18N = {
       'One of those runes adds nothing the others have not already cut.': 'Una de esas runas no añade nada que las otras no hayan cortado ya.',
     },
     board: {
-      law: 'Nombra exactamente las runas ligadas en la talla: cada trazo reclamado, ninguna runa ociosa.',
       legend: 'Oro: trazo que tus runas reclaman. Pálido: trazo de la talla aún sin reclamar. Rojo: corte que tus runas harían y que el herraje no lleva.',
-      legendShort: 'Oro: reclamado. Pálido: sin reclamar. Rojo: corte perdido.',
-      trayLabel: 'Las dieciséis de la hilera, sueltas en la bandeja',
       tally: '{n} trazos de {m} reclamados',
       tallyOne: '{n} trazo de {m} reclamado',
       tallyAll: 'Los {m} trazos reclamados, y nada ocioso. Nombra las runas ligadas.',
       clear: 'Sacarlas todas',
       submit: 'Nombrar las runas ligadas',
       skip: 'Saltar la muestra',
-      demoSay: 'Mira una vez: una runa puesta sobre la talla enciende los trazos que reclama.',
       sayClaims: '{name} reclama {n} trazos de la talla.',
       sayIdle: '{name} no reclama nada que las otras no hayan cortado ya.',
       sayWaste: '{name} cortaría {n} de más: trazos que el herraje no lleva.',
@@ -213,7 +205,7 @@ const I18N = {
   },
   ca: {
     title: 'El Segell de Runes Lligades',
-    epigraph: 'Sis noms tallats l’un damunt de l’altre en una sola asta. L’asta és de tots ells i de cap.',
+    epigraph: 'Sis noms tallats en una sola asta.\nReclama cada traç, sense runa ociosa —\nl’asta és de tots, i de cap.',
     hints: [
       'Cada traç del segell pertany a alguna runa. Troba la runa amo de cada traç i hauràs trobat el segell.',
       'L’asta llarga del mig pertany a tota runa que hi pengi — per tant no en nomena cap. Jutja una runa només per les seves branques.',
@@ -226,17 +218,13 @@ const I18N = {
       'One of those runes adds nothing the others have not already cut.': 'Una d’aquestes runes no hi afegeix res que les altres no hagin tallat ja.',
     },
     board: {
-      law: 'Anomena exactament les runes lligades a la talla: cada traç reclamat, cap runa ociosa.',
       legend: 'Or: traç que les teves runes reclamen. Pàl·lid: traç de la talla encara sense reclamar. Vermell: tall que les teves runes farien i que el ferratge no duu.',
-      legendShort: 'Or: reclamat. Pàl·lid: sense reclamar. Vermell: tall perdut.',
-      trayLabel: 'Les setze de la filera, soltes a la safata',
       tally: '{n} traços de {m} reclamats',
       tallyOne: '{n} traç de {m} reclamat',
       tallyAll: 'Els {m} traços reclamats, i res ociós. Anomena les runes lligades.',
       clear: 'Treure-les totes',
       submit: 'Anomenar les runes lligades',
       skip: 'Saltar la mostra',
-      demoSay: 'Mira-ho un cop: una runa posada damunt la talla encén els traços que reclama.',
       sayClaims: '{name} reclama {n} traços de la talla.',
       sayIdle: '{name} no reclama res que les altres no hagin tallat ja.',
       sayWaste: '{name} tallaria {n} de més: traços que el ferratge no duu.',
@@ -263,7 +251,7 @@ export default {
   ordinal: 14,
   tier: 4,
   title: 'The Bind-Rune Seal',
-  epigraph: 'Six names cut over one another on a single stave. The stave belongs to all of them and to none.',
+  epigraph: 'Six names cut on one stave.\nClaim every stroke, leave no rune idle —\nthe stave is all of them, and none.',
 
   makePuzzle(rng) {
     for (let attempt = 0; attempt < 200; attempt++) {
@@ -445,12 +433,6 @@ export default {
     const wrap = node('div', `display:grid;gap:${narrow ? 8 : 11}px;font-family:${SERIF};color:${p.bone};justify-items:center`);
     const style = node('style');
     style.textContent = `
-      .ow14-plate{margin:0 auto;padding:${narrow ? '8px 12px' : '10px 20px'};max-width:62ch;text-align:center;
-        font-family:${SERIF};font-size:${narrow ? 13.5 : 15}px;line-height:1.42;color:${p.bone};border-radius:3px;
-        background:linear-gradient(178deg,${rgba(p.oak, 0.9)},${rgba(p.oakDeep, 0.94)});
-        border:1px solid ${rgba(p.oakLight, 0.95)};
-        box-shadow:inset 0 1px 0 ${rgba(p.goldBright, 0.16)},inset 0 -2px 5px ${rgba(p.tar, 0.7)},0 2px 6px ${rgba(p.tar, 0.55)};
-        text-shadow:${art.reliefShadowCss || `-1px -1px 0 ${rgba(p.tar, 0.85)}`}}
       .ow14-cols{display:flex;gap:${narrow ? 8 : 16}px;align-items:flex-start;justify-content:center;flex-wrap:wrap;
         width:${narrow ? TRAY_CW : SEAL_W + TRAY_CW + 16}px;max-width:100%}
       .ow14-cola{flex:0 0 ${SEAL_W}px;display:grid;gap:${narrow ? 7 : 10}px;justify-items:center}
@@ -489,9 +471,6 @@ export default {
     `;
     wrap.append(style);
 
-    const plate = node('p', null, T('law'));
-    plate.className = 'ow14-plate';
-
     const cols = node('div');
     cols.className = 'ow14-cols';
     const colA = node('div');
@@ -517,14 +496,8 @@ export default {
     count.className = 'ow14-count';
     gaugeRow.append(gauge.canvas, count);
 
-    const legend = node('p',
-      `margin:0;font-size:${narrow ? 11.5 : 12.5}px;line-height:1.4;color:${p.boneDim};max-width:${SEAL_W}px;text-align:center`,
-      T(narrow ? 'legendShort' : 'legend'));
+    colA.append(stage, gaugeRow);
 
-    colA.append(stage, gaugeRow, legend);
-
-    const trayLabel = node('p',
-      `margin:0;font-size:12px;color:${p.boneDim};letter-spacing:.05em;text-align:center`, T('trayLabel'));
     const trayw = node('div');
     trayw.className = 'ow14-trayw';
     const tray = art.makeCanvas(TRAY_CW, TRAY_CH);
@@ -533,7 +506,7 @@ export default {
     const cands = node('div');
     cands.className = 'ow14-row';
     trayw.append(tray.canvas, cands);
-    colB.append(trayLabel, trayw);
+    colB.append(trayw);
     cols.append(colA, colB);
 
     const RUNE_PX = Math.round(Math.min(TW * 0.62, TH * 0.52));
@@ -562,9 +535,9 @@ export default {
     actions.append(skipBtn, clearBtn, sealBtn);
 
     const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px;text-align:center;max-width:60ch`);
-    status.setAttribute('aria-live', 'polite');
+    // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
 
-    wrap.append(plate, cols, actions, status);
+    wrap.append(cols, actions, status);
     ctx.root.append(wrap);
 
     // ---- carving geometry ---------------------------------------------------
@@ -1342,7 +1315,6 @@ export default {
       ghostHost.style.display = 'block';
       skipBtn.style.display = '';
       showing = true;
-      status.textContent = T('demoSay');
 
       if (!calm && typeof ghostHost.animate === 'function') {
         motions.push(ghostHost.animate([
@@ -1392,6 +1364,7 @@ export default {
     }
 
     say(T('opening', { n: inst.segments.length }));
+    say(T('legend'));
     render(ctx.solved ? T('solvedLine') : '');
     if (!ctx.solved) later(showTheWay, 260);
 

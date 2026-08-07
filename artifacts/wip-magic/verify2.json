@@ -1,0 +1,212 @@
+[
+ {
+  "name": "v2-desk-threshold",
+  "overlaps": [],
+  "lum": {
+   "field": 28.3,
+   "focal": 134.8,
+   "ratio": 4.76,
+   "p90ratio": 6.54
+  }
+ },
+ {
+  "name": "v2-desk-lid",
+  "overlaps": [],
+  "lum": {
+   "field": 29.4,
+   "focal": 65.9,
+   "ratio": 2.24,
+   "p90ratio": 4.25
+  }
+ },
+ {
+  "name": "v2-desk-journal",
+  "overlaps": [],
+  "lum": {
+   "field": 18.8,
+   "focal": 193.2,
+   "ratio": 10.26,
+   "p90ratio": 12.13
+  }
+ },
+ {
+  "name": "v2-desk-L01",
+  "overlaps": [],
+  "lum": {
+   "field": 48.6,
+   "focal": 54.9,
+   "ratio": 1.13,
+   "p90ratio": 2.9
+  }
+ },
+ {
+  "name": "v2-desk-L04",
+  "overlaps": [],
+  "lum": {
+   "field": 33.5,
+   "focal": 36.4,
+   "ratio": 1.09,
+   "p90ratio": 1.75
+  }
+ },
+ {
+  "name": "v2-desk-L09",
+  "overlaps": [],
+  "lum": {
+   "field": 59.3,
+   "focal": 92.4,
+   "ratio": 1.56,
+   "p90ratio": 3.59
+  }
+ },
+ {
+  "name": "v2-desk-L12",
+  "overlaps": [],
+  "lum": {
+   "field": 42.6,
+   "focal": 41,
+   "ratio": 0.96,
+   "p90ratio": 1.35
+  }
+ },
+ {
+  "name": "v2-desk-L13",
+  "overlaps": [],
+  "lum": {
+   "field": 29.9,
+   "focal": 35.9,
+   "ratio": 1.2,
+   "p90ratio": 2.13
+  }
+ },
+ {
+  "name": "v2-desk-dare13",
+  "overlaps": [],
+  "lum": {
+   "field": 17,
+   "focal": 34.8,
+   "ratio": 2.05,
+   "p90ratio": 4.83
+  }
+ },
+ {
+  "name": "v2-phone-threshold",
+  "overlaps": [],
+  "lum": {
+   "field": 30.8,
+   "focal": 132.1,
+   "ratio": 4.29,
+   "p90ratio": 5.96
+  }
+ },
+ {
+  "name": "v2-phone-lid",
+  "overlaps": [],
+  "lum": {
+   "field": 29.5,
+   "focal": 68.7,
+   "ratio": 2.33,
+   "p90ratio": 4.32
+  }
+ },
+ {
+  "name": "v2-phone-journal",
+  "overlaps": [],
+  "lum": {
+   "field": 17.9,
+   "focal": 187.4,
+   "ratio": 10.49,
+   "p90ratio": 12.79
+  }
+ },
+ {
+  "name": "v2-phone-L01",
+  "overlaps": [],
+  "lum": {
+   "field": 39,
+   "focal": 65.2,
+   "ratio": 1.67,
+   "p90ratio": 4.14
+  }
+ },
+ {
+  "name": "v2-phone-L04",
+  "overlaps": [],
+  "lum": {
+   "field": 34.9,
+   "focal": 37,
+   "ratio": 1.06,
+   "p90ratio": 1.58
+  }
+ },
+ {
+  "name": "v2-phone-L09",
+  "overlaps": [],
+  "lum": {
+   "field": 50.2,
+   "focal": 91.5,
+   "ratio": 1.82,
+   "p90ratio": 4.22
+  }
+ },
+ {
+  "name": "v2-phone-L12",
+  "overlaps": [],
+  "lum": {
+   "field": 38.7,
+   "focal": 42.7,
+   "ratio": 1.11,
+   "p90ratio": 1.72
+  }
+ },
+ {
+  "name": "v2-phone-L13",
+  "overlaps": [],
+  "lum": {
+   "field": 37.3,
+   "focal": 36.7,
+   "ratio": 0.98,
+   "p90ratio": 1.66
+  }
+ },
+ {
+  "name": "v2-phone-dare13",
+  "overlaps": [],
+  "lum": {
+   "field": 27.4,
+   "focal": 29.7,
+   "ratio": 1.08,
+   "p90ratio": 2.61
+  }
+ },
+ {
+  "name": "v2-phone-es-L02",
+  "overlaps": [],
+  "lum": null
+ },
+ {
+  "name": "v2-phone-es-L12",
+  "overlaps": [],
+  "lum": null
+ },
+ {
+  "name": "v2-phone-ca-L02",
+  "overlaps": [],
+  "lum": null
+ },
+ {
+  "name": "v2-phone-ca-L15",
+  "overlaps": [],
+  "lum": null
+ },
+ {
+  "name": "v2-desk-finale",
+  "overlaps": [],
+  "lum": {
+   "field": 26.2,
+   "focal": 47.4,
+   "ratio": 1.81,
+   "p90ratio": 2.63
+  }
+ }
+]

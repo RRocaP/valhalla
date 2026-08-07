@@ -10,6 +10,27 @@ import { ordinalWord } from '../numerals.js';
 import { gauntletFor, lineFor, journalHasLine, WAGER } from '../duels.js';
 import { rng } from '../../kernel/rng.js';
 import { resolveLang } from '../../kernel/i18n.js';
+import { loadHero, drawHero, coverRect } from '../heroes.js';
+
+// The chest hero plate (heroes/chest.jpg) photographs the real object: a
+// sea-chest with FIFTEEN bronze medallions in three arcs. In photo mode the
+// hit targets anchor onto the photographed bronze (fractions of the image,
+// calibrated against artifacts/wip-magic/shots/calib-medallions.png) and all
+// lock state renders as light ON the metal. Procedural chestScene remains
+// the full fallback when the plate is absent (offline law).
+const CHEST_SOCKETS = (() => {
+  const r1x = [0.3365, 0.4153, 0.5021, 0.5889, 0.6677];
+  const r1y = [0.4535, 0.4643, 0.4711, 0.4643, 0.4535];
+  const r2x = [0.3229, 0.4111, 0.4992, 0.5873, 0.6755];
+  const r2y = [0.5317, 0.54, 0.5476, 0.54, 0.5317];
+  const r3y = [0.6107, 0.619, 0.6266, 0.619, 0.6107];
+  const out = [];
+  for (let i = 0; i < 5; i++) out.push({ fx: r1x[i], fy: r1y[i] });
+  for (let i = 0; i < 5; i++) out.push({ fx: r2x[i], fy: r2y[i] });
+  for (let i = 0; i < 5; i++) out.push({ fx: r2x[i], fy: r3y[i] });
+  return out;
+})();
+const CHEST_SOCKET_R = 0.0442; // medallion radius as a fraction of drawn plate width
 
 // Fallback layout, used only when the art module predates art.chestLayout.
 // Generic N-lock layout (not hardcoded to 15) so the same code serves the
@@ -150,13 +171,14 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     }
   }
 
-  // One small-caps chapter label per gauntlet, seated on its painted ribbon.
-  // The armed gauntlet's label keeps the .duel-banner class — journey/floors
+  // ONE chapter label on the whole hub: the armed gauntlet's (Magic Law text
+  // budget — five all-caps ribbons read as noise and collided with the
+  // medallion field). Finished and sealed gauntlets speak through their cloth
+  // alone. The armed label keeps the .duel-banner class — journey/floors
   // assert its visibility before entering a duel lock.
   gauntletGroups.forEach((group) => {
-    const cls = ['chapter-label'];
-    if (group.active) cls.push('duel-banner');
-    if (group.done) cls.push('chapter-done');
+    if (!group.active) { group.label = null; return; }
+    const cls = ['chapter-label', 'duel-banner'];
     const gi = ROMANG[Math.max(0, Math.ceil(group.g.dareAt / 3) - 1)];
     const text = isRevealed(group.g)
       ? lineFor(group.g.title, lang)
@@ -207,14 +229,114 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   // a scatter of overlapping circles.
   const useChestLayout = typeof art.chestLayout === 'function';
 
+  // ---- photo mode: the hub is the real chest -------------------------------
+  let hero = null;        // decoded chest plate, or null (procedural fallback)
+  let heroBake = null;    // offscreen: graded plate + static state light
+  const photoMode = () => !!hero;
+
+  function photoRect(w, h) {
+    return coverRect(hero, w, h, 0.5, 0.53);
+  }
+
+  function photoLayout(w, h) {
+    const r = photoRect(w, h);
+    const sockets = CHEST_SOCKETS.map((f) => ({
+      x: r.dx + f.fx * r.dw,
+      y: r.dy + f.fy * r.dh,
+      r: Math.max(22, CHEST_SOCKET_R * r.dw),
+    }));
+    return {
+      sockets,
+      left: r.dx + 0.04 * r.dw,
+      top: r.dy + 0.26 * r.dh,
+      chestW: 0.92 * r.dw,
+      chestH: 0.55 * r.dh,
+      railH: 0.07 * r.dh,
+      rect: r,
+    };
+  }
+
+  function bakePhoto(w, h) {
+    heroBake = art.makeCanvas(w, h);
+    const c = heroBake.ctx;
+    drawHero(c, hero, w, h, { fy: 0.53, edge: 0.72 });
+    // static state light, ON the bronze
+    const L = photoLayout(w, h);
+    locks.forEach((lock, i) => {
+      const pos = L.sockets[i];
+      if (!pos) return;
+      const state = lockState(locks, save, lock.id);
+      if (state === 'sealed') {
+        const g = c.createRadialGradient(pos.x, pos.y, pos.r * 0.2, pos.x, pos.y, pos.r * 1.15);
+        g.addColorStop(0, 'rgba(12,9,6,.48)');
+        g.addColorStop(1, 'rgba(12,9,6,0)');
+        c.fillStyle = g;
+        c.beginPath();
+        c.arc(pos.x, pos.y, pos.r * 1.15, 0, Math.PI * 2);
+        c.fill();
+      } else if (state === 'open') {
+        // the seal stands broken: a quiet gold ring and the lock's rune etched
+        art.glow(c, pos.x, pos.y, pos.r * 1.35, p.gold, 0.16);
+        c.save();
+        c.strokeStyle = 'rgba(238,207,109,.5)';
+        c.lineWidth = Math.max(1.4, pos.r * 0.05);
+        c.beginPath();
+        c.arc(pos.x, pos.y, pos.r * 0.92, 0, Math.PI * 2);
+        c.stroke();
+        if (typeof art.drawRune === 'function') {
+          const shard = lock.shard && lock.shard(lock.makePuzzle(rng('lindisfarne-793:' + lock.id)));
+          if (shard && shard.rune) {
+            c.globalAlpha = 0.85;
+            art.drawRune(c, shard.rune, pos.x - pos.r * 0.34, pos.y - pos.r * 0.44, pos.r * 0.68, {
+              color: p.goldBright, weight: Math.max(2, pos.r * 0.1), glow: 0.25,
+            });
+          }
+        }
+        c.restore();
+      }
+    });
+    return heroBake;
+  }
+
   function paint(t) {
-    art.chestScene(cur.ctx, cur.w, cur.h, t, progress);
-    if (!useChestLayout) {
-      locks.forEach((lock, i) => {
-        const pos = layout[i];
-        if (!pos) return;
-        art.medallion(cur.ctx, pos.x, pos.y, pos.r, lockState(locks, save, lock.id), lock.ordinal);
-      });
+    if (photoMode()) {
+      if (!heroBake || heroBake.w !== cur.w || heroBake.h !== cur.h) bakePhoto(cur.w, cur.h);
+      cur.ctx.clearRect(0, 0, cur.w, cur.h);
+      cur.ctx.drawImage(heroBake.canvas, 0, 0, cur.w, cur.h);
+      // the armed lock breathes: gold halo + the one cold accent (arcane blue)
+      const nextIdx = nextLock ? locks.indexOf(nextLock) : -1;
+      const pos = nextIdx >= 0 ? layout[nextIdx] : null;
+      if (pos) {
+        const pulse = reducedMotion ? 0.75 : 0.62 + 0.38 * Math.sin(t / 640);
+        art.glow(cur.ctx, pos.x, pos.y, pos.r * 2.1, p.goldBright, 0.3 * pulse + 0.18);
+        art.glow(cur.ctx, pos.x, pos.y, pos.r * 1.1, p.ember, 0.22 * pulse);
+        cur.ctx.save();
+        cur.ctx.strokeStyle = `rgba(238,207,109,${0.4 + 0.3 * pulse})`;
+        cur.ctx.lineWidth = Math.max(1.6, pos.r * 0.07);
+        cur.ctx.beginPath();
+        cur.ctx.arc(pos.x, pos.y, pos.r * 1.02, 0, Math.PI * 2);
+        cur.ctx.stroke();
+        if (typeof art.drawRune === 'function') {
+          const shard = nextLock.shard && nextLock.shard(nextLock.makePuzzle(rng('lindisfarne-793:' + nextLock.id)));
+          const accent = (p.fjordLight || '#3f6d9e');
+          if (shard && shard.rune) {
+            cur.ctx.globalAlpha = 0.5 + 0.4 * pulse;
+            art.drawRune(cur.ctx, shard.rune, pos.x - pos.r * 0.36, pos.y - pos.r * 0.46, pos.r * 0.72, {
+              color: accent, weight: Math.max(2.2, pos.r * 0.11), glow: 0.5,
+            });
+          }
+        }
+        cur.ctx.restore();
+      }
+    } else {
+      art.chestScene(cur.ctx, cur.w, cur.h, t, progress);
+      if (!useChestLayout) {
+        locks.forEach((lock, i) => {
+          const pos = layout[i];
+          if (!pos) return;
+          art.medallion(cur.ctx, pos.x, pos.y, pos.r, lockState(locks, save, lock.id), lock.ordinal);
+        });
+      }
     }
     if (justOpenedId && !reducedMotion) {
       const idx = locks.findIndex((l) => l.id === justOpenedId);
@@ -300,6 +422,20 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   function bannerGeometry(seg, w) {
     const sockets = seg.items.map((it) => it.pos);
     const r = sockets[0].r;
+    if (photoMode()) {
+      // On the photographed chest the rows smile upward at their ends; cloth
+      // that follows them kicks its tails into the straps. Pin the banner
+      // STRAIGHT above the row instead, quiet and level.
+      const bandH = Math.max(10, Math.min(14, r * 0.3));
+      const gapBelow = Math.max(5, r * 0.2);
+      const yTop = Math.min(...sockets.map((s) => s.y)) - r - gapBelow - bandH;
+      let colGap = r * 4;
+      for (let i = 1; i < sockets.length; i++) colGap = Math.min(colGap, sockets[i].x - sockets[i - 1].x);
+      const ext = Math.max(r * 0.4, Math.min(r + 18, colGap / 2 - r - 5));
+      const x0 = Math.max(8, sockets[0].x - r - (seg.outerLeft ? ext : Math.max(2, ext * 0.4)));
+      const x1 = Math.min(w - 8, sockets[sockets.length - 1].x + r + (seg.outerRight ? ext : Math.max(2, ext * 0.4)));
+      return { x0, x1, bandH, topAt: () => yTop, r };
+    }
     const bandH = Math.max(11, Math.min(19, r * 0.52));
     const gapBelow = Math.max(4, r * 0.16);
     // extend past the end sockets into the column gap / chest margin, clamped
@@ -415,7 +551,8 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     // finished ones resting, the sealed ones receded to tar-washed cloth —
     // five equal-loudness ribbons read as a red lattice, not chapters.
     const revealed = isRevealed(group.g);
-    const alpha = group.active ? 1 : group.done ? 0.5 : revealed ? 0.62 : 0.4;
+    let alpha = group.active ? 1 : group.done ? 0.5 : revealed ? 0.62 : 0.4;
+    if (photoMode()) alpha *= 0.85; // the cloth defers to the photographed bronze
     const r3 = rng(`banner-folds:${group.g.key}`);
     // the label sits on the longest run (ties -> the run holding the dare lock)
     let labelSeg = segs[0];
@@ -498,7 +635,7 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       const yB1 = geo.topAt(geo.x1) + geo.bandH;
       const firstPos = seg.items[0].pos;
       const lastPos = seg.items[seg.items.length - 1].pos;
-      if (revealed || group.active || group.done) {
+      if (!photoMode() && (revealed || group.active || group.done)) {
         if (seg.outerLeft && rowOuter(geo.x0, -1, firstPos)) drawFlap(ctx, geo.x0, yB0, geo.bandH, -1, firstPos, w, r3());
         if (seg.outerRight && rowOuter(geo.x1, 1, lastPos)) drawFlap(ctx, geo.x1, yB1, geo.bandH, 1, lastPos, w, r3());
       }
@@ -526,7 +663,15 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     const w = deco.w;
     const h = deco.h;
     deco.ctx.clearRect(0, 0, w, h);
-    if (useChestLayout) {
+    if (photoMode()) {
+      // the photograph carries its own history — only the wordmark echo joins
+      // it, in the dark hall above the chest
+      const L = photoLayout(w, h);
+      if (typeof art.wordmark === 'function' && L.top > 56) {
+        const size = Math.max(15, Math.min(24, L.top * 0.2));
+        art.wordmark(deco.ctx, w / 2, Math.max(34, L.top * 0.44), size, { maxWidth: w * 0.7, depth: 0.75 });
+      }
+    } else if (useChestLayout) {
       const L = art.chestLayout(w, h, locks.length);
       // quiet tool history in the dead zones around the chest — never on it
       // (two seeded passes: the surround is the largest empty field on the
@@ -559,9 +704,11 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   function layoutMedallions() {
     const w = screen.clientWidth;
     const h = screen.clientHeight;
-    layout = useChestLayout
-      ? art.chestLayout(w, h, locks.length).sockets
-      : medallionLayout(locks.length, w, h);
+    layout = photoMode()
+      ? photoLayout(w, h).sockets
+      : useChestLayout
+        ? art.chestLayout(w, h, locks.length).sockets
+        : medallionLayout(locks.length, w, h);
     locks.forEach((lock, i) => {
       const pos = layout[i];
       const btn = buttons[i];
@@ -588,7 +735,13 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
     // than at a fixed offset from the bottom of the viewport, where it floated
     // on bare board below the chest.
     let haspW = Math.min(w * 0.86, 640);
-    if (useChestLayout) {
+    if (photoMode()) {
+      // the photographed chest's carved band under the third arc
+      const r = photoRect(w, h);
+      haspW = Math.min(r.dw * 0.42, 560);
+      haspWrap.style.bottom = 'auto';
+      haspWrap.style.top = `${Math.round(r.dy + 0.685 * r.dh)}px`;
+    } else if (useChestLayout) {
       const L = art.chestLayout(w, h, locks.length);
       haspW = Math.min(L.chestW * 0.76, 640);
       const railTop = L.top + L.chestH - L.railH + L.railH * 0.1;
@@ -614,7 +767,20 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   resize();
   if (!reducedMotion) raf = requestAnimationFrame(loop);
 
+  // The chest plate arrives whenever it arrives (lazy, same-origin, cached):
+  // procedural paints first, the real object settles in on the same frame
+  // clock — no jank, and no dependency if the file is absent.
+  let alive = true;
+  loadHero('chest').then((img) => {
+    if (!alive || !img) return;
+    hero = img;
+    heroBake = null;
+    resize();
+    if (reducedMotion) paint(0);
+  });
+
   return function unmount() {
+    alive = false;
     if (raf) cancelAnimationFrame(raf);
     window.removeEventListener('resize', resize);
     screen.remove();

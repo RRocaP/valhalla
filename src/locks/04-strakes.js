@@ -239,16 +239,10 @@ const MONO = "ui-monospace,'SF Mono',Menlo,monospace";
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and resolve through it at mount.
 const BOARD_EN = {
-  plate: 'Stack the seven strakes as the true testimonies demand — and brand the false oath.',
-  law: 'Lap law: a strake laps the one below it and no other. Seven planks, one stack. '
-    + 'Rivet law: where two strakes lap, one rivet count is odd and the other even. One testimony is false.',
-  help: 'Drag a plank to move it, or lift it with space and move it with the up and down arrows. '
-    + 'Tap a tally-board to brand that oath false.',
   submit: 'Raise the stack',
   submitDone: 'The stack stands',
   solvedLine: 'The stack stands from keel to sheer, and the false oath is struck.',
   skip: 'Skip the showing',
-  demoSay: 'Watch once: a plank is lifted and set one place higher.',
   sheer: 'sheer',
   keel: 'keel',
   tally: '{n} of {j} joints lie fair',
@@ -458,9 +452,6 @@ function mount(ctx) {
   `;
   wrap.append(style);
 
-  // the plate: the one line that names the act, cut into a carved batten
-  const plateHost = node('div', 'line-height:0');
-  const plate = { canvas: null, ctx: null, w: 0, h: 0 };
 
   const cols = node('div');
   cols.className = 'ow4-cols';
@@ -503,13 +494,13 @@ function mount(ctx) {
   const tallyWrap = node('div', 'display:flex;gap:11px;align-items:center;justify-content:center;flex-wrap:wrap');
   const tallyGfx = art.makeCanvas(178, 24);
   tallyGfx.canvas.setAttribute('aria-hidden', 'true');
-  const tallyText = node('p', `margin:0;font-size:14px;color:${p.boneDim}`);
+  // carved tally marks carry the sighted count; the words stay for readers
+  const tallyText = node('p', null);
+  tallyText.className = 'visually-hidden';
   tallyWrap.append(tallyGfx.canvas, tallyText);
 
-  const law = node('p', `margin:0;font-size:12px;color:${p.boneDim};line-height:1.45;text-align:center`, T('law'));
-  const help = node('p', `margin:0;font-size:12px;color:${p.boneDim};text-align:center;line-height:1.45`, T('help'));
   const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};text-align:center`);
-  status.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
 
   const actions = node('div', 'display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center');
   const submitBtn = node('button', null, T('submit'));
@@ -522,7 +513,7 @@ function mount(ctx) {
   skipBtn.style.display = 'none';
   actions.append(submitBtn, skipBtn);
 
-  wrap.append(plateHost, cols, tallyWrap, law, help, actions, status);
+  wrap.append(cols, tallyWrap, actions, status);
   ctx.root.append(wrap);
 
   // ---- layout -------------------------------------------------------------
@@ -555,43 +546,6 @@ function mount(ctx) {
     target.w = W;
     target.h = H;
     return target;
-  }
-
-  // ---- the plate ----------------------------------------------------------
-  function paintPlate() {
-    if (!plate.ctx) return;
-    const c = plate.ctx;
-    const { w, h } = plate;
-    c.clearRect(0, 0, w, h);
-    art.paintWood(c, w, h, 4041);
-    c.save();
-    c.fillStyle = 'rgba(12,9,6,.34)';
-    c.fillRect(0, 0, w, h);
-    c.restore();
-    if (typeof art.chipBorder === 'function') {
-      art.chipBorder(c, 5, 4, w - 10, h - 8, { size: Math.max(6, w / 78), alpha: 0.5 });
-    }
-    // the batten's own arris: tar seat above, catch light below
-    c.save();
-    c.strokeStyle = 'rgba(12,9,6,.85)';
-    c.lineWidth = 1.6;
-    c.strokeRect(1, 1, w - 2, h - 2);
-    c.strokeStyle = 'rgba(238,207,109,.16)';
-    c.lineWidth = 1;
-    c.beginPath(); c.moveTo(2, h - 2.4); c.lineTo(w - 2, h - 2.4); c.stroke();
-    c.restore();
-
-    const size = Math.max(13, Math.min(19, w / 46));
-    const words = T('plate');
-    // two lines when the batten is narrow, one when it is long
-    const brk = words.indexOf('— ');
-    if (w < 520 && brk > 0) {
-      art.carveText(c, words.slice(0, brk).trim(), w / 2, h / 2 - 1, size, { align: 'center', depth: 0.85, maxWidth: w - 34 });
-      art.carveText(c, words.slice(brk), w / 2, h / 2 + size + 3, size, { align: 'center', depth: 0.85, maxWidth: w - 34 });
-    } else {
-      art.carveText(c, words, w / 2, h / 2 + size * 0.36, size, { align: 'center', depth: 0.85, maxWidth: w - 30 });
-    }
-    for (const nx of [11, w - 11]) art.ornament(c, 'nailhead', nx, h / 2, 8);
   }
 
   // ---- the bay: cradle, ghosted hull, shavings -----------------------------
@@ -1591,7 +1545,6 @@ function mount(ctx) {
     const y1 = Math.round(b.top - bayRect.top);
     ghostHost.style.transform = `translate(${x0}px,${y0}px)`;
     skipBtn.style.display = '';
-    status.textContent = T('demoSay');
 
     if (!calm && typeof ghostHost.animate === 'function') {
       const m = ghostHost.animate([
@@ -1673,9 +1626,6 @@ function mount(ctx) {
 
   function relayout() {
     measure();
-    fitCanvas(plateHost, plate, Math.max(240, wide ? bayW + railW + 16 : bayW), wide ? 54 : 66);
-    paintPlate();
-
     stackList.style.width = `${plankW}px`;
     for (const v of plankViews) {
       fitCanvas(v.btn, v.gfx, plankW, PLANK_H);
@@ -1785,7 +1735,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'Las Tracas a Tingladillo',
-    epigraph: 'Siete tablas, y siete hombres que juran. Uno jura en falso.',
+    epigraph: 'Siete tablas, siete juramentos — uno está podrido.\nArma el casco que exigen los seis veraces\ny marca la lengua que mintió.',
     hints: [
       'Una traca solapa la de debajo y ninguna otra. Siete tablas hacen una sola pila, de la quilla a la regala — y estos siete testimonios cierran un anillo, cosa que ninguna pila puede.',
       'Cuenta los roblones. Donde dos tracas solapan, una cuenta es impar y la otra par. Pesa cada testimonio contra esa ley.',
@@ -1805,16 +1755,10 @@ const I18N = {
       [nearRun(8)]: 'Ocho tracas desde la quilla se sostienen. La siguiente no.',
     },
     board: {
-      plate: 'Apila las siete tracas como exigen los testimonios verdaderos — y marca el juramento falso.',
-      law: 'Ley del solape: una traca solapa la de debajo y ninguna otra. Siete tablas, una pila. '
-        + 'Ley del roblón: donde dos tracas solapan, una cuenta es impar y la otra par. Un testimonio es falso.',
-      help: 'Arrastra una traca para moverla, o álzala con el espacio y muévela con las flechas arriba y abajo. '
-        + 'Toca una tabla de cuentas para marcar ese juramento como falso.',
       submit: 'Levantar la pila',
       submitDone: 'La pila se sostiene',
       solvedLine: 'La pila se sostiene de la quilla a la regala, y el juramento falso queda tachado.',
       skip: 'Saltar la muestra',
-      demoSay: 'Mira una vez: una traca se alza y se posa un lugar más arriba.',
       sheer: 'regala',
       keel: 'quilla',
       tally: '{n} de {j} juntas asientan bien',
@@ -1855,7 +1799,7 @@ const I18N = {
   },
   ca: {
     title: 'Les Traques a Tingladell',
-    epigraph: 'Set taules, i set homes que juren. Un jura en fals.',
+    epigraph: 'Set taules, set juraments — un és podrit.\nArma el buc que exigeixen els sis verídics\ni marca la llengua que va mentir.',
     hints: [
       'Una traca encavalca la de sota i cap altra. Set taules fan una sola pila, de la quilla a la regala — i aquests set testimonis tanquen un anell, cosa que cap pila no pot.',
       'Compta els reblons. Allà on dues traques encavalquen, un compte és senar i l’altre parell. Pesa cada testimoni contra aquesta llei.',
@@ -1875,16 +1819,10 @@ const I18N = {
       [nearRun(8)]: 'Vuit traques des de la quilla s’aguanten. La següent no.',
     },
     board: {
-      plate: 'Apila les set traques com exigeixen els testimonis verdaders — i marca el jurament fals.',
-      law: 'Llei de l’encavalcament: una traca encavalca la de sota i cap altra. Set taules, una pila. '
-        + 'Llei del rebló: allà on dues traques encavalquen, un compte és senar i l’altre parell. Un testimoni és fals.',
-      help: 'Arrossega una traca per moure-la, o alça-la amb l’espai i mou-la amb les fletxes amunt i avall. '
-        + 'Toca una post de comptes per marcar aquell jurament com a fals.',
       submit: 'Aixecar la pila',
       submitDone: 'La pila s’aguanta',
       solvedLine: 'La pila s’aguanta de la quilla a la regala, i el jurament fals queda ratllat.',
       skip: 'Saltar la mostra',
-      demoSay: 'Mira-ho un cop: una traca s’alça i es posa un lloc més amunt.',
       sheer: 'regala',
       keel: 'quilla',
       tally: '{n} de {j} juntes seuen bé',
@@ -1930,7 +1868,7 @@ export default {
   ordinal: 4,
   tier: 2,
   title: 'The Clinker Strakes',
-  epigraph: 'Seven planks, and seven men who swear. One swears falsely.',
+  epigraph: 'Seven planks, seven oaths — one oath rots.\nBuild the hull the true six demand,\nand brand the tongue that lied.',
 
   makePuzzle,
   solve,

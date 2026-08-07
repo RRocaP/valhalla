@@ -10,15 +10,16 @@ export function buildShellStyle(palette) {
   --gold:${p.gold};--goldBright:${p.goldBright};--blood:${p.blood};--ember:${p.ember};
   --fjord:${p.fjord};--fjordLight:${p.fjordLight};--pine:${p.pine};--pineLight:${p.pineLight};
   --bone:${p.bone};--boneDim:${p.boneDim};
-  --font-display:'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif;
+  --font-display:'Cormorant Garamond','Iowan Old Style','Palatino Nova',Palatino,Georgia,serif;
   --font-body:'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif;
   --font-mono:ui-monospace,'SF Mono',Menlo,monospace;
+  --void:#0c0906;
   --safe-t:env(safe-area-inset-top,0px);--safe-r:env(safe-area-inset-right,0px);
   --safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);
 }
 *{box-sizing:border-box}
 html,body{overflow-x:hidden}
-#app{overflow-x:hidden;position:relative;font-family:var(--font-body);color:var(--bone);width:100%}
+#app{overflow-x:hidden;position:relative;font-family:var(--font-body);color:var(--bone);width:100%;background:var(--void)}
 #app *{-webkit-tap-highlight-color:transparent}
 :where(#app *){min-width:0}
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -34,13 +35,13 @@ p{margin:0}
    heads that pin it. A flat --gold rectangle read as a web CTA. */
 .btn-carved{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.5em;
   background:linear-gradient(178deg,var(--goldBright) 0%,var(--gold) 38%,var(--gold) 62%,#8a6d18 100%);
-  color:#2a1d05;font-weight:700;font-family:var(--font-display);letter-spacing:.12em;
+  color:#2a1d05;font-weight:600;font-family:var(--font-display);letter-spacing:.16em;
   padding:13px 34px;min-height:46px;min-width:44px;border-radius:5px;
   text-shadow:0 1px 0 rgba(238,207,109,.55);
   box-shadow:0 3px 0 rgba(12,9,6,.85),0 5px 10px rgba(12,9,6,.6),
     inset 0 1px 0 rgba(255,241,199,.85),inset 0 -2px 2px rgba(90,58,30,.55),
     inset 0 0 0 1px rgba(42,29,5,.45);
-  font-size:clamp(1rem,1vw + .75rem,1.12rem)}
+  font-size:clamp(1.12rem,1vw + .85rem,1.3rem)}
 .btn-carved::before,.btn-carved::after{content:"";position:absolute;top:50%;width:7px;height:7px;border-radius:50%;
   transform:translateY(-50%);
   background:radial-gradient(circle at 34% 30%,#fff1c7 0%,var(--goldBright) 40%,#7d6216 100%);
@@ -57,8 +58,13 @@ p{margin:0}
    visual, the real text is visually-hidden inside for a11y and tests. */
 .carved-heading{display:block;margin:0;line-height:0}
 .carved-heading canvas{display:block;margin:0 auto;max-width:100%;height:auto}
-.btn-quiet{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;color:var(--boneDim);text-decoration:underline;text-underline-offset:3px;font-size:.95rem;letter-spacing:.04em}
-.btn-quiet:hover{color:var(--bone)}
+/* Quiet actions are carved latches, never hyperlinks (one design voice). */
+.btn-quiet{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 18px;color:var(--boneDim);
+  font-family:var(--font-display);font-variant-caps:all-small-caps;letter-spacing:.14em;font-size:1.02rem;text-decoration:none;
+  border:1px solid rgba(233,220,195,.14);border-radius:6px;
+  background:linear-gradient(180deg,rgba(12,9,6,.25),rgba(12,9,6,.45));
+  box-shadow:inset 0 1px 0 rgba(233,220,195,.06),0 1px 0 rgba(12,9,6,.5)}
+.btn-quiet:hover{color:var(--bone);border-color:rgba(201,162,39,.4)}
 .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--oakDeep);color:var(--gold);border:1px solid var(--oakLight)}
 .btn-icon:hover{background:var(--oak)}
 
@@ -77,7 +83,7 @@ p{margin:0}
    screen. Anchor it to the viewport so the card is actually centred. */
 .threshold-content{position:relative;z-index:1;min-height:100vh;min-height:100dvh;display:grid;place-content:center;justify-items:center;gap:clamp(14px,3vh,30px);text-align:center;padding:max(16px,var(--safe-t)) max(16px,var(--safe-r)) max(16px,var(--safe-b)) max(16px,var(--safe-l))}
 .title{font-family:var(--font-display);letter-spacing:.35em;color:var(--gold);font-weight:600;font-size:clamp(2rem,5vw + 1rem,3.6rem);margin:0}
-.subtitle{color:var(--boneDim);font-size:clamp(.95rem,1.5vw + .6rem,1.25rem);margin:0;letter-spacing:.09em;font-style:italic;text-shadow:0 1px 0 rgba(12,9,6,.8)}
+.subtitle{color:var(--boneDim);font-family:var(--font-display);font-size:clamp(1.08rem,1.5vw + .7rem,1.45rem);margin:0;letter-spacing:.12em;font-style:italic;text-shadow:0 1px 0 rgba(12,9,6,.8)}
 .threshold-actions{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:8px}
 
 .screen-lid{padding:0;display:block}
@@ -106,10 +112,19 @@ p{margin:0}
 .ledger-numeral::before{content:'\\00B7\\2002';color:rgba(238,207,109,.42)}
 .ledger-numeral::after{content:'\\2002\\00B7';color:rgba(238,207,109,.42);margin-left:-.42em}
 .lock-title{font-family:var(--font-display);color:var(--bone);font-size:clamp(1.3rem,2vw + 1rem,2rem);margin:.2em 0}
-.lock-epigraph{font-family:var(--font-body);font-style:italic;color:var(--boneDim);font-size:clamp(.9rem,.8vw + .7rem,1.05rem);max-width:52ch;margin:0 auto}
+/* The galdr (docs/QUALITY.md Galdr Law): the ONE verse above a board —
+   Cormorant italic, verse lines kept (pre-line), the lock's shard rune as a
+   quiet carved initial beside it. It replaced the epigraph, the ask-plate and
+   every board instruction sentence. */
+.lock-epigraph{font-family:var(--font-display);font-style:italic;white-space:pre-line;
+  color:var(--bone);font-size:clamp(1.06rem,.9vw + .82rem,1.32rem);line-height:1.5;
+  letter-spacing:.03em;max-width:46ch;margin:2px auto 0;
+  text-shadow:0 1px 0 rgba(12,9,6,.85),0 0 14px rgba(238,207,109,.07)}
 .lock-root{position:relative;min-height:0;padding:12px;display:flex;flex-direction:column;justify-content:center;align-items:stretch}
 .lockroom-footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 10px 18px}
-.near-line{color:var(--goldBright);font-style:italic;min-height:1.4em;text-align:center;font-size:.95rem;text-shadow:0 1px 0 rgba(12,9,6,.85)}
+.near-line{color:var(--goldBright);font-family:var(--font-display);font-style:italic;min-height:1.4em;text-align:center;
+  font-size:clamp(1.02rem,.6vw + .88rem,1.18rem);letter-spacing:.02em;
+  text-shadow:0 1px 0 rgba(12,9,6,.85),0 0 12px rgba(238,207,109,.1)}
 .attempts-row{display:flex;align-items:center;gap:10px}
 .attempts-dots{display:flex;flex-wrap:wrap;gap:6px;max-width:220px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--oakLight)}
@@ -175,31 +190,38 @@ p{margin:0}
 
 /* ---- overlays ---- */
 .overlay-scrim{position:fixed;inset:0;background:rgba(12,9,6,.6);z-index:20}
-/* Vellum drawers: a deep laid-paper dark (layered, never one flat fill) under
-   a gilded hairline — the journal reads as an inked page, not a settings
-   sheet. The faint horizontal rhythm is the page's chain lines. */
+/* Overlay drawers. The JOURNAL is where reading happens, so it lifts to true
+   vellum — paper-light against the dark hall (Magic Law §3), warm laid-paper
+   layers, chain lines, a gilded hairline. Settings stays a dark tool sheet. */
 .drawer,.panel-overlay{position:fixed;left:0;right:0;z-index:21;display:flex;flex-direction:column;max-height:78vh;
-  background:
-    linear-gradient(180deg,rgba(233,220,195,.045),rgba(233,220,195,0) 46px),
-    repeating-linear-gradient(180deg,transparent 0px,transparent 25px,rgba(233,220,195,.04) 25px,rgba(233,220,195,.04) 26px),
-    linear-gradient(180deg,#2c1c0c 0%,#1d1207 58%,#140c05 100%);
   border-top:1px solid rgba(201,162,39,.45);
   box-shadow:0 -1px 0 rgba(12,9,6,.9),0 -12px 34px rgba(12,9,6,.55);
   padding:max(14px,var(--safe-b)) max(18px,var(--safe-r)) max(18px,var(--safe-b)) max(18px,var(--safe-l))}
+.drawer{background:
+    radial-gradient(ellipse 120% 90% at 50% -20%,rgba(255,246,222,.5),rgba(255,246,222,0) 60%),
+    repeating-linear-gradient(180deg,transparent 0px,transparent 25px,rgba(90,58,30,.05) 25px,rgba(90,58,30,.05) 26px),
+    linear-gradient(180deg,#f0e5c8 0%,#e6d6ae 55%,#d9c69a 100%);
+  border-top:1px solid rgba(122,90,16,.6)}
+.panel-overlay{background:
+    linear-gradient(180deg,rgba(233,220,195,.045),rgba(233,220,195,0) 46px),
+    repeating-linear-gradient(180deg,transparent 0px,transparent 25px,rgba(233,220,195,.04) 25px,rgba(233,220,195,.04) 26px),
+    linear-gradient(180deg,#2c1c0c 0%,#1d1207 58%,#140c05 100%)}
 .drawer{bottom:0;border-radius:14px 14px 0 0;transform:translateY(100%);transition:transform .28s ease}
 .drawer.open{transform:translateY(0)}
 .panel-overlay{bottom:0;border-radius:14px 14px 0 0;transform:translateY(100%);transition:transform .28s ease}
 .panel-overlay.open{transform:translateY(0)}
 .reduced-motion .drawer,.reduced-motion .panel-overlay{transition:none}
 .overlay-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.overlay-title{font-family:var(--font-display);color:var(--gold);letter-spacing:.26em;font-size:1.18rem;font-weight:600;
+.overlay-title{font-family:var(--font-display);color:var(--gold);letter-spacing:.3em;font-size:1.34rem;font-weight:600;
   text-shadow:-1.5px -1.5px 1px var(--tar),1.5px 1.5px 1px rgba(238,207,109,.22)}
+.drawer .overlay-title{color:#6b4a10;text-shadow:0 1px 0 rgba(255,246,222,.8)}
 .overlay-close{min-width:44px;min-height:44px;color:var(--boneDim)}
-/* ink on the vellum: warm bone ink, a blood-ruled margin, hairline entry rules */
-.journal-list{overflow-y:auto;display:flex;flex-direction:column;gap:7px;font-family:var(--font-body);color:var(--bone);font-size:.94rem;line-height:1.5;
-  padding:4px 4px 4px 16px;border-left:2px solid rgba(143,31,31,.42)}
-.journal-line{border-bottom:1px solid rgba(233,220,195,.09);padding-bottom:7px;text-shadow:0 1px 0 rgba(12,9,6,.7)}
-.journal-empty{color:var(--boneDim);font-style:italic}
+.drawer .overlay-close{color:#5a3a1e}
+/* ink on the vellum: dark oak-gall ink, a blood-ruled margin, hairline rules */
+.journal-list{overflow-y:auto;display:flex;flex-direction:column;gap:7px;font-family:var(--font-body);color:#2a1a0a;font-size:.96rem;line-height:1.5;
+  padding:4px 4px 4px 16px;border-left:2px solid rgba(143,31,31,.5)}
+.journal-line{border-bottom:1px solid rgba(90,58,30,.16);padding-bottom:7px}
+.journal-empty{color:#6b5844;font-style:italic}
 /* rows wrap: es/ca labels ("Movimiento reducido" + "Según el sistema") outgrow
    one 390px line — the control drops under the label instead of clipping */
 .settings-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 14px;padding:12px 0;border-bottom:1px solid rgba(233,220,195,.08)}
@@ -231,8 +253,27 @@ p{margin:0}
 @media (prefers-reduced-motion: reduce){
   .lockroom-frame.shudder{animation:none}
   .drawer,.panel-overlay,.toggle::after{transition:none}
-  .dare-card,.dare-portrait,.dare-vignette{animation:none}
+  .dare-card,.dare-portrait,.dare-vignette,.dare-name,.dare-taunt,.dare-card .btn-carved{animation:none}
 }
+
+/* ---- one design voice for the boards' quiet actions (cohesion law) ----
+   Every lock's secondary controls (skip / undo / reset / reckon / clear)
+   speak the same carved-latch voice as .btn-quiet — never a web box. #app
+   prefix outranks the boards' own later-mounted styles at equal source. */
+#app .ow1-skip,#app .ow2-act,#app .ow3-skip,#app .ow4-skip,#app .ow5-act,
+#app .ow8-skip,#app .ow10-skip,#app .ow11-act,#app .ow11-skip,
+#app .ow12-act,#app .ow13-act,#app .ow14-act,#app .ow15-act,
+#app .ow-sunstone .skip,#app .ow-tafl .bar button:not(.btn-carved){
+  font-family:var(--font-display);font-variant-caps:all-small-caps;letter-spacing:.13em;
+  font-size:1.04rem;color:var(--boneDim);background:linear-gradient(180deg,rgba(12,9,6,.26),rgba(12,9,6,.46));
+  border:1px solid rgba(233,220,195,.15);border-radius:6px;
+  box-shadow:inset 0 1px 0 rgba(233,220,195,.06),0 1px 0 rgba(12,9,6,.5);
+  text-shadow:0 1px 0 rgba(12,9,6,.7)}
+#app .ow1-skip:hover,#app .ow2-act:hover,#app .ow3-skip:hover,#app .ow4-skip:hover,
+#app .ow5-act:hover,#app .ow8-skip:hover,#app .ow10-skip:hover,
+#app .ow11-act:hover,#app .ow11-skip:hover,#app .ow12-act:hover,#app .ow13-act:hover,
+#app .ow14-act:hover,#app .ow15-act:hover,#app .ow-sunstone .skip:hover,
+#app .ow-tafl .bar button:not(.btn-carved):hover{color:var(--bone);border-color:rgba(201,162,39,.4)}
 
 /* ---- material-type mandate: DOM-text relief recipe (ART.md) ---- */
 /* Paired 1px shadows: tar above-left, goldBright ~18% below-right. */
@@ -258,21 +299,30 @@ p{margin:0}
 /* dare theatre: darkened house, lit stage. Fixed, not absolute: the dimming
    must own the WHOLE house — the chapter header above the card stayed fully
    lit and fought the jarl for the moment (QUALITY_LOOP4). */
+/* The dare stage: house lights DIE — a near-black hall, one lit challenger.
+   The vignette owns every pixel; the card rises into its pool of light. */
 .dare-vignette{position:fixed;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 62% 56% at 50% 44%,rgba(12,9,6,0) 30%,rgba(12,9,6,.55) 66%,rgba(12,9,6,.44) 100%)}
-.dare-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:20px;max-width:420px;margin:0 auto}
+  background:radial-gradient(ellipse 66% 58% at 50% 40%,rgba(12,9,6,.62) 0%,rgba(12,9,6,.9) 58%,rgba(9,7,4,.97) 100%)}
+.dare-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:20px;max-width:460px;margin:0 auto}
 .dare-card canvas{display:block}
-.dare-name{font-family:var(--font-display);color:var(--goldBright);letter-spacing:.08em;font-size:clamp(1.2rem,2vw + .9rem,1.6rem);margin:0}
-/* the taunt set like an inscription: hairline rules above and below */
-.dare-taunt{color:var(--boneDim);font-style:italic;max-width:46ch;margin:0;padding:10px 6px;line-height:1.55;letter-spacing:.015em;
-  border-top:1px solid rgba(233,220,195,.16);border-bottom:1px solid rgba(233,220,195,.16);text-shadow:0 1px 0 rgba(12,9,6,.7)}
+.dare-name{font-family:var(--font-display);color:var(--goldBright);letter-spacing:.1em;font-size:clamp(1.4rem,2.4vw + 1rem,2rem);margin:0}
+/* the taunt: one spoken line, set like an inscription */
+.dare-taunt{color:var(--bone);font-family:var(--font-display);font-style:italic;max-width:44ch;margin:0;padding:10px 6px;line-height:1.55;letter-spacing:.02em;
+  font-size:clamp(1.02rem,.6vw + .9rem,1.2rem);
+  border-top:1px solid rgba(233,220,195,.16);border-bottom:1px solid rgba(233,220,195,.16);text-shadow:0 1px 0 rgba(12,9,6,.85)}
 @keyframes dare-rise{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
-@keyframes dare-warm{0%{filter:brightness(.18) saturate(.7)}55%{filter:brightness(.62) saturate(.88)}100%{filter:none}}
+@keyframes dare-warm{0%{filter:brightness(.14) saturate(.6)}55%{filter:brightness(.55) saturate(.85)}100%{filter:none}}
 @keyframes dare-dim{from{opacity:0}to{opacity:1}}
-.dare-card{animation:dare-rise .9s cubic-bezier(.22,1,.36,1) both}
-.dare-portrait{animation:dare-warm 1.6s ease-out both}
-.dare-vignette{animation:dare-dim .8s ease-out both}
-.reduced-motion .dare-card,.reduced-motion .dare-portrait,.reduced-motion .dare-vignette{animation:none}
+@keyframes dare-name-drop{0%{opacity:0;transform:translateY(-18px) scale(1.18)}62%{opacity:1;transform:translateY(2px) scale(.995)}100%{opacity:1;transform:none}}
+@keyframes dare-fade-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dare-card{animation:dare-rise .8s cubic-bezier(.22,1,.36,1) both}
+.dare-portrait{animation:dare-warm 1.5s ease-out both .25s}
+.dare-vignette{animation:dare-dim .7s ease-out both}
+.dare-name{animation:dare-name-drop .72s cubic-bezier(.2,.85,.3,1.3) both .95s}
+.dare-taunt{animation:dare-fade-up .6s ease both 1.8s}
+.dare-card .btn-carved{animation:dare-fade-up .55s ease both 2.25s}
+.reduced-motion .dare-card,.reduced-motion .dare-portrait,.reduced-motion .dare-vignette,
+.reduced-motion .dare-name,.reduced-motion .dare-taunt,.reduced-motion .dare-card .btn-carved{animation:none}
 .dot-overflow{font-family:var(--font-mono);font-size:.7rem;color:var(--boneDim);align-self:center}
 
 /* ---- finale (docs/JARLS.md "The treasures") ---- */

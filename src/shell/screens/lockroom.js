@@ -10,6 +10,7 @@ import { dareFor, heckleFor, yieldFor, lineFor, journalHasLine } from '../duels.
 import { portraitImage, drawPortraitPlaceholder } from '../portraits.js';
 import { applyMood, moodTint } from '../../art/moods.js';
 import { resolveLang, lockText, localizeNear } from '../../kernel/i18n.js';
+import { loadHero, drawHero } from '../heroes.js';
 
 export function mountLockRoom(root, {
   lock, locks, save, art, audio, reducedMotion, portraitsCache,
@@ -83,8 +84,6 @@ export function mountLockRoom(root, {
   }
   #app.reduced-motion .yield-banner{animation:none}
   #app.reduced-motion .ceremony-shard .carved-heading{transition:none}
-  #app .heckle-line{margin:6px auto 0;max-width:52ch;font-style:italic;font-size:.86rem;
-    letter-spacing:.02em;color:var(--bone);opacity:.85;text-shadow:0 1px 0 rgba(12,9,6,.85)}
   /* Dare card, tightened around a bigger arch (Ramon, live on iPhone: the
      portrait was small and the plate/taunt drifted away from it). The card's
      own rhythm is now portrait -> name -> taunt -> button with the gaps
@@ -94,6 +93,11 @@ export function mountLockRoom(root, {
   #app .dare-name{margin:0;line-height:1.05}
   #app .dare-taunt{margin:9px 0 0;padding:9px 6px}
   #app .dare-card .btn-carved{margin-top:14px}
+  /* the challenger's ship, riding out of the dark behind the entrance */
+  #app .dare-ship{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.4s ease}
+  #app .dare-ship.shown{opacity:1}
+  #app.reduced-motion .dare-ship{transition:none}
+  @media (prefers-reduced-motion: reduce){#app .dare-ship{transition:none}}
   #app .yield-stage canvas{margin:0 auto}`;
   screen.append(roomStyle);
 
@@ -159,29 +163,57 @@ export function mountLockRoom(root, {
     return { x, y, w: wdt, h: hgt, band };
   }
 
+  // The room's tabletop plate (heroes/panel-v2.jpg): a real carved frame with
+  // a clean centre, composited under every board. Procedural wood is the
+  // fallback and the first paint either way (no jank; offline law).
+  let heroPanel = null;
+
   function paintBg() {
     const box = contentBox();
-    const key = `${bg.w}x${bg.h}|${furnitureMode}|${box ? [box.x, box.y, box.w, box.h].map(Math.round).join(',') : '-'}`;
+    const key = `${bg.w}x${bg.h}|${furnitureMode}|${heroPanel ? 'hero' : 'wood'}|${box ? [box.x, box.y, box.w, box.h].map(Math.round).join(',') : '-'}`;
     if (key === lastFurnitureKey) return;
     lastFurnitureKey = key;
-    art.paintWood(bg.ctx, bg.w, bg.h, 793, { shade: 0.2 });
-    art.paintPanel(bg.ctx, 0, 0, bg.w, bg.h, { seed: `lock-${lock.id}` });
-    // chip-carved run just inside the room's gold trim — the frame is an
-    // architrave, not a picture border
-    if (typeof art.chipBorder === 'function' && bg.w > 500) {
-      art.chipBorder(bg.ctx, 30, 30, bg.w - 60, bg.h - 60, { size: 9, alpha: 0.55 });
-    }
-    // quiet tool history in the dead zones, never under the puzzle column
-    if (typeof art.wear === 'function') {
-      const avoid = box
-        ? { x: box.x - box.band - 8, y: box.y - box.band - 8, w: box.w + box.band * 2 + 16, h: box.h + box.band * 2 + 16 }
-        : { x: bg.w * 0.5 - 410, y: 0, w: 820, h: bg.h };
-      art.wear(bg.ctx, bg.w, bg.h, `room-${lock.id}`, { avoid });
+    if (heroPanel) {
+      // the frame must never outshine the toy: deeper edge seating, and the
+      // tray interior gets the hearth pool (focal hierarchy law)
+      drawHero(bg.ctx, heroPanel, bg.w, bg.h, { dim: 0.1, edge: 0.78 });
+      // text sovereignty over the carved bands: quiet scrims where the
+      // header and the footer chrome read (contrast floors stay law)
+      const hdr = bg.ctx.createLinearGradient(0, 0, 0, bg.h * 0.3);
+      hdr.addColorStop(0, 'rgba(9,7,4,.8)');
+      hdr.addColorStop(1, 'rgba(9,7,4,0)');
+      bg.ctx.fillStyle = hdr;
+      bg.ctx.fillRect(0, 0, bg.w, bg.h * 0.3);
+      const ftr = bg.ctx.createLinearGradient(0, bg.h * 0.72, 0, bg.h);
+      ftr.addColorStop(0, 'rgba(9,7,4,0)');
+      ftr.addColorStop(1, 'rgba(9,7,4,.7)');
+      bg.ctx.fillStyle = ftr;
+      bg.ctx.fillRect(0, bg.h * 0.72, bg.w, bg.h * 0.28);
+    } else {
+      art.paintWood(bg.ctx, bg.w, bg.h, 793, { shade: 0.2 });
+      art.paintPanel(bg.ctx, 0, 0, bg.w, bg.h, { seed: `lock-${lock.id}` });
+      // chip-carved run just inside the room's gold trim — the frame is an
+      // architrave, not a picture border
+      if (typeof art.chipBorder === 'function' && bg.w > 500) {
+        art.chipBorder(bg.ctx, 30, 30, bg.w - 60, bg.h - 60, { size: 9, alpha: 0.55 });
+      }
+      // quiet tool history in the dead zones, never under the puzzle column
+      if (typeof art.wear === 'function') {
+        const avoid = box
+          ? { x: box.x - box.band - 8, y: box.y - box.band - 8, w: box.w + box.band * 2 + 16, h: box.h + box.band * 2 + 16 }
+          : { x: bg.w * 0.5 - 410, y: 0, w: 820, h: bg.h };
+        art.wear(bg.ctx, bg.w, bg.h, `room-${lock.id}`, { avoid });
+      }
     }
     if (box && typeof art.tray === 'function') {
       art.tray(bg.ctx, box.x, box.y, box.w, box.h, {
         band: box.band, seed: lock.id, ribbon: box.w > 430, chipAlpha: 0.7,
       });
+      if (heroPanel && typeof art.glow === 'function') {
+        // one luminous pool where the play happens
+        art.glow(bg.ctx, box.x + box.w / 2, box.y + box.h * 0.44,
+          Math.max(box.w, box.h) * 0.62, p.goldBright, 0.13);
+      }
     }
   }
 
@@ -209,19 +241,23 @@ export function mountLockRoom(root, {
     }
   }
 
-  // Lock header: one of docs/ART.md's three full-depth carveText call-outs.
-  // Declared BEFORE resizeBg is first called — resizeBg re-renders the carved
-  // title on resize and reads all three of these bindings.
+  // The puzzle instance is pure and deterministic; built early so anything
+  // header- or stage-side may ask the lock about itself.
+  const instance = lock.makePuzzle(rng('lindisfarne-793:' + lock.id));
+
+  // Lock header (Galdr Law, docs/QUALITY.md): numeral · carved title · the one
+  // verse — nothing else stands above a board.
   const headerTitleSize = () => Math.round(Math.max(22, Math.min(40, screen.clientWidth * 0.028 + 12)));
   let headerTitle = carvedHeading('h2', {
     art, text: locText.title, size: headerTitleSize(), className: 'lock-title', depth: 0.95,
   });
+  const galdrEl = el('p', { class: 'lock-epigraph' }, locText.epigraph);
   const header = el('div', { class: 'lockroom-header' }, [
     el('div', { class: 'ledger-numeral' }, toRoman(lock.ordinal)),
     headerTitle,
-    el('p', { class: 'lock-epigraph' }, locText.epigraph),
-    heckle && !solved ? el('p', { class: 'heckle-line' }, lineFor(heckle.heckle, lang)) : null,
+    galdrEl,
   ]);
+  // The heckle is journal theatre, never header copy (Magic Law §1).
   if (heckle && !solved && !journalHasLine(save, heckle.heckle)) {
     pushJournal(save, `${heckle.name}: "${lineFor(heckle.heckle, lang)}"`);
     onPersist();
@@ -265,6 +301,13 @@ export function mountLockRoom(root, {
   // once both exist — the TDZ class of bug QUALITY_PLAY_01 §4 recorded.
   window.addEventListener('resize', resizeBg);
   resizeBg();
+
+  loadHero('panel-v2').then((img) => {
+    if (!img || !screen.isConnected) return;
+    heroPanel = img;
+    lastFurnitureKey = '';
+    paintBg();
+  });
 
   // Mood air (smoke, wisps, motes, glints) on a time-gated rAF: ~30fps is
   // ample for drift this slow and halves the per-second cost. Reduced motion
@@ -408,7 +451,6 @@ export function mountLockRoom(root, {
     onPersist();
   }
 
-  const instance = lock.makePuzzle(rng('lindisfarne-793:' + lock.id));
   let lockHandle = null;
   let cancelBeat = null;
 
@@ -574,8 +616,9 @@ export function mountLockRoom(root, {
   }
 
   function runYieldBeat(after) {
+    // the yield mirrors the dare's grammar: house dims, the jarl bows large
     const overlay = el('div', { class: 'ceremony-overlay', tabindex: '-1' });
-    const port = archStage(0.58, 230);
+    const port = archStage(0.72, 300);
     // the challenger's war-banner lowers behind the portrait as the bow lands
     const banner = el('div', { class: 'yield-banner', 'aria-hidden': 'true' }, yieldDuel.name);
     banner.style.top = `${port.pad + 5}px`;
@@ -708,25 +751,54 @@ overlay.append(stage, line);
     });
   }
 
+  let stageTimers = [];
   if (showDare) {
-    // Dare theatre: the room darkens to a vignette, the portrait warms up
-    // under a hearth rim-light, the name plate is carved, the taunt set like
-    // an inscription. Entrance styles live in style.js; reduced motion drops
-    // every animation and lands on the fully-lit final state.
+    // THE DARE — a gym-leader entrance, not a card (Ramon 2026-08-07). The
+    // house lights die, the challenger's prow rides out of the dark, the
+    // portrait burns in under hearth rim-light, the NAME lands as a title
+    // drop, the taunt is spoken once, and only then is the plate offered.
+    // The lock's own header leaves the stage entirely. Reduced motion lands
+    // on the fully-lit final state at once. DOM contract classes and the
+    // 'Answer the dare' label are unchanged (tests/e2e).
+    header.style.display = 'none';
+    footer.style.display = 'none'; // the stage belongs to the challenger alone
+    const loudest = lock.ordinal === 13; // Ärya — the queen's own dare
     const vignette = el('div', { class: 'dare-vignette', 'aria-hidden': 'true' });
-    const port = archStage(0.78, 300);
+    // the challenger's ship arrives behind the entrance (hero plate, lazy,
+    // procedural darkness when absent — offline law)
+    const ship = art.makeCanvas(1, 1);
+    ship.canvas.className = 'dare-ship';
+    ship.canvas.setAttribute('aria-hidden', 'true');
+    vignette.append(ship.canvas);
+    let stageUp = true;
+    loadHero('prow-v2').then((img) => {
+      if (!img || !stageUp) return;
+      const w = screen.clientWidth || 800;
+      const h = screen.clientHeight || 800;
+      const fresh = art.makeCanvas(w, h);
+      fresh.canvas.className = 'dare-ship';
+      fresh.canvas.setAttribute('aria-hidden', 'true');
+      drawHero(fresh.ctx, img, w, h, { fy: 0.3, dim: 0.38, edge: 0.85 });
+      vignette.replaceChild(fresh.canvas, ship.canvas);
+      ship.canvas = fresh.canvas;
+      requestAnimationFrame(() => fresh.canvas.classList.add('shown'));
+    });
+    const port = archStage(0.92, loudest ? 430 : 360);
     port.canvas.className = 'dare-portrait';
     archChipBand(port.ctx, port.pad, port.pad, port.archW, port.archH, port.pad);
     const img = portraitsCache ? portraitImage(portraitsCache, dare.key) : null;
     if (typeof art.portrait === 'function' && img) {
-      art.portrait(port.ctx, img, port.pad, port.pad, port.archW, port.archH, { rim: 0.9 });
+      art.portrait(port.ctx, img, port.pad, port.pad, port.archW, port.archH, { rim: 0.95 });
     } else {
       drawPortraitPlaceholder(port.ctx, p, port.pad, port.pad, port.archW, port.archH, dare.name);
     }
     const answerBtn = el('button', { type: 'button', class: 'btn-carved' }, 'Answer the dare');
+    const nameSize = Math.round(Math.max(30, Math.min(
+      loudest ? 54 : 44, (screen.clientWidth || 800) * 0.055,
+    )));
     const namePlate = carvedHeading('h3', {
-      art, text: dare.name, size: 30, className: 'dare-name', depth: 0.9,
-      color: p.goldBright, letterSpacing: 3,
+      art, text: dare.name, size: nameSize, className: 'dare-name', depth: 1,
+      color: p.goldBright, letterSpacing: Math.round(nameSize * 0.16),
     });
     const card = el('div', { class: 'dare-card' }, [
       port.canvas,
@@ -741,8 +813,17 @@ overlay.append(stage, line);
       note(`${dare.name}: "${lineFor(dare.taunt, lang)}"`);
     }
     audio.motif('dare');
+    // the name LANDS — a chisel knock timed to the title drop
+    if (!reducedMotion) {
+      stageTimers.push(setTimeout(() => audio.ui('knock'), loudest ? 1550 : 1400));
+    }
     answerBtn.addEventListener('click', () => {
+      stageUp = false;
+      for (const t of stageTimers) clearTimeout(t);
+      stageTimers = [];
       audio.ui('confirm');
+      header.style.display = '';
+      footer.style.display = '';
       clear(lockRootEl);
       mountPuzzle();
     });
@@ -762,6 +843,7 @@ overlay.append(stage, line);
     if (moodRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(moodRaf);
     if (contentRO) contentRO.disconnect();
     if (furnitureRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(furnitureRaf);
+    for (const t of stageTimers) clearTimeout(t);
     if (cancelBeat) cancelBeat();
     if (lockHandle) lockHandle.unmount();
     screen.remove();

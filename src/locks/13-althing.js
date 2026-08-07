@@ -155,7 +155,6 @@ const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  plate: 'Brand every speaker true or false so all their words hold together — then collar the peace-breaker.',
   tally: '{n} of 9 stones stand consistent',
   tallyAll: 'All nine stones stand consistent. Give the verdict.',
   brandNone: 'unbranded',
@@ -173,7 +172,6 @@ const BOARD_EN = {
   clear: 'Cool every iron',
   verdict: 'Give the verdict',
   skip: 'Skip the showing',
-  demoSay: 'Watch once: the iron burns a stone. Burn it again and the mark turns to tar.',
   sayTrue: '{name} is seared true.',
   sayLies: '{name} is seared a liar.',
   sayOff: 'The brand is struck off {name}.',
@@ -511,7 +509,7 @@ function statementText(st, names, T, lang) {
 const I18N = {
   es: {
     title: 'El Veredicto del Althing',
-    epigraph: 'Ante la roca de la ley un hombre es su palabra. Quiebra la paz, y contigo se quiebra cada palabra que tienes.',
+    epigraph: 'Ante la roca de la ley, un hombre es su palabra.\nMarca verdad, marca mentira, hasta que todas aguanten —\ny ponle el collar al que quebró la paz.',
     hints: [
       'Aquí un hombre es de una pieza. Si una palabra suya es falsa, todas sus palabras lo son.',
       'Empieza donde un hombre habla de otro hombre y no del quebrantador de la paz: esas palabras atan las marcas de dos en dos, y probarlas no cuesta nada.',
@@ -523,7 +521,6 @@ const I18N = {
       'The whole rock roars against that verdict.': 'La roca entera ruge contra ese veredicto.',
     },
     board: {
-      plate: 'Marca a hierro a cada hombre como verdadero o falso hasta que todas sus palabras se sostengan — y luego pon el collar al quebrantador de la paz.',
       tally: '{n} de 9 piedras se sostienen sin contradecirse',
       tallyAll: 'Las nueve piedras se sostienen sin contradecirse. Dicta el veredicto.',
       brandNone: 'sin marca',
@@ -541,7 +538,6 @@ const I18N = {
       clear: 'Enfriar todos los hierros',
       verdict: 'Dictar el veredicto',
       skip: 'Saltar la muestra',
-      demoSay: 'Mira una vez: el hierro quema una piedra. Quémala otra vez y la marca se vuelve alquitrán.',
       sayTrue: '{name} queda marcado verdadero.',
       sayLies: '{name} queda marcado mentiroso.',
       sayOff: 'Se borra la marca de {name}.',
@@ -571,7 +567,7 @@ const I18N = {
   },
   ca: {
     title: 'El Veredicte de l’Althing',
-    epigraph: 'Davant la roca de la llei un home és la seva paraula. Trenca la pau, i amb tu es trenca cada paraula que tens.',
+    epigraph: 'Davant la roca de la llei, un home és la seva paraula.\nMarca veritat, marca mentida, fins que totes aguantin —\ni posa el collar al qui va trencar la pau.',
     hints: [
       'Aquí un home és d’una peça. Si una paraula seva és falsa, totes les seves ho són.',
       'Comença on un home parla d’un altre home i no del trencador de la pau: aquestes paraules lliguen les marques de dues en dues, i provar-les no costa res.',
@@ -583,7 +579,6 @@ const I18N = {
       'The whole rock roars against that verdict.': 'La roca sencera rugeix contra aquest veredicte.',
     },
     board: {
-      plate: 'Marca a foc cada home com a verdader o fals fins que totes les seves paraules s’aguantin — i després posa el collar al trencador de la pau.',
       tally: '{n} de 9 pedres s’aguanten sense contradir-se',
       tallyAll: 'Les nou pedres s’aguanten sense contradir-se. Dicta el veredicte.',
       brandNone: 'sense marca',
@@ -601,7 +596,6 @@ const I18N = {
       clear: 'Refredar tots els ferros',
       verdict: 'Dictar el veredicte',
       skip: 'Saltar la mostra',
-      demoSay: 'Mira-ho un cop: el ferro crema una pedra. Crema-la un altre cop i la marca es torna quitrà.',
       sayTrue: '{name} queda marcat verdader.',
       sayLies: '{name} queda marcat mentider.',
       sayOff: 'S’esborra la marca de {name}.',
@@ -636,7 +630,7 @@ export default {
   ordinal: 13,
   tier: 4,
   title: 'The Althing Verdict',
-  epigraph: 'At the law-rock a man is his word. Break the peace, and every word you own breaks with it.',
+  epigraph: 'At the law-rock a man is his word.\nBrand true, brand false, till every word holds —\nthen collar the breaker of peace.',
 
   makePuzzle(rng) {
     const names = rng.shuffle(SPEAKERS).slice(0, N);
@@ -787,13 +781,8 @@ export default {
     const wrap = node('div', `display:grid;gap:11px;font-family:${SERIF};color:${p.bone}`);
     const style = node('style');
     style.textContent = `
-      .ow13-plate{position:relative;padding:13px 18px;border-radius:5px;overflow:hidden}
-      .ow13-platetext{position:relative;z-index:1;margin:0;font-size:15px;line-height:1.5;color:${p.bone};
-        text-align:center;letter-spacing:.015em;max-width:62ch;margin-inline:auto;
-        text-shadow:${art.reliefShadowCss || 'none'}}
       .ow13-scene{position:relative;line-height:0}
       .ow13-tally{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
-      .ow13-tallytext{margin:0;font-size:14px;color:${p.bone};letter-spacing:.02em}
       .ow13-gridwrap{position:relative}
       .ow13-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(226px,1fr));gap:10px}
       /* the foot strip is reserved on every stone, accused or not, so hanging
@@ -831,15 +820,6 @@ export default {
     `;
     wrap.append(style);
 
-    // the comprehension plate: the whole win condition in one sentence, cut
-    // into a stone tablet pinned above the ground
-    const plate = node('div');
-    plate.className = 'ow13-plate';
-    const plateFace = { canvas: null, ctx: null, w: 0, h: 0 };
-    const plateText = node('p', null, T('plate'));
-    plateText.className = 'ow13-platetext';
-    plate.append(plateText);
-
     const sceneHost = node('div');
     sceneHost.className = 'ow13-scene';
     const scene = { canvas: null, ctx: null, w: 0, h: 0 };
@@ -851,7 +831,7 @@ export default {
     const tallyGfx = { canvas: null, ctx: null, w: 0, h: 0 };
     const tallyHost = node('div', 'line-height:0');
     const tallyText = node('p');
-    tallyText.className = 'ow13-tallytext';
+    tallyText.className = 'visually-hidden';
     tallyWrap.append(tallyHost, tallyText);
 
     const gridWrap = node('div');
@@ -915,9 +895,9 @@ export default {
     actions.append(verdictBtn, clearBtn, skipBtn);
 
     const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px`);
-    status.setAttribute('aria-live', 'polite');
+    // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
 
-    wrap.append(plate, sceneHost, tallyWrap, gridWrap, actions, status);
+    wrap.append(sceneHost, tallyWrap, gridWrap, actions, status);
     ctx.root.append(wrap);
 
     // ---- canvas plumbing -------------------------------------------------
@@ -1554,33 +1534,6 @@ export default {
       }
     }
 
-    function paintPlate() {
-      if (!plateFace.ctx) return;
-      const c = plateFace.ctx;
-      const w = plateFace.w;
-      const h = plateFace.h;
-      c.clearRect(0, 0, w, h);
-      c.save();
-      c.beginPath();
-      if (c.roundRect) c.roundRect(0, 0, w, h, 5); else c.rect(0, 0, w, h);
-      c.clip();
-      stoneSkin(c, p, 0, 0, w, h, 77, { lichen: 3, chips: 4 });
-      const wash = c.createLinearGradient(0, 0, 0, h);
-      wash.addColorStop(0, alpha(p.tar, 0.28));
-      wash.addColorStop(1, alpha(p.tar, 0.5));
-      c.fillStyle = wash;
-      c.fillRect(0, 0, w, h);
-      if (typeof art.chipBorder === 'function' && w > 200) {
-        art.chipBorder(c, 4, 4, w - 8, h - 8, { size: Math.max(6, w / 44), alpha: 0.42 });
-      }
-      c.restore();
-      c.strokeStyle = alpha(p.gold, 0.42);
-      c.lineWidth = 1;
-      c.beginPath();
-      if (c.roundRect) c.roundRect(0.5, 0.5, w - 1, h - 1, 5); else c.rect(0.5, 0.5, w - 1, h - 1);
-      c.stroke();
-    }
-
     function paintGhost() {
       if (!ghost.ctx) return;
       const c = ghost.ctx;
@@ -1610,11 +1563,6 @@ export default {
     // ---- layout ----------------------------------------------------------
     function layout() {
       const rootW = Math.max(280, Math.min(880, ctx.root.clientWidth || 720));
-      const pb = boxOf(plate);
-      if (pb.w > 0 && pb.h > 0 && fit(plate, plateFace, pb.w, pb.h,
-        'position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;border-radius:5px')) {
-        paintPlate();
-      }
       const sw = rootW;
       const sh = Math.round(sw * (sw < 470 ? 0.78 : 0.54));
       if (fit(sceneHost, scene, sw, sh, 'width:100%;height:auto;display:block;border-radius:5px')) {
@@ -1737,7 +1685,6 @@ export default {
       ghostHost.style.display = 'block';
       ghostHost.style.transform = `translate(${x}px,${y}px)`;
       skipBtn.style.display = '';
-      status.textContent = T('demoSay');
       if (!calm && typeof ghostHost.animate === 'function') {
         const m = ghostHost.animate([
           { transform: `translate(${x}px,${y - 40}px)`, opacity: 0 },

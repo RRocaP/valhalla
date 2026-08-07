@@ -35,6 +35,27 @@ play 3+ minutes in a real browser and judge fatigue, seam, and duck behavior);
 micro-detail everywhere the eye rests: nailheads, worn paint in grooves,
 rivet shadows, journal ink texture.
 
+## The Magic Law (Ramon 2026-08-07: "it doesn't have the magic feel the
+## japanese game had — the palette aesthetic, the polish, the fonts, the
+## intuition; too much text when it should be more game")
+
+1. **Text budget, hard**: a lock room shows AT MOST numeral + title + one
+   epigraph line above the board. The "what it asks" plate is DEMOTED to an
+   optional quiet horn-tap (and auto-offers only after 2 wrong tries or 60s
+   idle). Board-surface instruction sentences are deleted — demo beats,
+   affordances, and near-lines teach. Heckles live in the journal, not the
+   header. Wager card ≤3 lines. If a sentence explains what touching would
+   teach in 2 seconds, the sentence dies.
+2. **The fonts**: display voice = embedded Cormorant Garamond (latin subset,
+   inlined data-URI, OFL — credit in credits). Numerals/ledger keep the mono;
+   body keeps the serif stack. Letterspacing generous, sizes confident.
+3. **Luminous elegance**: light against dark is the aesthetic — bone/gold
+   glow, paper-light panels where reading happens, the arcane blue as the one
+   cold accent. Screens must not read as brown-on-brown; every screen has one
+   luminous focal point.
+4. **Intuition first**: the first obvious touch teaches (progression-feel law
+   below); anything that requires reading before touching is a defect.
+
 ## Progression-feel law (Ramon 2026-08-06: BotW shrines + Pokémon league)
 
 Challenging but always doable, intuitive, and the player must FEEL themselves

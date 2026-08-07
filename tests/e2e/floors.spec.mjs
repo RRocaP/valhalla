@@ -35,9 +35,12 @@ test('floors: console, horizontal scroll, touch targets, contrast, offline reloa
     // The offline gate (docs/CONTRACT.md §1) expects music.mp3/credits.mp3 to
     // fail to fetch while offline and degrade silently to the synthesized
     // drone — that failed *fetch* is itself expected and is not a thrown
-    // error; only genuine application errors should fail this floor.
+    // error; only genuine application errors should fail this floor. The
+    // hero plates (heroes/*.jpg, CONTRACT amendment 2026-08-07) are the same
+    // class: optional same-origin art that falls back to the procedural
+    // painters when absent.
     const url = m.location() && m.location().url || '';
-    if (/\/(music|credits|act\d+)\.mp3(\?|$)/.test(url)) return;
+    if (/\/((music|credits|act\d+)\.mp3|heroes\/[-\w.]+\.jpg)(\?|$)/.test(url)) return;
     errors.push(`[console] ${m.text()}`);
   });
   page.on('pageerror', (e) => errors.push(`[pageerror] ${e}`));

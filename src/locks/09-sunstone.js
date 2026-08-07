@@ -186,14 +186,12 @@ function lcg(seed) {
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  plate: 'Three stones speak, one lies wet. Set the bearing the honest two agree on — within the day-mark’s half.',
   stoneNames: STONES.slice(),
   read: 'read {n}',
   wet: 'wet',
   wetAria: 'call {stone} the wet stone',
   takeAria: 'take bearing {n}, {airt}',
   rowAria: '{stone}, read {n}: the sun lies at {a} or {b}',
-  heading: 'Three readings — take a bearing, mark the wet stone',
   submit: 'Swear the bearing',
   bearing: 'Bearing {n} — {airt}',
   outside: ' (outside the day-mark)',
@@ -202,19 +200,7 @@ const BOARD_EN = {
   watchEvening: 'the evening watch',
   watchNoon: 'the noon watch',
   watchMidnight: 'the midnight watch',
-  lawParts: [
-    ['The stone shows the ring of light ', 0],
-    ['a quarter of the ring — 16 points — from the sun', 1],
-    [', never saying which side: each reading throws ', 0],
-    ['two blades opposite each other', 1],
-    ['. ', 0],
-    ['The day-mark', 1],
-    [' — the painted sky on the horizon band, point {a} to point {b} — is the half of the ring the sun stands in this watch; it keeps one blade of each pair. ', 0],
-    ['One stone was read wet', 1],
-    [' and says nothing true. Name the sun’s bearing, and name the ruined stone.', 0],
-  ],
   skip: 'Skip the showing',
-  demoSay: 'Watch once: a lifted stone throws its two bearings onto the rose as blades of light.',
   focusSay: '{stone} is held to the sky — its blades stand at {a} and {b}.',
   agree: 'Two cords glint: two stones stand behind point {n}.',
   noteBearing: 'Bearing set to point {n} — {airt}.',
@@ -1131,11 +1117,6 @@ function mount(ctx) {
   }
 
   // ---- DOM ----
-  const plate = document.createElement('p');
-  plate.className = 'plate';
-  plate.textContent = T('plate');
-  wrap.appendChild(plate);
-
   wrap.appendChild(holder);
 
   const dial = document.createElement('div');
@@ -1166,10 +1147,6 @@ function mount(ctx) {
   const side = document.createElement('div');
   side.className = 'side';
   wrap.appendChild(side);
-
-  const h1 = document.createElement('h4');
-  h1.textContent = T('heading');
-  side.appendChild(h1);
 
   const rows = instance.readings.map((r, i) => {
     const row = document.createElement('div');
@@ -1234,17 +1211,8 @@ function mount(ctx) {
   // answers a wrong bearing where the player's eye already is.
   const tell = document.createElement('p');
   tell.className = 'tell';
-  tell.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
   side.appendChild(tell);
-
-  const law = document.createElement('p');
-  law.className = 'law';
-  const lawParts = (Array.isArray(LB.lawParts) ? LB.lawParts : BOARD_EN.lawParts);
-  for (const [text, strong] of lawParts) {
-    const sub = text.split('{a}').join(String(instance.arcStart)).split('{b}').join(String(mod(instance.arcStart + ARC - 1)));
-    law.appendChild(Object.assign(document.createElement(strong ? 'b' : 'span'), { textContent: sub }));
-  }
-  wrap.appendChild(law);
 
   // ---- behaviour ----
   const nearMapLocal = (I18N[lang] && I18N[lang].nearMap) || {};
@@ -1380,7 +1348,6 @@ function mount(ctx) {
     focused = 0;
     demoT0 = (typeof performance !== 'undefined' ? performance.now() : 0);
     skip.style.display = '';
-    say.textContent = T('demoSay');
     later(() => endShowing(false), 3000);
     ensureLoop();
   }
@@ -1422,7 +1389,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'El Rumbo de la Piedra de Sol',
-    epigraph: 'La piedra nunca señala al sol. Señala a un cuarto de anillo, y no dice nada de a qué lado.',
+    epigraph: 'La piedra nunca nombra al sol —\nun cuarto a un lado, o al otro. Tres hablaron,\nuna habló mojada: marca donde crucen las dos secas.',
     hints: [
       'Una lectura no es un rumbo. Cada piedra ofrece dos, y quedan opuestos entre sí sobre el anillo.',
       'La marca del día parte cada par por la mitad: solo uno de los dos puede estar donde el sol se alza en esta guardia.',
@@ -1436,14 +1403,12 @@ const I18N = {
       'Only 2 of the three stones admit that bearing.': 'Solo dos de las tres piedras admiten ese rumbo.',
     },
     board: {
-      plate: 'Tres piedras hablan; una miente mojada. Fija el rumbo en que las dos honradas concuerdan — dentro de la mitad de la marca del día.',
       stoneNames: ['la piedra de proa', 'la piedra del mástil', 'la piedra del timón'],
       read: 'leyó {n}',
       wet: 'mojada',
       wetAria: 'señalar {stone} como la piedra mojada',
       takeAria: 'tomar el rumbo {n}, {airt}',
       rowAria: '{stone}, leyó {n}: el sol está en {a} o en {b}',
-      heading: 'Tres lecturas — toma un rumbo, marca la piedra mojada',
       submit: 'Jurar el rumbo',
       bearing: 'Rumbo {n} — {airt}',
       outside: ' (fuera de la marca del día)',
@@ -1452,19 +1417,7 @@ const I18N = {
       watchEvening: 'la guardia de la tarde',
       watchNoon: 'la guardia del mediodía',
       watchMidnight: 'la guardia de la medianoche',
-      lawParts: [
-        ['La piedra muestra el anillo de luz ', 0],
-        ['a un cuarto del anillo — 16 puntos — del sol', 1],
-        [', sin decir nunca de qué lado: cada lectura arroja ', 0],
-        ['dos hojas opuestas entre sí', 1],
-        ['. ', 0],
-        ['La marca del día', 1],
-        [' — el cielo pintado en la banda del horizonte, del punto {a} al punto {b} — es la mitad del anillo donde el sol se alza en esta guardia; conserva una hoja de cada par. ', 0],
-        ['Una piedra se leyó mojada', 1],
-        [' y no dice nada cierto. Nombra el rumbo del sol, y nombra la piedra arruinada.', 0],
-      ],
       skip: 'Saltar la muestra',
-      demoSay: 'Mira una vez: una piedra alzada arroja sus dos rumbos sobre la rosa como hojas de luz.',
       focusSay: '{stone} se alza al cielo — sus hojas caen en {a} y {b}.',
       agree: 'Dos cuerdas relucen: dos piedras respaldan el punto {n}.',
       noteBearing: 'Rumbo puesto en el punto {n} — {airt}.',
@@ -1491,7 +1444,7 @@ const I18N = {
   },
   ca: {
     title: 'El Rumb de la Pedra de Sol',
-    epigraph: 'La pedra mai no assenyala el sol. Assenyala a un quart d’anell, i no diu res de cap a quin costat.',
+    epigraph: 'La pedra mai no anomena el sol —\nun quart a una banda, o a l’altra. Tres van parlar,\nuna va parlar molla: marca on es creuin les dues seques.',
     hints: [
       'Una lectura no és un rumb. Cada pedra n’ofereix dos, i queden oposats entre si sobre l’anell.',
       'La marca del dia parteix cada parell per la meitat: només un dels dos pot ser on el sol s’alça en aquesta guàrdia.',
@@ -1505,14 +1458,12 @@ const I18N = {
       'Only 2 of the three stones admit that bearing.': 'Només dues de les tres pedres admeten aquest rumb.',
     },
     board: {
-      plate: 'Tres pedres parlen; una menteix mullada. Fixa el rumb en què les dues honrades concorden — dins la meitat de la marca del dia.',
       stoneNames: ['la pedra de proa', 'la pedra del pal', 'la pedra del timó'],
       read: 'va llegir {n}',
       wet: 'mullada',
       wetAria: 'assenyalar {stone} com la pedra mullada',
       takeAria: 'prendre el rumb {n}, {airt}',
       rowAria: '{stone}, va llegir {n}: el sol és a {a} o a {b}',
-      heading: 'Tres lectures — pren un rumb, marca la pedra mullada',
       submit: 'Jurar el rumb',
       bearing: 'Rumb {n} — {airt}',
       outside: ' (fora de la marca del dia)',
@@ -1521,19 +1472,7 @@ const I18N = {
       watchEvening: 'la guàrdia del vespre',
       watchNoon: 'la guàrdia del migdia',
       watchMidnight: 'la guàrdia de la mitjanit',
-      lawParts: [
-        ['La pedra mostra l’anell de llum ', 0],
-        ['a un quart de l’anell — 16 punts — del sol', 1],
-        [', sense dir mai de quin costat: cada lectura llança ', 0],
-        ['dues fulles oposades entre si', 1],
-        ['. ', 0],
-        ['La marca del dia', 1],
-        [' — el cel pintat a la banda de l’horitzó, del punt {a} al punt {b} — és la meitat de l’anell on el sol s’alça en aquesta guàrdia; conserva una fulla de cada parell. ', 0],
-        ['Una pedra es va llegir mullada', 1],
-        [' i no diu res de cert. Anomena el rumb del sol, i anomena la pedra arruïnada.', 0],
-      ],
       skip: 'Saltar la mostra',
-      demoSay: 'Mira-ho un cop: una pedra alçada llança els seus dos rumbs sobre la rosa com fulles de llum.',
       focusSay: '{stone} s’alça al cel — les seves fulles cauen a {a} i {b}.',
       agree: 'Dues cordes llueixen: dues pedres avalen el punt {n}.',
       noteBearing: 'Rumb posat al punt {n} — {airt}.',
@@ -1565,7 +1504,7 @@ export default {
   ordinal: 9,
   tier: 3,
   title: 'The Sunstone Bearing',
-  epigraph: 'The stone never points at the sun. It points a quarter-ring away, and says nothing about which side.',
+  epigraph: 'The stone never names the sun —\na quarter off, either hand. Three spoke,\none spoke wet: bear where the dry two cross.',
 
   makePuzzle,
   solve,

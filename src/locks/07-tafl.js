@@ -545,18 +545,7 @@ export const NEAR_LINES = Object.freeze([
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 // Artifact-tongue law: the board's own cell names (a1..g7) never translate.
 const BOARD_EN = {
-  ask: 'March the king to a corner within the counted moves. The attackers answer every step.',
   // the law reads as one paragraph; each segment is a separate <b>/<span> run
-  lawGame: 'Brandubh. ',
-  lawYours: 'Yours are the ',
-  lawKing: 'gold king',
-  lawAnd: ' and the ',
-  lawDefenders: 'pale defenders',
-  lawThe: '; the ',
-  lawAttackers: 'dark attackers',
-  lawPolicy: ' answer each of your moves by a fixed published policy — they take if they can, otherwise they play whatever lengthens the king’s road. Every piece slides like a rook: any distance along a rank or file, through empty squares only. Only the king may stand on or pass through the four marked corners or the centre throne. A piece is taken when enemies close on it from both sides; walking between two enemies of your own accord is safe. ',
-  lawGoal: 'Stand the king on any corner within {limit} moves.',
-  lawTap: ' Tap or Enter on a piece of yours to lift it — the squares it may take are marked.',
   ariaBoard: 'brandubh board, 7 by 7',
   undo: 'Take back',
   submit: 'Swear the road',
@@ -584,12 +573,6 @@ const BOARD_EN = {
   none: 'none',
   fallback: 'That road does not open the corner.',
 };
-
-/** the law paragraph, segment by segment: [copy key, rendered bold?] */
-const LAW_RUN = Object.freeze([
-  ['lawGame', 1], ['lawYours', 0], ['lawKing', 1], ['lawAnd', 0], ['lawDefenders', 1],
-  ['lawThe', 0], ['lawAttackers', 1], ['lawPolicy', 0], ['lawGoal', 1], ['lawTap', 0],
-]);
 
 function mount(ctx) {
   const { root, instance, art, audio } = ctx;
@@ -635,8 +618,6 @@ function mount(ctx) {
   .ow-tafl button:focus-visible{outline:2px solid ${P.goldBright};outline-offset:2px}
   .ow-tafl button[disabled]:not(.btn-carved){opacity:.45;cursor:default}
   .ow-tafl .say{font-size:.85rem;color:${P.boneDim};min-height:2.4em}
-  .ow-tafl .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch;align-self:center}
-  .ow-tafl .law b{color:${P.bone};font-weight:600}
   .ow-tafl .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
   /* the carved plate: one plain sentence saying what the lock asks, always visible */
   .ow-tafl .ask{margin:0;align-self:center;max-width:64ch;font-size:.92rem;line-height:1.4;
@@ -645,21 +626,6 @@ function mount(ctx) {
     padding:.5rem .65rem;box-shadow:inset 0 1px 0 rgba(233,220,195,.1),0 1px 2px rgba(12,9,6,.5)}
   #app .ow-tafl button{min-width:44px}`;
   wrap.appendChild(style);
-
-  // Brandubh is not common knowledge. The board's own laws (R1-R7 above) belong
-  // on the board, not only in the journal drawer.
-  const ask = document.createElement('p');
-  ask.className = 'ask';
-  ask.textContent = T('ask');
-  wrap.appendChild(ask);
-
-  const law = document.createElement('p');
-  law.className = 'law';
-  for (const [key, strong] of LAW_RUN) {
-    law.appendChild(Object.assign(document.createElement(strong ? 'b' : 'span'), {
-      textContent: T(key, { limit: instance.limit }),
-    }));
-  }
 
   const SQ = 40;
   const PAD = 8;
@@ -691,9 +657,8 @@ function mount(ctx) {
 
   const tell = document.createElement('p');
   tell.className = 'tell';
-  tell.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
   wrap.appendChild(tell);
-  wrap.appendChild(law);
 
   let state = stateOf(instance);
   let line = [];
@@ -1018,7 +983,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'El Camino del Rey',
-    epigraph: 'El tablero es pequeño y las esquinas quedan lejos. Todo camino menos uno es una trampa.',
+    epigraph: 'Tablero pequeño, esquinas lejanas.\nAvanza el rey; la oscuridad responde —\nsolo un camino llega a casa.',
     hints: [
       'Los atacantes no piensan. Capturan cuando pueden, y si no, alargan tu camino — siempre del mismo modo, siempre igual.',
       'La jugada que más acorta el camino del rey es la que les regala una captura. Cuenta lo que hay más allá de la casilla en que te posas.',
@@ -1037,17 +1002,6 @@ const I18N = {
       [NEAR_SHORT]: 'La línea se agota y el rey sigue lejos de una esquina.',
     },
     board: {
-      ask: 'Lleva al rey a una esquina dentro de las jugadas contadas. Los atacantes responden a cada paso.',
-      lawGame: 'Brandubh. ',
-      lawYours: 'Tuyos son el ',
-      lawKing: 'rey de oro',
-      lawAnd: ' y los ',
-      lawDefenders: 'defensores pálidos',
-      lawThe: '; los ',
-      lawAttackers: 'atacantes oscuros',
-      lawPolicy: ' responden a cada jugada tuya con una norma fija y publicada: toman si pueden, y si no, juegan lo que más alargue el camino del rey. Toda pieza corre como una torre: cualquier distancia por su fila o su columna, y solo por casillas vacías. Únicamente el rey puede posarse en las cuatro esquinas marcadas o en el trono del centro, o pasar por ellas. Una pieza cae cuando los enemigos la cierran por ambos lados; entrar por tu propia voluntad entre dos enemigos es seguro. ',
-      lawGoal: 'Pon al rey en cualquier esquina en {limit} jugadas.',
-      lawTap: ' Toca o pulsa Intro sobre una pieza tuya para alzarla — las casillas que puede tomar quedan marcadas.',
       ariaBoard: 'tablero de brandubh, 7 por 7',
       undo: 'Retirar la jugada',
       submit: 'Jurar el camino',
@@ -1078,7 +1032,7 @@ const I18N = {
   },
   ca: {
     title: 'El Camí del Rei',
-    epigraph: 'El tauler és petit i les cantonades queden lluny. Tot camí llevat d’un és un parany.',
+    epigraph: 'Tauler petit, cantonades llunyanes.\nAvança el rei; la foscor respon —\nnomés un camí arriba a casa.',
     hints: [
       'Els atacants no pensen. Capturen quan poden, i si no, allarguen el teu camí — sempre de la mateixa manera, sempre igual.',
       'La jugada que més escurça el camí del rei és la que els regala una captura. Compta què hi ha més enllà de la casella on et poses.',
@@ -1097,17 +1051,6 @@ const I18N = {
       [NEAR_SHORT]: 'La línia s’exhaureix i el rei encara resta lluny d’una cantonada.',
     },
     board: {
-      ask: 'Mena el rei a una cantonada dins les jugades comptades. Els atacants responen a cada passa.',
-      lawGame: 'Brandubh. ',
-      lawYours: 'Teus són el ',
-      lawKing: 'rei d’or',
-      lawAnd: ' i els ',
-      lawDefenders: 'defensors pàl·lids',
-      lawThe: '; els ',
-      lawAttackers: 'atacants foscos',
-      lawPolicy: ' responen a cada jugada teva amb una norma fixa i publicada: prenen si poden, i si no, juguen allò que més allargui el camí del rei. Tota peça corre com una torre: qualsevol distància per la seva fila o la seva columna, i només per caselles buides. Només el rei pot posar-se a les quatre cantonades marcades o al tron del centre, o passar-hi. Una peça cau quan els enemics la tanquen pels dos costats; entrar per voluntat pròpia entre dos enemics és segur. ',
-      lawGoal: 'Posa el rei a qualsevol cantonada en {limit} jugades.',
-      lawTap: ' Toca o prem Retorn sobre una peça teva per alçar-la — les caselles que pot prendre queden marcades.',
       ariaBoard: 'tauler de brandubh, 7 per 7',
       undo: 'Retirar la jugada',
       submit: 'Jurar el camí',
@@ -1143,7 +1086,7 @@ export default {
   ordinal: 7,
   tier: 3,
   title: 'The King’s Road',
-  epigraph: 'The board is small and the corners are far. Every road but one is a trap.',
+  epigraph: 'Small board, far corners.\nMarch the king; the dark will answer —\none road only reaches home.',
 
   makePuzzle,
   solve,

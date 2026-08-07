@@ -1,13 +1,18 @@
 // Finale. docs/SHELL.md #4, docs/JARLS.md "The treasures" (two tap/Enter
 // -advanced reveals, then a final tableau).
+//
+// LOOP5 composition ruling: the reveals are the game's payoff and play in ONE
+// frame language — the carved arch with the gold groove rim that every jarl
+// dare, yield and credit already wears (art.portrait). The house dims under
+// them (fixed vignette, as the lockroom ceremonies do) and the advance cue is
+// set in the display voice, quiet but unmistakable.
 
 import { el, clear, confirmButton, playBeat, waitForAdvance } from '../dom.js';
 import { portraitImage } from '../portraits.js';
 
 // Hand-drawn (shield + crossed axes + question rune), same chisel-stroke
-// grammar as art.drawRune. art.portrait()/treasureFrame() document no
-// "missing image" mode, so shell owns this fallback, same approach as the
-// portrait placeholder.
+// grammar as art.drawRune. art.portrait() documents no "missing image" mode,
+// so shell owns this fallback, same approach as the portrait placeholder.
 function drawTreasurePlaceholder(ctx, p, w, h) {
   const cx = w / 2;
   const cy = h / 2;
@@ -77,9 +82,39 @@ export function mountFinale(root, {
 }) {
   const p = art.palette;
   const screen = el('div', { class: 'screen screen-finale' });
+
+  // Presentation-only styles for this screen (lockroom's roomStyle pattern):
+  // the house vignette under the reveals, arch drop shadow, breathing room,
+  // and the advance cue in the display voice. `#app` prefix outranks style.js
+  // at equal source order without touching shell-owned style.js.
+  const roomStyle = el('style');
+  roomStyle.textContent = `
+  #app .finale-vignette{position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 36%,rgba(12,9,6,0) 0,rgba(12,9,6,.34) 54%,rgba(12,9,6,.8) 100%)}
+  #app .finale-reveal{gap:12px;padding:24px 16px}
+  #app .finale-reveal canvas{filter:drop-shadow(0 7px 20px rgba(12,9,6,.65))}
+  #app .finale-title{margin-top:6px}
+  #app .finale-sub{max-width:46ch}
+  #app .finale-reveal .continue-hint{margin-top:14px;color:var(--gold);opacity:.85;
+    font-family:var(--font-display);font-variant-caps:all-small-caps;letter-spacing:.15em;
+    animation:finale-hint 2.8s ease-in-out infinite}
+  @keyframes finale-hint{0%,100%{opacity:.55}50%{opacity:.95}}
+  #app .finale-tableau{gap:clamp(24px,6vw,56px);margin-top:10px;align-items:end}
+  #app .finale-tableau-item figcaption{font-family:var(--font-display);
+    font-variant-caps:all-small-caps;letter-spacing:.12em;font-size:.85rem}
+  @media (prefers-reduced-motion: reduce){#app .finale-reveal .continue-hint{animation:none}}
+  #app.reduced-motion .finale-reveal .continue-hint{animation:none}`;
+  screen.append(roomStyle);
+
   let bg = art.makeCanvas(1, 1);
   bg.canvas.className = 'finale-canvas';
   screen.append(bg.canvas);
+
+  // The dim rides between the hearth paint and the chrome, off during the
+  // lid-opening beat (that one plays bright), on for reveals and tableau.
+  const vignette = el('div', { class: 'finale-vignette', 'aria-hidden': 'true' });
+  vignette.style.display = 'none';
+  screen.append(vignette);
 
   const reveal = el('div', { class: 'finale-reveal', tabindex: '-1' });
   const raise = el('button', { type: 'button', class: 'btn-carved', onClick: () => { audio.ui('confirm'); onCredits(); } }, tr('finale.raiseHorns'));
@@ -99,28 +134,31 @@ export function mountFinale(root, {
   let cancelAdvance = null;
   let cancelBeat = null;
 
-  function drawTebiInto(c) {
-    art.treasureFrame(c.ctx, c.w, c.h, performance.now());
-    const entry = imageCache && imageCache.tebi;
-    if (entry && entry.ready && entry.img) {
-      const iw = c.w * 0.7;
-      const ih = c.h * 0.7;
-      c.ctx.drawImage(entry.img, c.w / 2 - iw / 2, c.h / 2 - ih / 2, iw, ih);
+  // One frame language for both treasures: the carved arch. Sized from the
+  // live room so the payoff carries the stage (LOOP4: "small arch on a wide
+  // field") — width-capped, and height-budgeted so arch + titles + cue land
+  // whole on a 1280×800 desktop and a 390×844 phone alike.
+  function archCanvas(frac, cap, chromeH) {
+    const vw = screen.clientWidth || 800;
+    const vh = screen.clientHeight || 800;
+    const w = Math.max(150, Math.min(cap, Math.round(Math.min(vw * frac, (vh - chromeH) / 1.18))));
+    return art.makeCanvas(w, Math.round(w * 1.18));
+  }
+
+  function drawArchInto(c, key) {
+    const img = imageCache ? portraitImage(imageCache, key) : null;
+    if (typeof art.portrait === 'function' && img) {
+      // rim-lit like the dares and yields: the treasure is the last honor light
+      art.portrait(c.ctx, img, 0, 0, c.w, c.h, { rim: 0.85 });
     } else {
       drawTreasurePlaceholder(c.ctx, p, c.w, c.h);
     }
   }
 
-  function drawAlanoInto(c) {
-    const img = imageCache ? portraitImage(imageCache, 'alano') : null;
-    if (typeof art.portrait === 'function' && img) art.portrait(c.ctx, img, 0, 0, c.w, c.h, {});
-    else drawTreasurePlaceholder(c.ctx, p, c.w, c.h);
-  }
-
   function showTebi() {
     clear(reveal);
-    const c = art.makeCanvas(280, 320);
-    drawTebiInto(c);
+    const c = archCanvas(0.72, 340, 300);
+    drawArchInto(c, 'tebi');
     reveal.append(
       c.canvas,
       el('h2', { class: 'finale-title carved-text' }, tr('finale.tebiTitle')),
@@ -133,8 +171,8 @@ export function mountFinale(root, {
 
   function showAlano() {
     clear(reveal);
-    const c = art.makeCanvas(240, 280);
-    drawAlanoInto(c);
+    const c = archCanvas(0.72, 340, 340);
+    drawArchInto(c, 'alano');
     reveal.append(
       c.canvas,
       el('h2', { class: 'finale-title carved-text' }, tr('finale.alanoTitle')),
@@ -148,10 +186,10 @@ export function mountFinale(root, {
 
   function showTableau() {
     clear(reveal);
-    const c1 = art.makeCanvas(150, 172);
-    drawTebiInto(c1);
-    const c2 = art.makeCanvas(150, 172);
-    drawAlanoInto(c2);
+    const c1 = archCanvas(0.34, 190, 300);
+    drawArchInto(c1, 'tebi');
+    const c2 = archCanvas(0.34, 190, 300);
+    drawArchInto(c2, 'alano');
     reveal.append(el('div', { class: 'finale-tableau' }, [
       el('figure', { class: 'finale-tableau-item' }, [c1.canvas, el('figcaption', {}, tr('finale.tebiTitle'))]),
       el('figure', { class: 'finale-tableau-item' }, [c2.canvas, el('figcaption', {}, tr('finale.alanoTitle'))]),
@@ -219,6 +257,7 @@ export function mountFinale(root, {
   function beginReveals() {
     phase = 'tebi';
     paintBackdrop();
+    vignette.style.display = '';
     chrome.style.display = '';
     audio.motif('chest');
     audio.drone.intensity(1);

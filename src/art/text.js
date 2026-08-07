@@ -5,7 +5,9 @@
 // already drawn, no glyph-path extraction needed.
 import { palette, rgba } from './palette.js';
 
-const FONT_STACK = `'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif`;
+// Display voice (docs/QUALITY.md Magic Law §2): embedded Cormorant Garamond,
+// falling back to the old serif stack until the face loads.
+const FONT_STACK = `'Cormorant Garamond','Iowan Old Style','Palatino Nova',Palatino,Georgia,serif`;
 
 export function carveText(ctx, text, x, y, sizePx, opts = {}) {
   const color = opts.color || palette.bone;

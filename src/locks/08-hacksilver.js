@@ -221,7 +221,6 @@ const h32 = (n) => {
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  plate: 'Three weighings are sworn. One piece is false — name it, and say if it weighs heavy or light.',
   ords: ['First', 'Second', 'Third'],
   weighing: '{ord} weighing',
   tiltLeft: 'the left pan sank',
@@ -229,26 +228,22 @@ const BOARD_EN = {
   tiltLevel: 'the beam stood level',
   aside: 'set aside',
   courtHead: 'The twelve pieces, laid on the cloth',
-  verdictHead: 'Seat the piece in a pan',
   heavy: 'heavy — salted',
   light: 'light — clipped',
   swear: 'Swear the accusation',
   sworn: 'The accusation stands',
   solvedLine: 'The false piece is named, and the beam bears the oath.',
-  stagingIdle: 'Name a piece, then seat it in a pan.',
   stagingPiece: 'The {cut} is picked up. Seat it in a pan — heavy, or light.',
   stagingReady: 'You will swear: the {cut} — {dir}.',
   dirHeavy: 'salted, and weighs heavy',
   dirLight: 'clipped, and weighs light',
   callHeavy: 'heavy',
   callLight: 'light',
-  readingIdle: 'Touch a piece: it lights wherever the three weighings put it.',
   reading: 'The {cut} — first: {w1}; second: {w2}; third: {w3}.',
   leftPan: 'left pan',
   rightPan: 'right pan',
   withheld: 'withheld',
   tally: 'reckoning',
-  demoSay: 'Watch once: a piece is touched, and it lights in every weighing that held it.',
   skip: 'Skip the showing',
   ariaPieces: 'The twelve pieces on the counting cloth',
   ariaPiece: '{cut}, marked {rune}',
@@ -707,8 +702,6 @@ function mount(ctx) {
   const style = node('style');
   style.textContent = `
   .ow-hacksilver{display:grid;gap:9px;font-family:${SERIF};color:${P.bone}}
-  .ow8-plate{line-height:0;display:block}
-  .ow8-plate canvas{display:block;width:100%;height:auto}
   .ow8-beams{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(232px,1fr))}
   .ow8-beam{line-height:0;position:relative}
   .ow8-beam canvas{display:block;width:100%;height:auto;border-radius:4px}
@@ -766,15 +759,6 @@ function mount(ctx) {
   #app .ow-hacksilver button{min-width:44px}`;
   wrap.append(style);
 
-  // ---- the plate: the rule of the court, cut into bronze-lit oak ----------
-  const plateHost = node('div');
-  plateHost.className = 'ow8-plate';
-  const plate = { canvas: null, ctx: null, w: 0, h: 0 };
-  const plateSr = node('p');
-  plateSr.className = 'visually-hidden';
-  plateSr.textContent = T('plate');
-  plateHost.append(plateSr);
-
   // ---- the three balances -------------------------------------------------
   const beams = node('div');
   beams.className = 'ow8-beams';
@@ -824,8 +808,6 @@ function mount(ctx) {
   read.setAttribute('aria-live', 'polite');
 
   // ---- the verdict: two carved pans --------------------------------------
-  const verdictHead = node('p', null, T('verdictHead'));
-  verdictHead.className = 'ow8-head';
   const scales = node('div');
   scales.className = 'ow8-scales';
   // the two verdict pans hang off ONE beam, painted behind them, so choosing a
@@ -866,9 +848,9 @@ function mount(ctx) {
   // answers a wrong accusation where the player's eye already is.
   const tell = node('p');
   tell.className = 'ow8-tell';
-  tell.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
 
-  wrap.append(plateHost, beams, court, read, verdictHead, scales, stage, acts, tell);
+  wrap.append(beams, court, read, scales, stage, acts, tell);
   ctx.root.append(wrap);
 
   // ---- canvas plumbing ----------------------------------------------------
@@ -910,27 +892,6 @@ function mount(ctx) {
     return lines;
   }
 
-  function paintPlate() {
-    const { ctx: c, w: W, h: H } = plate;
-    c.clearRect(0, 0, W, H);
-    art.paintWood(c, W, H, 8081);
-    art.paintPanel(c, 5, 5, W - 10, H - 10, {});
-    art.chipBorder(c, 12, 12, W - 24, H - 24, { size: 8, alpha: 0.7 });
-    art.wear(c, W, H, 'plate8', { avoid: { x: W * 0.1, y: 14, w: W * 0.8, h: H - 28 } });
-    const size = narrow ? 13 : 16;
-    const lines = wrapLines(c, T('plate'), size, W - 84);
-    const lh = size * 1.5;
-    let y = (H - lines.length * lh) / 2 + size * 0.95;
-    for (const line of lines) {
-      art.carveText(c, line, W / 2, y, size, { color: P.bone, depth: 0.8, align: 'center' });
-      y += lh;
-    }
-    // a scratch-weight and a rune-marked tally-pin flank the rule
-    art.ornament(c, 'nailhead', 22, H / 2, 11);
-    art.ornament(c, 'nailhead', W - 22, H / 2, 11);
-  }
-
-  // ---- painting: one balance ---------------------------------------------
   function beamGeom(W, H) {
     const pivotY = narrow ? 26 : 30;
     const capH = narrow ? 24 : 27;
@@ -1424,7 +1385,7 @@ function mount(ctx) {
   function paintRead() {
     const i = lit();
     read.textContent = '';
-    if (i < 0) { read.textContent = T('readingIdle'); return; }
+    if (i < 0) { read.textContent = ''; return; }
     const line = T('reading', {
       cut: cutOf(i), w1: placeWord(0, i), w2: placeWord(1, i), w3: placeWord(2, i),
     });
@@ -1462,15 +1423,13 @@ function mount(ctx) {
     stage.textContent = ctx.solved ? T('solvedLine')
       : ready ? T('stagingReady', { cut: cutOf(piece), dir: T(heavier ? 'dirHeavy' : 'dirLight') })
         : piece >= 0 ? T('stagingPiece', { cut: cutOf(piece) })
-          : T('stagingIdle');
+          : '';
   }
 
   // ---- layout -------------------------------------------------------------
   function relayout() {
     const avail = Math.max(240, Math.round(wrap.clientWidth || 320));
     narrow = avail < 560;
-    fitCanvas(plateHost, plate, avail, narrow ? 90 : 66, true);
-    paintPlate();
     for (const v of beamViews) {
       const bw = Math.max(200, Math.round(v.host.clientWidth || avail));
       fitCanvas(v.host, v.gfx, bw, narrow ? 150 : 192, true);
@@ -1598,7 +1557,6 @@ function mount(ctx) {
     ghostHost.style.display = 'block';
     ghostHost.style.transform = `translate(${Math.round(a.left - box.left)}px,${Math.round(a.top - box.top)}px)`;
     skipBtn.style.display = '';
-    stage.textContent = T('demoSay');
     demoLit = demoPiece;
     render();
     later(() => endShowing(), 3000);
@@ -1665,7 +1623,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'Las Doce Piezas',
-    epigraph: 'Una de éstas la cortó un mentiroso. La balanza lo recuerda; no lo dice.',
+    epigraph: 'Doce piezas cortadas, una es falsa —\nnadie juró pesada, nadie ligera.\nLos platillos recuerdan cada mentira.',
     hints: [
       'Veinticuatro acusaciones caben: doce piezas, cada una falsa en dos sentidos. Tres pesadas pueden partir veintisiete.',
       'Una pieza retirada de una pesada no puede inclinarla. Lee cada balanza nivelada como prueba dura, no como silencio.',
@@ -1677,7 +1635,6 @@ const I18N = {
       'Your naming disagrees with 3 of the three sworn weighings.': 'Tu acusación contradice las 3 pesadas juradas.',
     },
     board: {
-      plate: 'Tres pesadas están juradas. Una pieza es falsa — nómbrala, y di si pesa de más o de menos.',
       ords: ['Primera', 'Segunda', 'Tercera'],
       weighing: '{ord} pesada',
       tiltLeft: 'bajó el platillo izquierdo',
@@ -1685,26 +1642,22 @@ const I18N = {
       tiltLevel: 'la balanza quedó nivelada',
       aside: 'apartadas',
       courtHead: 'Las doce piezas, tendidas sobre el paño',
-      verdictHead: 'Asienta la pieza en un platillo',
       heavy: 'de más — salada',
       light: 'de menos — cercenada',
       swear: 'Jurar la acusación',
       sworn: 'La acusación se sostiene',
       solvedLine: 'La pieza falsa queda nombrada, y la balanza sostiene el juramento.',
-      stagingIdle: 'Nombra una pieza y luego asiéntala en un platillo.',
       stagingPiece: 'Tienes en la mano {cut}. Asiéntala en un platillo — de más, o de menos.',
       stagingReady: 'Vas a jurar: {cut} — {dir}.',
       dirHeavy: 'la pieza está salada y pesa de más',
       dirLight: 'la pieza está cercenada y pesa de menos',
       callHeavy: 'de más',
       callLight: 'de menos',
-      readingIdle: 'Toca una pieza: se enciende allí donde la pusieron las tres pesadas.',
       reading: '{cut} — primera: {w1}; segunda: {w2}; tercera: {w3}.',
       leftPan: 'platillo izquierdo',
       rightPan: 'platillo derecho',
       withheld: 'apartada',
       tally: 'cuenta',
-      demoSay: 'Míralo una vez: se toca una pieza y se enciende en cada pesada que la sostuvo.',
       skip: 'Saltar la muestra',
       ariaPieces: 'Las doce piezas sobre el paño de contar',
       ariaPiece: '{cut}, con la marca {rune}',
@@ -1725,7 +1678,7 @@ const I18N = {
   },
   ca: {
     title: 'Les Dotze Peces',
-    epigraph: 'Una d’aquestes la va tallar un mentider. La balança se’n recorda; no ho diu.',
+    epigraph: 'Dotze peces tallades, una és falsa —\nningú no va jurar feixuga, ningú lleugera.\nEls platets recorden cada mentida.',
     hints: [
       'Hi caben vint-i-quatre acusacions: dotze peces, cadascuna falsa en dos sentits. Tres pesades en poden partir vint-i-set.',
       'Una peça retirada d’una pesada no la pot decantar. Llegeix cada balança anivellada com a prova dura, no com a silenci.',
@@ -1737,7 +1690,6 @@ const I18N = {
       'Your naming disagrees with 3 of the three sworn weighings.': 'La teva acusació contradiu les 3 pesades jurades.',
     },
     board: {
-      plate: 'Tres pesades estan jurades. Una peça és falsa — anomena-la, i digues si pesa de més o de menys.',
       ords: ['Primera', 'Segona', 'Tercera'],
       weighing: '{ord} pesada',
       tiltLeft: 'va baixar el platet esquerre',
@@ -1745,26 +1697,22 @@ const I18N = {
       tiltLevel: 'la balança va quedar anivellada',
       aside: 'apartades',
       courtHead: 'Les dotze peces, esteses damunt el drap',
-      verdictHead: 'Asseu la peça en un platet',
       heavy: 'de més — salada',
       light: 'de menys — escapçada',
       swear: 'Jurar l’acusació',
       sworn: 'L’acusació s’aguanta',
       solvedLine: 'La peça falsa queda anomenada, i la balança aguanta el jurament.',
-      stagingIdle: 'Anomena una peça i després asseu-la en un platet.',
       stagingPiece: 'Tens a la mà {cut}. Asseu-la en un platet — de més, o de menys.',
       stagingReady: 'Juraràs: {cut} — {dir}.',
       dirHeavy: 'la peça és salada i pesa de més',
       dirLight: 'la peça és escapçada i pesa de menys',
       callHeavy: 'de més',
       callLight: 'de menys',
-      readingIdle: 'Toca una peça: s’encén allà on la van posar les tres pesades.',
       reading: '{cut} — primera: {w1}; segona: {w2}; tercera: {w3}.',
       leftPan: 'platet esquerre',
       rightPan: 'platet dret',
       withheld: 'apartada',
       tally: 'compte',
-      demoSay: 'Mira-ho un cop: es toca una peça i s’encén a cada pesada que la va sostenir.',
       skip: 'Saltar la mostra',
       ariaPieces: 'Les dotze peces damunt el drap de comptar',
       ariaPiece: '{cut}, amb la marca {rune}',
@@ -1790,7 +1738,7 @@ export default {
   ordinal: 8,
   tier: 3,
   title: 'The Twelve Pieces',
-  epigraph: 'One of these was cut by a liar. The beam remembers; it does not speak.',
+  epigraph: 'Twelve cut pieces, one cut false —\nnone swore heavy, none swore light.\nThe pans remember every lie.',
 
   makePuzzle,
   solve,

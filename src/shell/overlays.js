@@ -26,7 +26,10 @@ export function mountJournalDrawer(root, { save, tr, onClose }) {
   if (!save.journal.length) {
     list.append(el('p', { class: 'journal-empty' }, tr('journal.empty')));
   } else {
-    save.journal.forEach((line) => list.append(el('p', { class: 'journal-line' }, line)));
+    // Timestamps stay in the save (docs/SHELL.md contract) but the page reads
+    // as carved entries, not a log — the clock is stripped at render.
+    save.journal.forEach((line) => list.append(el('p', { class: 'journal-line' },
+      String(line).replace(/^\d{2}:\d{2} — /, ''))));
   }
   panel.append(list);
 

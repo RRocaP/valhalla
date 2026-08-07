@@ -268,8 +268,6 @@ const SERIF = "'Iowan Old Style','Palatino Nova',Palatino,Georgia,serif";
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  plate: 'Seat the eight so every sworn oath holds — save one, the drunken boast. Name it.',
-  oathLabel: 'The oath-board — nine plaques, and one of them was sworn in drink',
   standing: 'Still standing',
   benchNear: 'the near bench',
   benchFar: 'the far bench',
@@ -281,7 +279,6 @@ const BOARD_EN = {
   swear: 'Swear the seating',
   skip: 'Skip the showing',
   demoSay: 'Watch once: a man takes his seat, and the plaques answer.',
-  help: 'Tap a man, then tap a seat — or drag him across. Tap a seated man to lift him again. Tap a plaque to call that oath the drunken boast.',
   law: 'Each man faces the man across the boards from him. The high seat is at the left of both benches.',
   onFeet: '{name} is on his feet.',
   takes: '{name} takes {seat}.',
@@ -444,11 +441,6 @@ function mount(ctx) {
   style.textContent = `
     .ow12-slab{position:absolute;inset:0;line-height:0;pointer-events:none;border-radius:3px;overflow:hidden}
     .ow12-slab canvas{display:block}
-    .ow12-plate{position:relative;padding:13px 18px;border-radius:4px;
-      background:linear-gradient(168deg,${rgbaHex(p.oakLight, 0.5)},${rgbaHex(p.oak, 0.62)} 55%,${rgbaHex(p.oakDeep, 0.72)});
-      box-shadow:0 3px 7px ${rgbaHex(p.tar, 0.5)},inset 0 1px 0 ${rgbaHex(p.bone, 0.1)}}
-    .ow12-platetext{position:relative;margin:0;font-size:15.5px;line-height:1.45;color:${p.bone};
-      text-shadow:0 -1px 0 ${rgbaHex(p.tar, 0.85)},0 1px 0 ${rgbaHex(p.goldBright, 0.18)}}
     .ow12-cap{margin:0;font-size:12px;color:${p.boneDim};letter-spacing:.13em;text-transform:uppercase}
     .ow12-board{display:grid;gap:7px;grid-template-columns:1fr}
     @media (min-width:620px){.ow12-board{grid-template-columns:1fr 1fr 1fr}}
@@ -463,26 +455,24 @@ function mount(ctx) {
     .ow12-boast[data-state="hold"]{border-color:${rgbaHex(p.gold, 0.75)}}
     .ow12-boast[data-state="broken"]{border-color:${rgbaHex(p.blood, 0.9)}}
     .ow12-boast[aria-pressed="true"]{border-color:${p.ember}}
-    .ow12-boasttext{position:relative;display:block}
+    .ow12-boasttext{position:relative;display:block;
+      text-shadow:0 -1px 0 ${rgbaHex(p.tar, 0.9)},0 1px 0 ${rgbaHex(p.goldBright, 0.14)}}
     .ow12-hall{position:relative;display:grid;gap:9px;padding:10px;border-radius:5px;
       grid-template-columns:1fr;
-      background:radial-gradient(120% 80% at 50% 46%,${rgbaHex(p.ember, 0.13)},rgba(0,0,0,0) 70%),
+      background:radial-gradient(120% 80% at 50% 46%,${rgbaHex(p.ember, 0.18)},rgba(0,0,0,0) 70%),
         linear-gradient(180deg,${rgbaHex(p.oakDeep, 0.55)},${rgbaHex(p.tar, 0.6)});
       box-shadow:inset 0 2px 8px ${rgbaHex(p.tar, 0.75)},0 4px 10px ${rgbaHex(p.tar, 0.45)}}
     .ow12-bench{display:grid;gap:0;grid-template-columns:repeat(4,1fr)}
     .ow12-boardsrow{position:relative;min-height:58px}
     @media (max-width:619px){
       .ow12-wrap{display:grid}
-      .ow12-plate{order:1}
-      .ow12-hallwrap{order:2}
-      .ow12-rostercap{order:3}
-      .ow12-roster{order:4}
-      .ow12-tallybox{order:5}
-      .ow12-actions{order:6}
-      .ow12-status{order:7}
-      .ow12-oathcap{order:8}
-      .ow12-board{order:9}
-      .ow12-help{order:10}
+      .ow12-hallwrap{order:1}
+      .ow12-rostercap{order:2}
+      .ow12-roster{order:3}
+      .ow12-tallybox{order:4}
+      .ow12-actions{order:5}
+      .ow12-status{order:6}
+      .ow12-board{order:7}
       .ow12-boast{font-size:13px;padding:9px 10px 9px 30px;min-height:56px}
       .ow12-hall{grid-template-columns:1fr 34px 1fr;align-items:start}
       .ow12-bench{grid-template-columns:1fr;grid-template-rows:repeat(4,auto)}
@@ -557,17 +547,7 @@ function mount(ctx) {
     return true;
   }
 
-  // ---- the comprehension plate -------------------------------------------
-  const plate = node('div');
-  plate.className = 'ow12-plate';
-  const plateSlab = slabOn(plate, (s) => paintPlaque(s, { tone: 'plate' }));
-  const plateText = node('p', null, T('plate'));
-  plateText.className = 'ow12-platetext';
-  plate.append(plateText);
-
   // ---- the oath-board ----------------------------------------------------
-  const oathCap = node('p', null, T('oathLabel'));
-  oathCap.className = 'ow12-cap ow12-oathcap';
   const oathBoard = node('div');
   oathBoard.className = 'ow12-board';
   const plaques = inst.oaths.map((o, k) => {
@@ -670,13 +650,9 @@ function mount(ctx) {
 
   const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};scroll-margin:28px`);
   status.className = 'ow12-status';
-  status.setAttribute('aria-live', 'polite');
-  const help = node('p', `margin:0;font-size:12.5px;line-height:1.5;color:${p.boneDim};max-width:70ch`,
-    `${T('law')} ${T('help')}`);
-  help.className = 'ow12-help';
-
-  wrap.append(plate, oathCap, oathBoard, hall, rosterCap, roster,
-    tallyBox, actions, status, help);
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
+  wrap.append(oathBoard, hall, rosterCap, roster,
+    tallyBox, actions, status);
   ctx.root.append(wrap);
 
   // ---- painting: the shield-tokens ---------------------------------------
@@ -773,6 +749,20 @@ function mount(ctx) {
       ]);
     }
     art.drawKnot(c, pts, { width: Math.max(3.2, R * 0.115), color: ink, gapAtCrossings: R * 0.24 });
+
+    // 4b. the dome: one hearth key over boards, paint and strand alike —
+    // the disc was flat colour fields until LOOP5 (L09's calcite standard);
+    // a linseed sheen arc rides the lit shoulder
+    const dome = c.createRadialGradient(cx - R * 0.34, cy - R * 0.38, R * 0.08, cx, cy, R * 1.02);
+    dome.addColorStop(0, rgbaHex(p.bone, 0.18));
+    dome.addColorStop(0.42, rgbaHex(p.bone, 0.05));
+    dome.addColorStop(0.76, 'rgba(0,0,0,0)');
+    dome.addColorStop(1, rgbaHex(p.tar, 0.38));
+    c.fillStyle = dome;
+    c.fillRect(0, 0, TOKEN_PX, TOKEN_PX);
+    c.strokeStyle = rgbaHex(p.bone, 0.14);
+    c.lineWidth = R * 0.09;
+    c.beginPath(); c.arc(cx, cy, R * 0.6, Math.PI * 0.95, Math.PI * 1.6); c.stroke();
     c.restore();
 
     // 5. iron rim, eight nailheads, seated shadow inside the rim
@@ -812,6 +802,20 @@ function mount(ctx) {
     const seed = 1200 + b * 7;
     art.paintWood(c, w, h, seed, { vignette: 0.35 });
 
+    // raking hearth light down the plank's short axis — lit crown, shaded
+    // foot — so the bench reads as STOCK standing in the hall, not a dark
+    // fill (LOOP4 named the slabs "very dark"; L06's laths set the standard)
+    const rake = vertical
+      ? c.createLinearGradient(0, 0, w, 0)
+      : c.createLinearGradient(0, 0, 0, h);
+    rake.addColorStop(0, rgbaHex(p.oakLight, 0.3));
+    rake.addColorStop(0.42, rgbaHex(p.oakLight, 0.07));
+    rake.addColorStop(1, rgbaHex(p.tar, 0.3));
+    c.save();
+    c.fillStyle = rake;
+    c.fillRect(0, 0, w, h);
+    c.restore();
+
     // two long boards make the bench: the seam runs its whole length
     const seamAt = vertical ? w * 0.58 : h * 0.58;
     c.save();
@@ -834,13 +838,13 @@ function mount(ctx) {
       const rx = SEAT_W * 0.27;
       const ry = SEAT_H * 0.3;
       const pol = c.createRadialGradient(cx, cy - ry * 0.2, rx * 0.1, cx, cy, rx * 1.5);
-      pol.addColorStop(0, rgbaHex(p.bone, 0.13));
-      pol.addColorStop(0.55, rgbaHex(p.oakLight, 0.09));
+      pol.addColorStop(0, rgbaHex(p.bone, 0.16));
+      pol.addColorStop(0.55, rgbaHex(p.oakLight, 0.1));
       pol.addColorStop(1, rgbaHex(p.bone, 0));
       c.fillStyle = pol;
       c.beginPath(); c.ellipse(cx, cy, rx * 1.5, ry * 1.5, 0, 0, Math.PI * 2); c.fill();
       // the seat's carved socket ring
-      c.strokeStyle = rgbaHex(p.tar, 0.5);
+      c.strokeStyle = rgbaHex(p.tar, 0.62);
       c.lineWidth = 1.6;
       c.beginPath(); c.ellipse(cx, cy + 2, rx, ry, 0, 0, Math.PI * 2); c.stroke();
       c.strokeStyle = rgbaHex(p.oakLight, 0.24);
@@ -878,6 +882,21 @@ function mount(ctx) {
       knifeMark(c, gx, gy, 11 + h32(seed * 29 + i) * 5, seed * 31 + i);
     }
     art.wear(c, w, h, `bench:${seed}`);
+
+    // plank thickness at the edges: a lit crown arris and a tar foot shadow,
+    // running the bake's whole length so every seat-slice carries them true
+    c.save();
+    c.strokeStyle = rgbaHex(p.bone, 0.2);
+    c.lineWidth = 1.4;
+    c.beginPath();
+    if (vertical) { c.moveTo(1.1, 0); c.lineTo(1.1, h); } else { c.moveTo(0, 1.1); c.lineTo(w, 1.1); }
+    c.stroke();
+    c.strokeStyle = rgbaHex(p.tar, 0.75);
+    c.lineWidth = 2.2;
+    c.beginPath();
+    if (vertical) { c.moveTo(w - 1.3, 0); c.lineTo(w - 1.3, h); } else { c.moveTo(0, h - 1.3); c.lineTo(w, h - 1.3); }
+    c.stroke();
+    c.restore();
     return off.canvas;
   }
 
@@ -1153,6 +1172,29 @@ function mount(ctx) {
     c.fillStyle = rgbaHex(p.oakDeep, opts.tone === 'plate' ? 0.34 : 0.44);
     c.fillRect(0, 0, w, h);
     c.restore();
+
+    if (opts.tone !== 'plate') {
+      // plank presence (LOOP4: "a text wall"): raking top light, shaded foot,
+      // and sawn end-grain caps — each oath reads as CUT STOCK seated in the
+      // board. The state language (glow, crack, brand) stays untouched on top.
+      c.save();
+      const rake = c.createLinearGradient(0, 0, 0, h);
+      rake.addColorStop(0, rgbaHex(p.oakLight, 0.24));
+      rake.addColorStop(0.4, 'rgba(0,0,0,0)');
+      rake.addColorStop(1, rgbaHex(p.tar, 0.32));
+      c.fillStyle = rake;
+      c.fillRect(0, 0, w, h);
+      for (const ex of [0, w - 7]) {
+        c.fillStyle = rgbaHex(p.oakDeep, 0.48);
+        c.fillRect(ex, 1.5, 7, h - 3);
+        c.strokeStyle = rgbaHex(p.tar, 0.5);
+        c.lineWidth = 0.9;
+        for (let gy = 5; gy < h - 5; gy += 4.5) {
+          c.beginPath(); c.moveTo(ex + 1, gy); c.lineTo(ex + 6, gy + 2.2); c.stroke();
+        }
+      }
+      c.restore();
+    }
 
     const state = opts.state || 'plate';
     if (state === 'hold') {
@@ -1554,6 +1596,7 @@ function mount(ctx) {
   }
 
   say(T('opening', { names: names.join(', ') }));
+  say(T('law'));
   layout();
   render(ctx.solved ? T('solvedLine') : '');
   if (!ctx.solved) later(showTheWay, 260);
@@ -1583,7 +1626,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'Los Bancos del Convite',
-    epigraph: 'La cerveza juró nueve juramentos en aquella mesa. Ocho de ellos estaban sobrios.',
+    epigraph: 'Nueve juramentos juraron esa mesa;\nocho estaban sobrios. Sienta a los ocho como es debido —\ny nombra la bravata del bebido.',
     hints: [
       'Nueve hombres juraron. Uno estaba bebido. Los otros ocho concuerdan entre sí — y con una sola disposición del salón.',
       'Toma un juramento y dalo por la bravata: táchalo y mira si los ocho restantes pueden sentar el salón siquiera. La mayoría no puede.',
@@ -1601,8 +1644,6 @@ const I18N = {
       'same-bench': '{x} e {y} compartieron un mismo banco.',
     },
     board: {
-      plate: 'Sienta a los ocho de modo que se sostenga cada juramento — salvo uno, la bravata del bebido. Nómbrala.',
-      oathLabel: 'El tablón de juramentos — nueve placas, y una se juró en la bebida',
       standing: 'Aún en pie',
       benchNear: 'el banco cercano',
       benchFar: 'el banco lejano',
@@ -1614,7 +1655,6 @@ const I18N = {
       swear: 'Jurar la disposición',
       skip: 'Saltar la muestra',
       demoSay: 'Mira una vez: un hombre toma asiento y las placas responden.',
-      help: 'Toca a un hombre y luego un asiento — o arrástralo. Toca a un hombre sentado para levantarlo. Toca una placa para llamar bravata a ese juramento.',
       law: 'Cada hombre queda frente al que tiene al otro lado de la mesa. El asiento alto está a la izquierda en ambos bancos.',
       onFeet: '{name} queda en pie.',
       takes: '{name} toma {seat}.',
@@ -1641,7 +1681,7 @@ const I18N = {
   },
   ca: {
     title: 'Els Bancs del Convit',
-    epigraph: 'La cervesa va jurar nou juraments en aquella taula. Vuit d’ells estaven sobris.',
+    epigraph: 'Nou juraments van jurar aquella taula;\nvuit eren sobris. Asseu els vuit homes com cal —\ni anomena la bravata del begut.',
     hints: [
       'Nou homes van jurar. Un anava begut. Els altres vuit concorden entre ells — i amb una sola disposició de la sala.',
       'Pren un jurament i dona’l per la bravata: ratlla’l i mira si els vuit restants poden asseure la sala ni que sigui. La majoria no poden.',
@@ -1659,8 +1699,6 @@ const I18N = {
       'same-bench': '{x} i {y} van compartir un mateix banc.',
     },
     board: {
-      plate: 'Asseu els vuit de manera que s’aguanti cada jurament — llevat d’un, la bravata del begut. Anomena-la.',
-      oathLabel: 'El tauler de juraments — nou plaques, i una es va jurar beguda',
       standing: 'Encara drets',
       benchNear: 'el banc del davant',
       benchFar: 'el banc del fons',
@@ -1672,7 +1710,6 @@ const I18N = {
       swear: 'Jurar la disposició',
       skip: 'Saltar la mostra',
       demoSay: 'Mira-ho un cop: un home pren seient i les plaques responen.',
-      help: 'Toca un home i després un seient — o arrossega’l. Toca un home assegut per alçar-lo. Toca una placa per anomenar bravata aquell jurament.',
       law: 'Cada home queda davant del qui té a l’altre costat de la taula. El seient alt és a l’esquerra dels dos bancs.',
       onFeet: '{name} queda dret.',
       takes: '{name} pren {seat}.',
@@ -1704,7 +1741,7 @@ export default {
   ordinal: 12,
   tier: 4,
   title: 'The Feast Benches',
-  epigraph: 'Ale swore nine oaths at that table. Eight of them were sober.',
+  epigraph: 'Nine oaths swore that seating;\neight were sober. Bench the eight men true —\nthen name the ale’s own boast.',
 
   makePuzzle(rng) {
     const names = rng.shuffle(ROSTER).slice(0, 8).sort();

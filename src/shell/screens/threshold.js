@@ -15,6 +15,7 @@ import { loadSave } from '../save.js';
 import { WAGER, lineFor, journalHasLine } from '../duels.js';
 import { t, resolveLang } from '../../kernel/i18n.js';
 import { rng } from '../../kernel/rng.js';
+import { loadHero, drawHero } from '../heroes.js';
 
 // Shell chrome strings for this screen (kernel i18n dictionary shape). The
 // WAGER body is frozen in duels.js; the kicker + continue labels are chrome
@@ -375,6 +376,30 @@ export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew }) {
     fresh.canvas.className = 'finale-canvas';
     screen.replaceChild(fresh.canvas, bg.canvas);
     bg = fresh;
+    if (hero) {
+      // The poster IS the chest (hero plate): the photographed object waits
+      // in its own dark hall; the wordmark stands in the black above it, the
+      // hearth pool and motes ride on top. Procedural hall is the fallback.
+      drawHero(bg.ctx, hero, w, h, { fy: 0.6, edge: 0.66 });
+      if (typeof art.hearth === 'function') art.hearth(bg.ctx, w, h, { y: 0.3, strength: 0.7 });
+      const vg2 = bg.ctx.createRadialGradient(w / 2, h * 0.44, Math.min(w, h) * 0.3, w / 2, h * 0.5, Math.max(w, h) * 0.78);
+      vg2.addColorStop(0, 'rgba(12,9,6,0)');
+      vg2.addColorStop(1, 'rgba(9,7,4,.6)');
+      bg.ctx.fillStyle = vg2;
+      bg.ctx.fillRect(0, 0, w, h);
+      const freshMotes2 = art.makeCanvas(w, h);
+      freshMotes2.canvas.className = 'threshold-motes';
+      freshMotes2.canvas.setAttribute('aria-hidden', 'true');
+      screen.replaceChild(freshMotes2.canvas, motes.canvas);
+      motes = freshMotes2;
+      seedMotes(w, h);
+      if (reducedMotion) paintMotes(0);
+      const freshTitle2 = makeTitle(w);
+      content.replaceChild(freshTitle2, title);
+      title = freshTitle2;
+      if (wagerLayer.style.display !== 'none') paintWagerPanel();
+      return;
+    }
     art.paintWood(bg.ctx, bg.w, bg.h, 793, { shade: 0.2 });
     // dead-zone law: the hall's empty boards carry quiet tool history — never
     // competing with the chest or the title column
@@ -434,11 +459,19 @@ export function mountThreshold(root, { art, hasSave, onBegin, onBeginAnew }) {
     title = freshTitle;
     if (wagerLayer.style.display !== 'none') paintWagerPanel();
   }
+  let hero = null;
+  let alive = true;
   window.addEventListener('resize', resize);
   resize();
   startMotes();
+  loadHero('chest').then((img) => {
+    if (!alive || !img) return;
+    hero = img;
+    resize();
+  });
 
   return function unmount() {
+    alive = false;
     window.removeEventListener('resize', resize);
     if (motesRaf) cancelAnimationFrame(motesRaf);
     if (untrap) untrap();

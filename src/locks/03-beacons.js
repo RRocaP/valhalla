@@ -158,9 +158,6 @@ const TAU = Math.PI * 2;
 // Board copy. English is the source; es/ca live in the additive i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  plate: 'Turn the dial to the next night all three fires burn together.',
-  law: 'Tonight is night nought; the dial runs to night {max}.',
-  keys: 'Drag the wheel, or use the arrow keys.',
   submit: 'Set the dial',
   submitDone: 'The dial is set',
   skip: 'Skip the showing',
@@ -305,13 +302,6 @@ function mount(ctx) {
     .ow3-dial:focus-visible{outline:2px solid ${p.goldBright}}
     .ow3-dial[data-turning="1"]{cursor:grabbing}
     .ow3-coast{border-radius:6px}
-    .ow3-plate{margin:0;width:100%;box-sizing:border-box;padding:9px 18px;text-align:center;border-radius:4px;
-      font-size:15px;line-height:1.42;color:${p.bone};
-      background:linear-gradient(180deg,${withA(p.tar, 0.58)},${withA(p.oakDeep, 0.44)});
-      border:1px solid ${withA(p.gold, 0.34)};
-      box-shadow:inset 0 1px 0 ${withA(p.bone, 0.1)},0 2px 7px ${withA(p.tar, 0.5)};
-      text-shadow:0 -1px 0 ${withA(p.tar, 0.9)},0 1px 0 ${withA(p.goldBright, 0.18)}}
-    .ow3-plate span{display:block;margin-top:5px;font-size:12.5px;line-height:1.4;color:${p.boneDim};text-shadow:none}
     .ow3-bar{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
     .ow3-skip{font-family:${SERIF};font-size:14px;color:${p.boneDim};background:transparent;
       border:1px solid ${withA(p.oakLight, 0.9)};border-radius:3px;padding:0 16px;min-height:44px;min-width:44px;cursor:pointer}
@@ -319,12 +309,6 @@ function mount(ctx) {
     .ow3-skip:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
   `;
   wrap.append(style);
-
-  const plate = node('p');
-  plate.className = 'ow3-plate';
-  plate.append(document.createTextNode(T('plate')));
-  plate.append(node('span', null,
-    `${T('law', { max: instance.dialMax })} ${T('keys', { longest })}`));
 
   const coast = art.makeCanvas(COAST_W, COAST_H);
   coast.canvas.className = 'ow3-coast';
@@ -354,9 +338,9 @@ function mount(ctx) {
   bar.append(submitBtn, skipBtn);
 
   const status = node('p', `margin:0;min-height:20px;font-size:14px;color:${p.boneDim};text-align:center`);
-  status.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
 
-  wrap.append(plate, coast.canvas, gfx.canvas, bar, status);
+  wrap.append(coast.canvas, gfx.canvas, bar, status);
   ctx.root.append(wrap);
 
   // ---- carving primitives -------------------------------------------------
@@ -1434,7 +1418,6 @@ function mount(ctx) {
     demo.t0 = now();
     demo.stepped = 0;
     skipBtn.style.display = '';
-    status.textContent = T('demoSay');
     say(T('demoSay'));
     if (calm) {
       // reduced motion: the same lesson held still — the grip, the arc, and the
@@ -1634,7 +1617,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'Las Noches de las Almenaras',
-    epigraph: 'Tres fuegos guardan tres cuentas. Una vez ardieron como uno.',
+    epigraph: 'Tres fuegos duermen, tres fuegos velan.\nGira la noche hasta que ardan como uno.',
     hints: [
       'Un fuego que ardió hace tres noches con una cuenta de cinco vuelve a arder dentro de dos.',
       'Toma primero la cuenta más larga. Cuenta solo sus noches, luego prueba cada una contra la segunda, y lo que sobreviva contra la tercera.',
@@ -1647,9 +1630,6 @@ const I18N = {
       'Two fires answer that night. One stands dark.': 'Dos fuegos responden esa noche. Uno queda a oscuras.',
     },
     board: {
-      plate: 'Gira el disco hasta la próxima noche en que los tres fuegos ardan juntos.',
-      law: 'Esta noche es la noche cero; el disco llega hasta la noche {max}.',
-      keys: 'Arrastra la rueda, o usa las flechas.',
       submit: 'Fijar el disco',
       submitDone: 'El disco queda fijado',
       skip: 'Saltar la muestra',
@@ -1682,7 +1662,7 @@ const I18N = {
   },
   ca: {
     title: 'Les Nits de les Talaies',
-    epigraph: 'Tres focs guarden tres comptes. Un cop van cremar com un de sol.',
+    epigraph: 'Tres focs dormen, tres focs vetllen.\nGira la nit fins que cremin com un de sol.',
     hints: [
       'Un foc que va cremar fa tres nits amb un compte de cinc torna a cremar d’aquí a dues.',
       'Pren primer el compte més llarg. Compta’n només les nits, després prova cadascuna contra el segon, i el que sobrevisqui contra el tercer.',
@@ -1695,9 +1675,6 @@ const I18N = {
       'Two fires answer that night. One stands dark.': 'Dos focs responen aquella nit. Un queda a les fosques.',
     },
     board: {
-      plate: 'Gira el disc fins a la propera nit en què els tres focs cremin alhora.',
-      law: 'Aquesta nit és la nit zero; el disc arriba fins a la nit {max}.',
-      keys: 'Arrossega la roda, o fes servir les fletxes.',
       submit: 'Fixar el disc',
       submitDone: 'El disc queda fixat',
       skip: 'Saltar la mostra',
@@ -1735,7 +1712,7 @@ export default {
   ordinal: 3,
   tier: 1,
   title: 'The Beacon Nights',
-  epigraph: 'Three fires keep three reckonings. Once they burned as one.',
+  epigraph: 'Three fires sleep, three fires wake.\nTurn the night till they burn as one.',
 
   makePuzzle,
   solve,

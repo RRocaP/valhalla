@@ -59,6 +59,24 @@ writeFileSync(
   `export const PORTRAITS = ${JSON.stringify(portraits)};\n`
 );
 
+// 2c. embedded display fonts (Cormorant Garamond latin subset, OFL — the
+// roca-airways display voice; contract permits inlined assets)
+const FONT_FILES = {
+  regular: 'assets/fonts/cormorant-latin.woff2',
+  italic: 'assets/fonts/cormorant-latin-italic.woff2',
+};
+const fonts = {};
+for (const [id, rel] of Object.entries(FONT_FILES)) {
+  const p = join(ROOT, rel);
+  fonts[id] = existsSync(p)
+    ? `data:font/woff2;base64,${readFileSync(p).toString('base64')}`
+    : '';
+}
+writeFileSync(
+  join(ROOT, 'src/kernel/fonts.gen.js'),
+  `export const FONTS = ${JSON.stringify(fonts)};\n`
+);
+
 // 3. bundle
 const result = await build({
   entryPoints: [join(ROOT, 'src/main.js')],

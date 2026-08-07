@@ -529,12 +529,6 @@ function mount(ctx) {
   const wrap = node('div', `display:grid;gap:9px;justify-items:stretch;font-family:${SERIF};color:${p.bone}`);
   const style = node('style');
   style.textContent = `
-    .ow5-plate{margin:0;text-align:center;font-size:15px;line-height:1.4;color:${p.bone};
-      padding:8px 20px;border-radius:4px;
-      background:linear-gradient(168deg,rgba(90,58,30,.72),rgba(58,36,18,.8) 55%,rgba(34,21,7,.86));
-      border:1px solid rgba(12,9,6,.9);
-      box-shadow:0 4px 10px rgba(12,9,6,.5),inset 0 1px 0 rgba(233,220,195,.14),inset 0 -2px 3px rgba(12,9,6,.6);
-      text-shadow:-1px -1px 0 rgba(12,9,6,.85),1px 1px 0 rgba(238,207,109,.18)}
     .ow5-panel{position:relative;width:100%;max-width:900px}
     .ow5-panel canvas{display:block;width:100%;height:auto}
     .ow5-cell{position:absolute;background:none;border:0;padding:0;margin:0;
@@ -559,9 +553,6 @@ function mount(ctx) {
     .ow5-act[disabled]{opacity:.5;cursor:default}
   `;
   wrap.append(style);
-
-  const plate = node('p', null, T('plate'));
-  plate.className = 'ow5-plate';
 
   const panel = node('div');
   panel.className = 'ow5-panel';
@@ -619,13 +610,9 @@ function mount(ctx) {
   const tally = node('p', `margin:0;font-size:14px;color:${p.bone};text-align:center`);
   tally.setAttribute('aria-live', 'polite');
   const status = node('p', `margin:0;font-size:14px;color:${p.boneDim};text-align:center`);
-  status.setAttribute('aria-live', 'polite');
-  const law = node('p', `margin:0;font-size:13px;color:${p.boneDim};line-height:1.5;text-align:center`,
-    `${T('law')} ${T('help')}`);
-
-  // status before tally in the DOM: the reactive line is the board's first
-  // polite live region (the lane's feel-gate reads it as such).
-  wrap.append(plate, panel, actions, status, tally, law);
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
+  // status before tally in the DOM: the reactive line reads first in source order.
+  wrap.append(panel, actions, status, tally);
   ctx.root.append(wrap);
 
   // ---- the bench, baked once --------------------------------------------
@@ -1603,7 +1590,6 @@ function mount(ctx) {
     ghost.style.height = pct(TILE, B.h);
     ghost.style.display = 'block';
     skipBtn.style.display = '';
-    status.textContent = T('demoSay');
     say(T('demoSay'));
     demoCell = cell;
     bakeWeave();
@@ -1705,9 +1691,6 @@ function mount(ctx) {
 // English is the source; es/ca live in the additive per-lock i18n block
 // (docs/CONTRACT.md §4.1 amendment) and are resolved through it at mount.
 const BOARD_EN = {
-  plate: 'Turn the free crossings until one unbroken band runs the whole panel, over-under all the way.',
-  law: 'One band runs the whole panel and returns to itself. Following it, every crossing goes over, then under, then over — never twice the same.',
-  help: 'Tap a crossing to lay it the other way. By key: arrows to walk the panel, space to lay a crossing, T to follow the band.',
   trace: 'Follow the band',
   submit: 'Bind the knot',
   submitDone: 'The knot is bound',
@@ -1740,7 +1723,7 @@ const nearMany = (n) => `The band doubles over in ${n} places.`;
 const I18N = {
   es: {
     title: 'El Nudo de Oseberg',
-    epigraph: 'Una sola banda, y sin fin. Va por encima donde iba por debajo.',
+    epigraph: 'Una sola banda, sin fin.\nDonde pasó por encima, ha de hundirse debajo —\ndeja que el brillo recorra el nudo entero.',
     hints: [
       'Una sola banda recorre el panel entero y vuelve sobre sí misma. Síguela desde un cruce tallado y no levantes la vista.',
       'Donde la banda se encuentra consigo misma va por encima, luego por debajo, luego por encima. Nunca dos veces igual.',
@@ -1761,9 +1744,6 @@ const I18N = {
       [nearMany(12)]: 'La banda se dobla sobre sí misma en 12 puntos.',
     },
     board: {
-      plate: 'Gira los cruces libres hasta que una sola banda sin quiebro recorra todo el panel, por encima y por debajo hasta el final.',
-      law: 'Una sola banda recorre el panel entero y vuelve sobre sí misma. Siguiéndola, cada cruce va por encima, luego por debajo, luego por encima — nunca dos veces igual.',
-      help: 'Toca un cruce para tenderlo del otro modo. Con el teclado: flechas para recorrer el panel, espacio para tender un cruce, T para seguir la banda.',
       trace: 'Seguir la banda',
       submit: 'Atar el nudo',
       submitDone: 'El nudo queda atado',
@@ -1792,7 +1772,7 @@ const I18N = {
   },
   ca: {
     title: 'El Nus d’Oseberg',
-    epigraph: 'Una sola banda, i sense fi. Va per damunt on anava per sota.',
+    epigraph: 'Una sola banda, sense fi.\nOn va passar per damunt, s’ha d’enfonsar per sota —\ndeixa que la lluïssor recorri el nus sencer.',
     hints: [
       'Una sola banda recorre el plafó sencer i torna sobre si mateixa. Segueix-la des d’un creuament tallat i no aixequis la vista.',
       'On la banda es troba amb ella mateixa va per damunt, després per sota, després per damunt. Mai dues vegades igual.',
@@ -1813,9 +1793,6 @@ const I18N = {
       [nearMany(12)]: 'La banda es doblega sobre si mateixa en 12 punts.',
     },
     board: {
-      plate: 'Gira els creuaments lliures fins que una sola banda sense trencament recorri tot el plafó, per damunt i per sota fins al final.',
-      law: 'Una sola banda recorre el plafó sencer i torna sobre si mateixa. Seguint-la, cada creuament va per damunt, després per sota, després per damunt — mai dues vegades igual.',
-      help: 'Toca un creuament per estendre’l de l’altra manera. Amb el teclat: fletxes per recórrer el plafó, espai per estendre un creuament, T per seguir la banda.',
       trace: 'Segueix la banda',
       submit: 'Lligar el nus',
       submitDone: 'El nus queda lligat',
@@ -1849,7 +1826,7 @@ export default {
   ordinal: 5,
   tier: 2,
   title: 'The Oseberg Knot',
-  epigraph: 'One band, and no end to it. It goes over where it went under.',
+  epigraph: 'One band, no end.\nWhere it rode over, it must dive under —\nlet the gleam run the whole knot.',
 
   makePuzzle,
   solve,

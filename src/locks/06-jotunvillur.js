@@ -198,11 +198,6 @@ export const NEAR_LINES = Object.freeze([
 // Artifact-tongue law: the lid's Old-Norse words keep their tongue in every
 // language — only their GLOSSES localize.
 const BOARD_EN = {
-  ask: 'Each carved word hides a cargo word — the rune says only how its own name ends. Read all four.',
-  law: 'Giant-madness: a letter is cut as the rune whose NAME ends in that '
-    + 'letter’s sound — so ár, úr, týr, nauðr, maðr and lǫgr all come out as ᚱ. Reading '
-    + 'backwards, one carved rune can stand for six letters. Four cargo words are carved '
-    + 'below; give each one the ship-word from the lid that enciphers to it.',
   ariaRows: 'Carved cargo words',
   readings: '{n} readings',
   keysHead: 'Rune keys — spell the true letters',
@@ -339,29 +334,14 @@ function mount(ctx) {
   /* helper voice in the house serif, not terminal mono (type discipline) */
   .ow-jotun .draft{font-style:italic;color:${P.boneDim};min-height:1.4em;letter-spacing:.015em}
   .ow-jotun h4{margin:.2rem 0 0;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}
-  .ow-jotun .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch}
   .ow-jotun .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
   /* the carved plate: one plain sentence saying what the lock asks, always visible */
-  .ow-jotun .ask{margin:0;font-size:.92rem;line-height:1.4;color:${P.goldBright};max-width:64ch;
-    background:linear-gradient(180deg,${P.oak},${P.oakDeep});border:1px solid ${P.tar};
-    border-left:3px solid ${P.gold};border-radius:4px;padding:.5rem .65rem;
-    box-shadow:inset 0 1px 0 rgba(233,220,195,.1),0 1px 2px rgba(12,9,6,.5)}
   /* the shell sets \`#app *{min-width:0}\`, which outranks a bare class rule and
      flattens every touch target; these re-assert the 44 px floor at equal weight */
   #app .ow-jotun button{min-width:44px}
   #app .ow-jotun .slate button{min-width:44px}
   #app .ow-jotun .row{min-height:44px}`;
   wrap.appendChild(styleEl);
-
-  const ask = document.createElement('p');
-  ask.className = 'ask';
-  ask.textContent = T('ask');
-  wrap.appendChild(ask);
-
-  const law = document.createElement('p');
-  law.className = 'law';
-  law.textContent = T('law');
-  wrap.appendChild(law);
 
   const rows = document.createElement('div');
   rows.className = 'rows';
@@ -426,7 +406,7 @@ function mount(ctx) {
   // also answers a wrong reading where the player's eye already is.
   const tell = document.createElement('p');
   tell.className = 'tell';
-  tell.setAttribute('aria-live', 'polite');
+  // visual echo only — the shell's .near-line is the single aria-live deny announcer (LOOP5 ruling)
   wrap.appendChild(tell);
 
   for (const [letter] of instance.table.map((r) => [r[0]])) {
@@ -544,7 +524,7 @@ function mount(ctx) {
 const I18N = {
   es: {
     title: 'La Cifra Jötunvillur',
-    epigraph: 'Cada letra lleva el nombre de otra. El tallador lo llamó locura de gigantes.',
+    epigraph: 'Astas con locura de gigante: cada runa vale\nel último son de su propio nombre.\nDi los nombres; lee la carga entera.',
     hints: [
       'Aquí una runa no es una letra. Es toda letra cuyo nombre de runa acaba en ese sonido.',
       'Seis letras acaban en el sonido de reið; esa es la runa apretada. Solo la lista de palabras de la tapa la aclara.',
@@ -561,11 +541,6 @@ const I18N = {
       [NEAR_RING(3)]: '3 de las cuatro suenan verdaderas. La que falta es extraña.',
     },
     board: {
-      ask: 'Cada palabra tallada esconde una palabra de carga — la runa solo dice cómo acaba su propio nombre. Lee las cuatro.',
-      law: 'Locura de gigantes: una letra se talla como la runa cuyo NOMBRE acaba en el '
-        + 'sonido de esa letra — así ár, úr, týr, nauðr, maðr y lǫgr salen todas como ᚱ. Leída '
-        + 'al revés, una sola runa tallada puede valer por seis letras. Abajo hay cuatro palabras '
-        + 'de carga talladas; da a cada una la palabra de barco de la tapa que se cifra en ella.',
       ariaRows: 'Palabras de carga talladas',
       readings: '{n} lecturas',
       keysHead: 'Teclas rúnicas — deletrea las letras verdaderas',
@@ -601,7 +576,7 @@ const I18N = {
   },
   ca: {
     title: 'La Xifra Jötunvillur',
-    epigraph: 'Cada lletra duu el nom d’una altra. El tallador en deia follia de gegants.',
+    epigraph: 'Astes amb follia de gegant: cada runa val\nel darrer so del seu propi nom.\nDigues els noms; llegeix la càrrega sencera.',
     hints: [
       'Aquí una runa no és una lletra. És tota lletra el nom rúnic de la qual acaba en aquell so.',
       'Sis lletres acaben en el so de reið; aquella és la runa atapeïda. Només la llista de mots de la tapa l’aclareix.',
@@ -618,11 +593,6 @@ const I18N = {
       [NEAR_RING(3)]: '3 de les quatre sonen vertaderes. La que manca és estranya.',
     },
     board: {
-      ask: 'Cada mot tallat amaga un mot de càrrega — la runa només diu com acaba el seu propi nom. Llegeix-los tots quatre.',
-      law: 'Follia de gegants: una lletra es talla com la runa el NOM de la qual acaba en el '
-        + 'so d’aquella lletra — així ár, úr, týr, nauðr, maðr i lǫgr surten totes com ᚱ. Llegida '
-        + 'a l’inrevés, una sola runa tallada pot valer per sis lletres. A sota hi ha quatre mots '
-        + 'de càrrega tallats; dona a cadascun el mot de nau de la tapa que s’hi xifra.',
       ariaRows: 'Mots de càrrega tallats',
       readings: '{n} lectures',
       keysHead: 'Tecles rúniques — lletreja les lletres vertaderes',
@@ -663,7 +633,7 @@ export default {
   ordinal: 6,
   tier: 2,
   title: 'The Jötunvillur Cipher',
-  epigraph: 'Every letter wears another’s name. The carver called it giant-madness.',
+  epigraph: 'Giant-mad staves: each rune stands\nfor the last sound of its own name.\nSpeak the names; read the cargo plain.',
 
   makePuzzle,
   solve,
