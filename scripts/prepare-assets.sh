@@ -13,7 +13,8 @@ port() { # src, crop, outfile, width, q
 
 port "$DL/507A4F22-82A0-42A1-9355-3BF4922D8DE7.PNG" "851:1094:0:230"   assets/jarls/bourj.jpg    700 7
 port "$DL/8CB438D6-1370-4F78-B9A6-4CCD19614026.PNG" "1023:1316:0:40"   assets/jarls/rois.jpg     700 7
-port "$DL/812BFAD7-1693-4B70-876E-C96ED234AB6C.PNG" "780:1002:240:30"  assets/jarls/andreas.jpg  700 7
+# Åndreas = the woman raising the horn (Ramon 2026-08-07; was wrongly the husky)
+port "$DL/3543D667-D8AA-4FF6-BDCA-001F117A49BA.PNG" "900:1160:0:60"    assets/jarls/andreas.jpg  700 7
 port "$DL/IMG_7992.PNG"                             "1125:1446:0:495"  assets/jarls/folklore.jpg 700 7
 port "$DL/3543D667-D8AA-4FF6-BDCA-001F117A49BA 2.PNG" "1086:1396:0:30" assets/jarls/arya.jpg     700 7
 port "$DL/B52E1379-02C0-46D9-BEA5-DEB1E267F20F.PNG" "941:1660:0:6"     assets/tebi.jpg           760 6
