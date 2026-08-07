@@ -54,6 +54,8 @@ const LID_STYLE = `
   letter-spacing:.13em;font-size:clamp(.6rem,.35vw + .52rem,.72rem);line-height:1;
   color:var(--bone);text-shadow:0 1px 0 rgba(12,9,6,.9),0 0 8px rgba(12,9,6,.55)}
 #app .chapter-label.chapter-done{color:var(--boneDim)}
+#app .chapter-label.chapter-sealed{color:var(--boneDim);opacity:.7;
+  font-size:clamp(.55rem,.3vw + .48rem,.66rem);letter-spacing:.11em}
 #app .chapter-label.duel-banner{color:var(--bone);
   text-shadow:0 1px 0 rgba(12,9,6,.9),0 0 10px rgba(238,207,109,.28);
   animation:chapter-breathe 3.4s ease-in-out infinite}
@@ -238,14 +240,25 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       const cx = hasp.w / 2 - (n * cell) / 2 + cell * i + cell / 2;
       const cy = hasp.h / 2;
       art.drawRune(hasp.ctx, shard.rune, cx - cell * 0.28, cy - cell * 0.32, cell * 0.56, { color: p.goldBright });
-      // ledger numerals with presence: struck into the rail (tar seat under a
-      // goldBright face), not printed on it
-      hasp.ctx.font = '600 13px ui-monospace, monospace';
+      // ledger numerals SEATED: each value gets its own small tar plate with a
+      // gold hairline — bare digits hung half off the rail and collided with
+      // their neighbours as the row filled (QUALITY_LOOP4)
+      const val = String(shard.value);
+      const yv = cy + cell * 0.42;
+      const vw = Math.max(17, val.length * 7 + 7);
+      hasp.ctx.save();
+      hasp.ctx.fillStyle = 'rgba(12,9,6,.8)';
+      hasp.ctx.beginPath();
+      hasp.ctx.roundRect(cx - vw / 2, yv - 10, vw, 14, 3);
+      hasp.ctx.fill();
+      hasp.ctx.strokeStyle = 'rgba(201,162,39,.38)';
+      hasp.ctx.lineWidth = 1;
+      hasp.ctx.stroke();
+      hasp.ctx.font = '600 11px ui-monospace, monospace';
       hasp.ctx.textAlign = 'center';
-      hasp.ctx.fillStyle = 'rgba(12,9,6,.9)';
-      hasp.ctx.fillText(String(shard.value), cx + 1, cy + cell * 0.42 + 1);
       hasp.ctx.fillStyle = p.goldBright;
-      hasp.ctx.fillText(String(shard.value), cx, cy + cell * 0.42);
+      hasp.ctx.fillText(val, cx, yv + 1);
+      hasp.ctx.restore();
     });
   }
 
@@ -398,7 +411,11 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
   function paintBanner(ctx, group, w) {
     const segs = segmentsOf(group);
     if (!segs.length) return;
-    const alpha = group.active ? 1 : group.done ? 0.52 : 0.8;
+    // One banner leads (QUALITY_LOOP4): the armed gauntlet at full blood, the
+    // finished ones resting, the sealed ones receded to tar-washed cloth —
+    // five equal-loudness ribbons read as a red lattice, not chapters.
+    const revealed = isRevealed(group.g);
+    const alpha = group.active ? 1 : group.done ? 0.5 : revealed ? 0.62 : 0.4;
     const r3 = rng(`banner-folds:${group.g.key}`);
     // the label sits on the longest run (ties -> the run holding the dare lock)
     let labelSeg = segs[0];
@@ -432,6 +449,11 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
       g1.addColorStop(1, 'rgba(12,9,6,.42)');
       ctx.fillStyle = g1;
       ctx.fillRect(geo.x0 - 2, yRef - geo.bandH, geo.x1 - geo.x0 + 4, geo.bandH * 3);
+      if (!group.active && !group.done && !revealed) {
+        // sealed cloth: tar-washed, its red held back until the jarl is faced
+        ctx.fillStyle = 'rgba(12,9,6,.32)';
+        ctx.fillRect(geo.x0 - 2, yRef - geo.bandH, geo.x1 - geo.x0 + 4, geo.bandH * 3);
+      }
       // cloth undulation: seeded vertical fold shadows + counter-lights
       const folds = 2 + Math.round((geo.x1 - geo.x0) / 90);
       for (let k = 0; k < folds; k++) {
@@ -465,24 +487,31 @@ export function mountLid(root, { locks, save, art, audio, reducedMotion, justOpe
         ctx.lineWidth = 0.8;
         ctx.stroke();
       }
-      // hanging pennant flaps at the true ends — but only at row edges: two
-      // gauntlets meeting inside a row keep clean swallow-tail cuts instead
-      // (the flap pair crowded the shared column gap)
-      const rowEdgeClear = (xEdge, dir, sock) => !layout.some((s2) => s2 && s2 !== sock
+      // hanging pennant flaps ONLY at the row's true outer margins — a flap at
+      // an interior junction (where the next gauntlet's cloth begins) piled
+      // into the shared gap and read as loose red debris over the medallions
+      // (QUALITY_LOOP4). Sealed banners hang flapless until their jarl shows.
+      const rowOuter = (xEdge, dir, sock) => !layout.some((s2) => s2 && s2 !== sock
         && Math.abs(s2.y - sock.y) < sock.r
-        && (dir < 0 ? s2.x < sock.x : s2.x > sock.x)
-        && Math.abs(s2.x - xEdge) < sock.r + geo.bandH * 1.4 + 10);
+        && (dir < 0 ? s2.x < xEdge - 2 : s2.x > xEdge + 2));
       const yB0 = geo.topAt(geo.x0) + geo.bandH;
       const yB1 = geo.topAt(geo.x1) + geo.bandH;
       const firstPos = seg.items[0].pos;
       const lastPos = seg.items[seg.items.length - 1].pos;
-      if (seg.outerLeft && rowEdgeClear(geo.x0, -1, firstPos)) drawFlap(ctx, geo.x0, yB0, geo.bandH, -1, firstPos, w, r3());
-      if (seg.outerRight && rowEdgeClear(geo.x1, 1, lastPos)) drawFlap(ctx, geo.x1, yB1, geo.bandH, 1, lastPos, w, r3());
+      if (revealed || group.active || group.done) {
+        if (seg.outerLeft && rowOuter(geo.x0, -1, firstPos)) drawFlap(ctx, geo.x0, yB0, geo.bandH, -1, firstPos, w, r3());
+        if (seg.outerRight && rowOuter(geo.x1, 1, lastPos)) drawFlap(ctx, geo.x1, yB1, geo.bandH, 1, lastPos, w, r3());
+      }
       ctx.restore();
       if (seg === labelSeg) {
         const cx = (geo.x0 + geo.x1) / 2;
         const cy = geo.topAt(cx) + geo.bandH / 2;
-        drawDevice(ctx, group.g.key, geo.x0 + geo.bandH * 1.5, cy, geo.bandH * 0.82);
+        // the jarl's embroidered knot-device belongs only to a banner whose
+        // owner is known — on sealed cloth the gold glints read as stray
+        // sparkle debris between the medallions (QUALITY_LOOP4)
+        if (group.active || group.done || revealed) {
+          drawDevice(ctx, group.g.key, geo.x0 + geo.bandH * 1.5, cy, geo.bandH * 0.82);
+        }
         if (group.label) {
           const halfW = group.label.offsetWidth / 2 || 60;
           const clampedX = Math.max(halfW + 6, Math.min(w - halfW - 6, cx));

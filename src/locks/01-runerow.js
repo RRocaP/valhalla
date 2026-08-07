@@ -345,10 +345,6 @@ function mount(ctx) {
     .ow1-bedwood{position:absolute;left:50%;transform:translateX(-50%);pointer-events:none;line-height:0}
     .ow1-row{position:relative;display:flex;justify-content:center;align-items:flex-end}
     .ow1-ghost{position:absolute;left:0;top:0;pointer-events:none;z-index:2}
-    .ow1-act{font-family:${SERIF};font-size:16px;color:${p.bone};background:${p.oakDeep};
-      border:1px solid ${p.gold};border-radius:3px;padding:12px 22px;min-height:44px;cursor:pointer}
-    .ow1-act:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
-    .ow1-act[disabled]{opacity:.5;cursor:default}
     .ow1-skip{font-family:${SERIF};font-size:14px;color:${p.boneDim};background:transparent;
       border:1px solid rgba(90,58,30,.9);border-radius:3px;padding:11px 16px;min-height:44px;cursor:pointer}
     .ow1-skip:focus-visible{outline:2px solid ${p.goldBright};outline-offset:2px}
@@ -391,7 +387,7 @@ function mount(ctx) {
 
   const actions = node('div', 'display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center');
   const submitBtn = node('button', null, T('submit'));
-  submitBtn.className = 'ow1-act';
+  submitBtn.className = 'btn-carved'; // one primary-action language: the carved gold plate
   submitBtn.type = 'button';
   const skipBtn = node('button', null, T('skip'));
   skipBtn.className = 'ow1-skip';

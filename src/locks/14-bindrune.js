@@ -555,7 +555,9 @@ export default {
     const skipBtn = node('button', null, T('skip'));
     const clearBtn = node('button', null, T('clear'));
     const sealBtn = node('button', null, T('submit'));
-    for (const b of [skipBtn, clearBtn, sealBtn]) { b.className = 'ow14-act'; b.type = 'button'; }
+    for (const b of [skipBtn, clearBtn]) { b.className = 'ow14-act'; b.type = 'button'; }
+    sealBtn.className = 'btn-carved'; // one primary-action language: the carved gold plate
+    sealBtn.type = 'button';
     skipBtn.style.display = 'none';
     actions.append(skipBtn, clearBtn, sealBtn);
 

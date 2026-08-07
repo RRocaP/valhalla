@@ -663,31 +663,92 @@ function drawCrystal(art, g, x, y, s, lit, glint) {
   const top = [[0 + sk, -k * 1.02], [k * 0.82 + sk, -k * 0.52], [0, -k * 0.06], [-k * 0.82 + sk * 0.4, -k * 0.56]];
   const right = [[0, -k * 0.06], [k * 0.82 + sk, -k * 0.52], [k * 0.82, k * 0.42], [0, k * 0.92]];
   const left = [[0, -k * 0.06], [-k * 0.82 + sk * 0.4, -k * 0.56], [-k * 0.82, k * 0.38], [0, k * 0.92]];
-  const face = (pts, fill) => {
+  // Material pass (QUALITY_LOOP4: flat fills + one bright uniform stroke read
+  // as cardboard next to the compass rose). Same silhouette, same calls —
+  // per-face gradients, a heavier silhouette than the inner edges, an inner
+  // caustic where the light pools, and a soft cast shadow on the plank wall.
+  const face = (pts, mkFill, edgeAlpha) => {
     g.beginPath();
     g.moveTo(x + pts[0][0], y + pts[0][1]);
     for (let i = 1; i < pts.length; i++) g.lineTo(x + pts[i][0], y + pts[i][1]);
     g.closePath();
-    g.fillStyle = fill;
+    g.fillStyle = mkFill();
     g.fill();
-    g.strokeStyle = `rgba(233,220,195,${lit ? 0.9 : 0.62})`;
-    g.lineWidth = 1.1;
+    g.strokeStyle = `rgba(233,220,195,${edgeAlpha})`;
+    g.lineWidth = 0.8;
     g.stroke();
   };
   g.save();
+  // cast shadow behind the hanging stone (grounds it against the plank) —
+  // three feathered ellipses, no canvas filter (Safari-safe)
+  for (const [grow, a] of [[1.18, 0.1], [1.06, 0.14], [0.96, 0.18]]) {
+    g.fillStyle = `rgba(12,9,6,${a})`;
+    g.beginPath();
+    g.ellipse(x + k * 0.16, y + k * 0.22, k * 0.94 * grow, k * 1.02 * grow, 0.12, 0, Math.PI * 2);
+    g.fill();
+  }
   if (lit) art.glow(g, x, y, s * 2.1, P.goldBright, 0.55);
   else if (glint) art.glow(g, x, y, s * 1.8, P.goldBright, 0.45);
-  face(top, `rgba(238,231,214,${lit ? 0.72 : 0.5})`);
-  face(right, `rgba(90,132,178,${lit ? 0.6 : 0.42})`);
-  face(left, `rgba(233,220,195,${lit ? 0.44 : 0.26})`);
+  face(top, () => {
+    const f = g.createLinearGradient(x - k * 0.8, y - k * 1.02, x + k * 0.8, y - k * 0.1);
+    f.addColorStop(0, `rgba(250,246,236,${lit ? 0.9 : 0.66})`);
+    f.addColorStop(0.55, `rgba(233,228,210,${lit ? 0.72 : 0.5})`);
+    f.addColorStop(1, `rgba(196,196,186,${lit ? 0.6 : 0.4})`);
+    return f;
+  }, lit ? 0.85 : 0.55);
+  face(right, () => {
+    const f = g.createLinearGradient(x, y - k * 0.4, x + k * 0.6, y + k * 0.92);
+    f.addColorStop(0, `rgba(122,158,196,${lit ? 0.7 : 0.5})`);
+    f.addColorStop(0.5, `rgba(74,112,156,${lit ? 0.62 : 0.44})`);
+    f.addColorStop(1, `rgba(38,60,92,${lit ? 0.72 : 0.55})`);
+    return f;
+  }, lit ? 0.5 : 0.32);
+  face(left, () => {
+    const f = g.createLinearGradient(x - k * 0.8, y - k * 0.3, x, y + k * 0.92);
+    f.addColorStop(0, `rgba(240,232,214,${lit ? 0.55 : 0.34})`);
+    f.addColorStop(0.6, `rgba(210,202,184,${lit ? 0.4 : 0.24})`);
+    f.addColorStop(1, `rgba(150,146,136,${lit ? 0.42 : 0.26})`);
+    return f;
+  }, lit ? 0.6 : 0.4);
+  // silhouette: one heavier contour so the rhomb sits OFF the wall
+  g.strokeStyle = `rgba(12,9,6,${lit ? 0.72 : 0.6})`;
+  g.lineWidth = 1.4;
+  g.beginPath();
+  g.moveTo(x + sk, y - k * 1.02);
+  g.lineTo(x + k * 0.82 + sk, y - k * 0.52);
+  g.lineTo(x + k * 0.82, y + k * 0.42);
+  g.lineTo(x, y + k * 0.92);
+  g.lineTo(x - k * 0.82, y + k * 0.38);
+  g.lineTo(x - k * 0.82 + sk * 0.4, y - k * 0.56);
+  g.closePath();
+  g.stroke();
+  // light pooling low in the stone — spar glows where it drinks the sky
+  const pool = g.createRadialGradient(x + k * 0.1, y + k * 0.42, 0, x + k * 0.1, y + k * 0.42, k * 0.72);
+  pool.addColorStop(0, `rgba(255,241,199,${lit ? 0.4 : glint ? 0.28 : 0.16})`);
+  pool.addColorStop(1, 'rgba(255,241,199,0)');
+  g.fillStyle = pool;
+  g.beginPath();
+  g.moveTo(x, y - k * 0.06);
+  g.lineTo(x + k * 0.82, y + k * 0.42);
+  g.lineTo(x, y + k * 0.92);
+  g.lineTo(x - k * 0.82, y + k * 0.38);
+  g.closePath();
+  g.fill();
   // double refraction: the same edge seen twice, slightly apart
-  g.strokeStyle = `rgba(63,109,158,${lit ? 0.75 : 0.45})`;
+  g.strokeStyle = `rgba(63,109,158,${lit ? 0.8 : 0.5})`;
   g.lineWidth = 0.9;
   g.beginPath();
   g.moveTo(x - k * 0.34 + sk * 0.4, y - k * 0.2);
   g.lineTo(x + k * 0.1, y + k * 0.5);
   g.moveTo(x - k * 0.22 + sk * 0.4, y - k * 0.26);
   g.lineTo(x + k * 0.22, y + k * 0.42);
+  g.stroke();
+  // and its ghost twin in bone — calcite shows every edge twice
+  g.strokeStyle = `rgba(233,220,195,${lit ? 0.34 : 0.2})`;
+  g.lineWidth = 0.7;
+  g.beginPath();
+  g.moveTo(x - k * 0.28 + sk * 0.4, y - k * 0.23);
+  g.lineTo(x + k * 0.16, y + k * 0.46);
   g.stroke();
   // sling: gold wire over the shoulders
   g.strokeStyle = `rgba(201,162,39,${lit ? 0.95 : 0.7})`;

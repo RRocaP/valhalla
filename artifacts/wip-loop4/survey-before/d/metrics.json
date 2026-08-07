@@ -1,0 +1,137 @@
+[
+  {
+    "ordinal": 1,
+    "id": "01-runerow",
+    "vp": "desktop",
+    "appH": 961,
+    "entryScroll": 0,
+    "submitClass": "ow1-skip",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 2,
+    "id": "02-bismer",
+    "vp": "desktop",
+    "appH": 1130,
+    "entryScroll": 129,
+    "submitClass": "btn-carved",
+    "submitText": "Name the pouch"
+  },
+  {
+    "ordinal": 3,
+    "id": "03-beacons",
+    "vp": "desktop",
+    "appH": 1022,
+    "entryScroll": 21,
+    "submitClass": "ow3-skip",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 4,
+    "id": "04-strakes",
+    "vp": "desktop",
+    "appH": 1084,
+    "entryScroll": 0,
+    "submitClass": "ow4-skip",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 5,
+    "id": "05-knotwork",
+    "vp": "desktop",
+    "appH": 1113,
+    "entryScroll": 92,
+    "submitClass": "ow5-act",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 6,
+    "id": "06-jotunvillur",
+    "vp": "desktop",
+    "appH": 1254,
+    "entryScroll": 170,
+    "submitClass": "btn-carved",
+    "submitText": "Read the manifest"
+  },
+  {
+    "ordinal": 7,
+    "id": "07-tafl",
+    "vp": "desktop",
+    "appH": 1098,
+    "entryScroll": 0,
+    "submitClass": "btn-carved",
+    "submitText": "Swear the road"
+  },
+  {
+    "ordinal": 8,
+    "id": "08-hacksilver",
+    "vp": "desktop",
+    "appH": 1153,
+    "entryScroll": 152,
+    "submitClass": "ow8-skip",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 9,
+    "id": "09-sunstone",
+    "vp": "desktop",
+    "appH": 1366,
+    "entryScroll": 193,
+    "submitClass": "btn-carved send",
+    "submitText": "Swear the bearing"
+  },
+  {
+    "ordinal": 10,
+    "id": "10-drottkvaett",
+    "vp": "desktop",
+    "appH": 1227,
+    "entryScroll": 0,
+    "submitClass": "ow10-skip",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 11,
+    "id": "11-skerry",
+    "vp": "desktop",
+    "appH": 1353,
+    "entryScroll": 195,
+    "submitClass": "ow11-skip",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 12,
+    "id": "12-veitsla",
+    "vp": "desktop",
+    "appH": 1587,
+    "entryScroll": 170,
+    "submitClass": "ow12-act",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 13,
+    "id": "13-althing",
+    "vp": "desktop",
+    "appH": 1656,
+    "entryScroll": 0,
+    "submitClass": "ow13-act",
+    "submitText": "Skip the showing"
+  },
+  {
+    "ordinal": 14,
+    "id": "14-bindrune",
+    "vp": "desktop",
+    "appH": 1209,
+    "entryScroll": 207,
+    "submitClass": "ow14-act",
+    "submitText": "Name the bound runes"
+  },
+  {
+    "ordinal": 15,
+    "id": "15-oathring",
+    "vp": "desktop",
+    "appH": 1063,
+    "entryScroll": 62,
+    "submitClass": "btn-carved",
+    "submitText": "Close the ring"
+  }
+]

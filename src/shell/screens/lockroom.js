@@ -248,6 +248,19 @@ export function mountLockRoom(root, {
   const lockRootEl = el('div', { class: 'lock-root', tabindex: '-1' });
   frame.append(header, lockRootEl, footer);
 
+  // Quiet scroll cue: a small gold chevron over a soft fade, shown only while
+  // the board still continues below the fold (and never during dare/beat
+  // theatre). One DOM node, CSS-driven, no per-frame work.
+  const scrollCue = el('div', { class: 'scroll-cue', 'aria-hidden': 'true' });
+  screen.append(scrollCue);
+  function updateScrollCue() {
+    const se = scrollBox();
+    const more = se ? se.scrollHeight - se.clientHeight - se.scrollTop : 0;
+    scrollCue.classList.toggle('show', furnitureMode === 'board' && more > 90);
+  }
+  // capture: scroll events do not bubble, and the scroller here is <body>
+  document.addEventListener('scroll', updateScrollCue, { passive: true, capture: true });
+
   // resizeBg reads header + lockRootEl (via contentBox), so it may only run
   // once both exist — the TDZ class of bug QUALITY_PLAY_01 §4 recorded.
   window.addEventListener('resize', resizeBg);
@@ -279,6 +292,7 @@ export function mountLockRoom(root, {
     furnitureRaf = raf(() => {
       furnitureRaf = 0;
       paintBg();
+      updateScrollCue();
       if (syncMoodSize()) paintMood(reducedMotion ? 0 : (typeof performance !== 'undefined' ? performance.now() : Date.now()) - mountedAt);
     });
   };
@@ -418,18 +432,40 @@ export function mountLockRoom(root, {
     return { ok: false, near: result.near };
   }
 
+  // Entry framing: a room opens at its top — numeral, title, epigraph, then
+  // the board (QUALITY_LOOP4: every board taller than the window landed
+  // mid-scroll with the chapter head cropped above the fold). Focus still
+  // lands for the keyboard path, but without dragging the scroll with it.
+  // NOTE the shell's actual scroller is <body> (html and body both carry
+  // `overflow:hidden auto`; document.scrollingElement reports <html>, whose
+  // scrollHeight never grows) — measure/reset the box that really scrolls.
+  const scrollBox = () => {
+    const b = document.body;
+    if (b && b.scrollHeight > b.clientHeight + 1) return b;
+    return document.scrollingElement || document.documentElement;
+  };
+  const resetScroll = () => {
+    const se = scrollBox();
+    if (se) se.scrollTop = 0;
+  };
+
   function mountPuzzle() {
     const ctx = { root: lockRootEl, instance, art, audio, submit, note, solved, lang };
     lockHandle = lock.mount(ctx);
     furnitureMode = 'board';
     scheduleFurniture();
-    if (!showDare) lockRootEl.focus();
+    if (!showDare) {
+      try { lockRootEl.focus({ preventScroll: true }); } catch { lockRootEl.focus(); }
+    }
+    resetScroll();
+    updateScrollCue();
   }
 
   function beginSolveSequence() {
     if (lockHandle) { lockHandle.unmount(); lockHandle = null; }
     nearLine.textContent = '';
     furnitureMode = 'beat';
+    updateScrollCue();
     paintBg();
     if (yieldDuel) runYieldBeat(runShardCeremony);
     else runShardCeremony();
@@ -558,8 +594,10 @@ overlay.append(stage, line);
       port.ctx.clearRect(0, 0, port.w, port.h);
       archChipBand(port.ctx, port.pad, port.pad, port.archW, port.archH, port.pad);
       if (canTween) {
+        // honor light: the yielding jarl is LIT like the dare that opened the
+        // gauntlet — the beat is earned, not an afterthought (QUALITY_LOOP4)
         art.portrait(port.ctx, img, port.pad, port.pad, port.archW, port.archH,
-          { bow: t, rim: 0.5 * (1 - t * 0.28) });
+          { bow: t, rim: 0.85 * (1 - t * 0.22) });
       } else {
         drawPortraitPlaceholder(port.ctx, p, port.pad, port.pad, port.archW, port.archH, yieldDuel.name);
       }
@@ -595,7 +633,9 @@ overlay.append(stage, line);
     const shard = lock.shard(instance);
     audio.motif('shard');
     const overlay = el('div', { class: 'ceremony-overlay ceremony-shard', tabindex: '-1' });
-    const RC = 132;
+    // The strike must carry the emptied stage (QUALITY_LOOP4: at 132px the
+    // rune floated small in a bare room) — scale with the room, clamped.
+    const RC = Math.round(Math.max(148, Math.min(216, (screen.clientWidth || 800) * 0.17)));
     const runeCanvas = art.makeCanvas(RC, RC);
     runeCanvas.canvas.className = 'shard-rune';
     // Shard numerals: the third full-depth carveText call-out (docs/ART.md).
@@ -706,7 +746,9 @@ overlay.append(stage, line);
       clear(lockRootEl);
       mountPuzzle();
     });
-    answerBtn.focus();
+    try { answerBtn.focus({ preventScroll: true }); } catch { answerBtn.focus(); }
+    resetScroll();
+    updateScrollCue();
   } else {
     mountPuzzle();
   }
@@ -716,6 +758,7 @@ overlay.append(stage, line);
 
   return function unmount() {
     window.removeEventListener('resize', resizeBg);
+    document.removeEventListener('scroll', updateScrollCue, { capture: true });
     if (moodRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(moodRaf);
     if (contentRO) contentRO.disconnect();
     if (furnitureRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(furnitureRaf);

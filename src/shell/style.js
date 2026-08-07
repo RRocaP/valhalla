@@ -119,13 +119,44 @@ p{margin:0}
 .hint-slot[data-state="taken"]{border-color:var(--gold);background:var(--oakDeep);color:var(--bone);cursor:default}
 .hint-slot[data-state="locked"]{opacity:.4;pointer-events:none}
 .hint-text{max-width:52ch;text-align:center;color:var(--boneDim);font-size:.9rem}
-.back-latch{margin-top:4px}
+/* The room's exit is a quiet carved latch, not a hyperlink (QUALITY_LOOP4:
+   an underlined text link was the one web-default control left on the board).
+   Class + label are contract surface and stay exactly as pinned. */
+.back-latch{margin-top:4px;text-decoration:none;font-family:var(--font-display);
+  font-variant-caps:all-small-caps;letter-spacing:.14em;font-size:.95rem;
+  padding:8px 20px;border-radius:6px;border:1px solid rgba(233,220,195,.16);
+  background:linear-gradient(180deg,rgba(12,9,6,.3),rgba(12,9,6,.52));
+  box-shadow:inset 0 1px 0 rgba(233,220,195,.07),0 1px 0 rgba(12,9,6,.55)}
+.back-latch:hover{color:var(--bone);border-color:rgba(201,162,39,.42)}
+/* Quiet scroll cue (QUALITY_LOOP4): boards taller than the window get a soft
+   gold chevron at the fold — visible only while more board remains below. */
+.scroll-cue{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:5;
+  width:44px;height:26px;display:flex;align-items:center;justify-content:center;
+  color:var(--gold);opacity:0;pointer-events:none;transition:opacity .35s ease;
+  filter:drop-shadow(0 1px 0 rgba(12,9,6,.9)) drop-shadow(0 0 8px rgba(12,9,6,.6))}
+.scroll-cue::before{content:'';width:11px;height:11px;margin-top:-6px;
+  border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg)}
+.scroll-cue.show{opacity:.6;animation:cue-bob 2.8s ease-in-out infinite}
+@keyframes cue-bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,5px)}}
+.reduced-motion .scroll-cue.show{animation:none}
+@media (prefers-reduced-motion: reduce){.scroll-cue.show{animation:none}}
 /* pointer-events must stay AUTO: the shard ceremony and the duel yield beat
    are documented tap-to-skip (docs/SHELL.md; src/shell/dom.js playBeat binds
    the click on this element). Setting it to none silently swallowed every
    skip tap. The overlay only ever covers an already-cleared .lock-root, so
    nothing interactive sits beneath it. */
-.ceremony-overlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:8px;background:radial-gradient(ellipse at center, rgba(201,162,39,.16), transparent 70%);pointer-events:auto;cursor:pointer}
+.ceremony-overlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:8px;pointer-events:auto;cursor:pointer;isolation:isolate}
+/* Ceremony stagecraft (QUALITY_LOOP4): the beat owns the whole stage. A fixed
+   house-dimming vignette rides under the overlay content (covering the room
+   chrome — header, hints, latch — exactly like the dare's), with the warm
+   ceremony pool kept just behind the rune/portrait. Tap-anywhere still skips:
+   the fixed pseudo extends the overlay's own hit area. */
+.ceremony-overlay::before{content:'';position:fixed;inset:0;z-index:-2;
+  background:radial-gradient(ellipse 64% 58% at 50% 46%,rgba(12,9,6,.14) 0%,rgba(12,9,6,.5) 58%,rgba(12,9,6,.64) 100%);
+  animation:dare-dim .55s ease-out both}
+.ceremony-overlay::after{content:'';position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(ellipse at center, rgba(201,162,39,.2), transparent 70%)}
+.reduced-motion .ceremony-overlay::before{animation:none}
 .ceremony-overlay .shard-rune{display:block;margin:0 auto}
 .ceremony-line{font-family:var(--font-display);color:var(--goldBright);font-size:clamp(1.1rem,2vw + .8rem,1.6rem);letter-spacing:.04em;
   text-shadow:-1.5px -1.5px 1px var(--tar),1.5px 1.5px 1px rgba(238,207,109,.26),0 0 18px rgba(238,207,109,.16)}
@@ -138,7 +169,7 @@ p{margin:0}
   text-shadow:-1.5px -1.5px 1px var(--tar),2px 2px 1.5px rgba(238,207,109,.28),0 0 20px rgba(238,207,109,.15)}
 .finale-sub{color:var(--boneDim);font-style:italic;margin:.3em 0 0}
 .finale-footer{text-align:center;padding:14px max(16px,var(--safe-r)) max(18px,var(--safe-b));display:flex;flex-direction:column;align-items:center;gap:10px}
-.finale-colophon{color:var(--boneDim);font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;opacity:.8}
+.finale-colophon{color:var(--boneDim);font-family:var(--font-display);font-variant-caps:all-small-caps;font-size:.85rem;letter-spacing:.12em;opacity:.8;text-shadow:0 1px 0 rgba(12,9,6,.7)}
 .skip-hint{position:absolute;bottom:max(18px,var(--safe-b));left:50%;transform:translateX(-50%);color:var(--boneDim);font-size:.85rem;opacity:.75}
 .continue-hint{color:var(--boneDim);font-size:.85rem;opacity:.75;margin-top:6px}
 
@@ -224,9 +255,11 @@ p{margin:0}
   filter:drop-shadow(0 2px 1px rgba(12,9,6,.75)) drop-shadow(0 5px 8px rgba(12,9,6,.45));
   text-shadow:0 1px 0 rgba(12,9,6,.75);
   max-width:min(88vw,320px);overflow:hidden;text-overflow:ellipsis}
-/* dare theatre: darkened house, lit stage */
-.dare-vignette{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 62% 56% at 50% 44%,rgba(12,9,6,0) 34%,rgba(12,9,6,.55) 68%,rgba(12,9,6,.3) 90%,rgba(12,9,6,0) 100%)}
+/* dare theatre: darkened house, lit stage. Fixed, not absolute: the dimming
+   must own the WHOLE house — the chapter header above the card stayed fully
+   lit and fought the jarl for the moment (QUALITY_LOOP4). */
+.dare-vignette{position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 62% 56% at 50% 44%,rgba(12,9,6,0) 30%,rgba(12,9,6,.55) 66%,rgba(12,9,6,.44) 100%)}
 .dare-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:20px;max-width:420px;margin:0 auto}
 .dare-card canvas{display:block}
 .dare-name{font-family:var(--font-display);color:var(--goldBright);letter-spacing:.08em;font-size:clamp(1.2rem,2vw + .9rem,1.6rem);margin:0}
@@ -264,7 +297,7 @@ p{margin:0}
 .credits-challengers{display:flex;flex-wrap:wrap;justify-content:center;gap:22px}
 .credits-portrait{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.78rem;color:var(--boneDim);margin:0}
 .credits-portrait canvas{display:block}
-.credits-portrait figcaption{font-family:var(--font-mono);letter-spacing:.08em}
+.credits-portrait figcaption{font-family:var(--font-display);font-variant-caps:all-small-caps;letter-spacing:.12em;font-size:.9rem;text-shadow:0 1px 0 rgba(12,9,6,.7)}
 .credits-portrait-white figcaption{color:var(--bone)}
 .credits-skip{position:fixed;top:max(14px,var(--safe-t));right:max(14px,var(--safe-r));z-index:3;background:rgba(12,9,6,.5);border-radius:6px}
 .sticker-scatter{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}

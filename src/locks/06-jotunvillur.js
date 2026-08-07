@@ -311,10 +311,15 @@ function mount(ctx) {
   styleEl.textContent = `
   .ow-jotun{display:flex;flex-direction:column;gap:.7rem;color:${P.bone};font-family:'Iowan Old Style',Palatino,Georgia,serif}
   .ow-jotun .rows{display:flex;flex-direction:column;gap:.4rem}
-  .ow-jotun .row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;background:${P.oakDeep};
-    border:1px solid ${P.tar};border-radius:4px;padding:.35rem .5rem;min-height:44px}
-  .ow-jotun .row[aria-selected="true"]{outline:2px solid ${P.goldBright};outline-offset:1px}
-  .ow-jotun .row .slot{margin-left:auto;font-family:ui-monospace,Menlo,monospace;color:${P.goldBright};min-width:7ch;text-align:right}
+  /* each carved word rides its own timber lath, not a form row (QUALITY_LOOP4):
+     wood gradient, top light, seated shadow — same material family as the tray */
+  .ow-jotun .row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+    background:linear-gradient(180deg,${P.oak} 0%,${P.oakDeep} 62%,rgba(20,13,6,.98) 100%);
+    border:1px solid ${P.tar};border-radius:4px;padding:.35rem .5rem;min-height:44px;
+    box-shadow:inset 0 1px 0 rgba(233,220,195,.1),inset 0 -2px 4px rgba(12,9,6,.55),0 2px 3px rgba(12,9,6,.4)}
+  .ow-jotun .row[aria-selected="true"]{outline:2px solid ${P.goldBright};outline-offset:1px;
+    box-shadow:inset 0 1px 0 rgba(233,220,195,.12),inset 0 -2px 4px rgba(12,9,6,.5),0 0 10px rgba(238,207,109,.18)}
+  .ow-jotun .row .slot{margin-left:auto;color:${P.goldBright};min-width:7ch;text-align:right;letter-spacing:.04em}
   .ow-jotun .row .n{color:${P.boneDim};font-size:.78rem}
   .ow-jotun .keys,.ow-jotun .slate{display:flex;flex-wrap:wrap;gap:.3rem}
   /* the lid's lexicon is a slate: cold stone under chalk-dusted words */
@@ -331,7 +336,8 @@ function mount(ctx) {
   .ow-jotun button[disabled]:not(.btn-carved){opacity:.4;cursor:default}
   .ow-jotun .slate button{min-width:0;font-size:.85rem;background:rgba(58,36,18,.82)}
   .ow-jotun .slate button.hit{border-color:${P.gold};color:${P.goldBright}}
-  .ow-jotun .draft{font-family:ui-monospace,Menlo,monospace;color:${P.boneDim};min-height:1.4em}
+  /* helper voice in the house serif, not terminal mono (type discipline) */
+  .ow-jotun .draft{font-style:italic;color:${P.boneDim};min-height:1.4em;letter-spacing:.015em}
   .ow-jotun h4{margin:.2rem 0 0;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:${P.boneDim}}
   .ow-jotun .law{margin:0;font-size:.86rem;line-height:1.45;color:${P.boneDim};max-width:64ch}
   .ow-jotun .tell{margin:0;min-height:1.3em;font-size:.9rem;color:${P.ember};scroll-margin:28px}
@@ -409,6 +415,8 @@ function mount(ctx) {
 
   const send = document.createElement('button');
   send.className = 'btn-carved'; // one primary-action language: the carved gold plate
+  // the column parent stretches children edge-to-edge; keep the plate compact
+  send.style.alignSelf = 'center';
   send.type = 'button';
   send.textContent = T('submit');
   send.disabled = true;

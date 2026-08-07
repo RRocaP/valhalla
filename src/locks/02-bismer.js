@@ -371,6 +371,9 @@ function mount(ctx) {
   const submitBtn = node('button', null, T('submit'));
   submitBtn.className = 'btn-carved'; // one primary-action language: the carved gold plate
   submitBtn.type = 'button';
+  // the grid parent stretches children edge-to-edge; the primary is a plate,
+  // not a full-width slab (QUALITY_LOOP4 button discipline)
+  submitBtn.style.justifySelf = 'center';
   submitBtn.disabled = true;
 
   // the help line stands directly over the rack it describes, so the board
